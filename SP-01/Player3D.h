@@ -124,6 +124,7 @@ private:
 	Cube3D* pVisualHitboxes[PLAYER_HB_MAX];
 	PLAYER_DIRECTION eDirection;
 	bool bPressedForwardMidAttack, bPressedBackwardMidAttack;
+	bool bUppercutExecute, bRouletteExecuted;
 public:
 	Player3D();
 	Player3D(Light3D* Light);
