@@ -60,15 +60,11 @@ void UpdateInputManager()
 	bInputs[INPUT_MENU_LEFT] = GetKeyTrigger(VK_A) || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
 	bInputs[INPUT_MENU_RIGHT] = GetKeyTrigger(VK_D) || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
 
-	bInputs[INPUT_LOCKON] = GetKeyPress(VK_SHIFT) || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER;
-
 	bInputs[INPUT_JUMP] = GetKeyTrigger(VK_K) || GetKeyTrigger(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A && !bHoldingXinput[INPUT_JUMP]);
-	bInputs[INPUT_PAUSE] = GetKeyTrigger(VK_RETURN) || GetKeyTrigger(VK_P) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START && !bHoldingXinput[INPUT_PAUSE]);
 
-	bInputs[INPUT_SHOOT] = GetMouseButton(MOUSEBUTTON_L) || GetKeyPress(VK_J) ||
-		(bXinputConnected && Player1->GetState().Gamepad.bLeftTrigger > 0);
-	bInputs[INPUT_AIM] = GetKeyPress(VK_CONTROL) || GetKeyPress(VK_J) ||
-							(bXinputConnected && Player1->GetState().Gamepad.bRightTrigger>0);
+	bInputs[INPUT_JUMP_HOLD] = GetKeyPress(VK_K) || GetKeyPress(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A);
+	
+	bInputs[INPUT_PAUSE] = GetKeyTrigger(VK_RETURN) || GetKeyTrigger(VK_P) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START && !bHoldingXinput[INPUT_PAUSE]);
 
 	bInputs[INPUT_PUNCH] = GetMouseTrigger(MOUSEBUTTON_L) || GetKeyTrigger(VK_I) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y && !bHoldingXinput[INPUT_PUNCH]);
 	bInputs[INPUT_KICK] = GetMouseTrigger(MOUSEBUTTON_R) || GetKeyTrigger(VK_L) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B && !bHoldingXinput[INPUT_KICK]);

@@ -14,6 +14,7 @@
 enum MyEnum
 {
 	PLAYER_MODEL,
+	BUNBUN_MODEL,
 	MAX_PRELOADED_MODELS,
 };
 
@@ -52,6 +53,7 @@ public:
 	void UpdateModel(void);
 	void SwitchAnimation(int nNewAnimNum, int FrameSlowness, float nAnimationSkipFrame);
 	void DrawModel(void);
+	void DrawModel(XMFLOAT3* ParPos, XMFLOAT3* ParScal, XMFLOAT3* ParRot);
 	void AnimationControl();
 	XMFLOAT4X4 *GetModelWorld();
 	XMFLOAT3 GetRotation();

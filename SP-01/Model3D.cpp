@@ -26,6 +26,7 @@
 char ModelPaths[MAX_PRELOADED_MODELS][256] = 
 {
 	"data/model/Hana.fbx",
+	"data/model/BunBun.fbx",
 };
 CFbxModel* Models[MAX_PRELOADED_MODELS] = { nullptr };
 
@@ -239,6 +240,55 @@ void Model3D::DrawModel(void)
 
 	// 移動を反映
 	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x, Position.y + ParentPos.y, Position.z + ParentPos.z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+
+
+
+	// ワールドマトリックスの設定
+	XMStoreFloat4x4(&g_mtxWorld, mtxWorld);
+
+	g_pModel->SetAnimStack(nCurrentAnimation);
+	AnimationControl();
+	SetZWrite(true);
+	g_pModel->Render(g_mtxWorld, pMainCamera->GetViewMatrix(), pMainCamera->GetProjMatrix(), eOpacityOnly);
+	SetZWrite(false);
+	g_pModel->Render(g_mtxWorld, pMainCamera->GetViewMatrix(), pMainCamera->GetProjMatrix(), eTransparentOnly);
+}
+
+void Model3D::DrawModel(XMFLOAT3 * ParPos, XMFLOAT3 * ParScal, XMFLOAT3 * ParRot)
+{
+	if (!pMainCamera)
+	{
+		printf("メインカメラがありません\n");
+		return;
+	}
+
+	Object3D* goParent = (Object3D*)GameObjectParent;//親のポインターを使う
+	XMFLOAT3 ParentPos = { 0,0,0 };
+	XMFLOAT3 ParentScale = { 1,1,1 };//親の拠点と親の大きさ
+	if (goParent) {
+		ParentPos = goParent->GetPosition();
+		ParentScale = goParent->GetScale();
+	}
+	ID3D11Device* pDevice = GetDevice();
+	ID3D11DeviceContext* pDeviceContext = GetDeviceContext();
+	XMMATRIX mtxWorld, mtxRot, mtxTranslate, mtxScale;
+
+	// ワールドマトリックスの初期化
+	mtxWorld = XMMatrixIdentity();
+
+	//サイズ
+	mtxScale = XMMatrixScaling(Scale.x * ParentScale.x * ParScal->x, Scale.y * ParentScale.y * ParScal->y, Scale.z * ParentScale.z * ParScal->z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScale);
+
+	// 回転を反映
+	mtxRot = XMMatrixRotationRollPitchYaw(Rotation.x + ParRot->x, Rotation.y + ParRot->y, Rotation.z + ParRot->z);
+	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
+
+
+
+	// 移動を反映
+	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x + ParPos->x, Position.y + ParentPos.y + ParPos->y, Position.z + ParentPos.z + ParPos->z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 

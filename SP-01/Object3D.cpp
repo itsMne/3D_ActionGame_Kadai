@@ -27,20 +27,23 @@ Object3D::Object3D()
 {
 	nObjType = GO_MAX;
 	Model = nullptr;
+	p_goParent = nullptr;
 	Init();
 }
 
 Object3D::Object3D(int Type)
 {
 	nObjType = Type;
+	p_goParent = nullptr;
 	Init();
 	switch (Type)
 	{
-	case GO_SHADOW:
-		Model = new Model3D(this, "data/model/Shadow.fbx");
-		break;
 	case GO_TITLE_LOGO:
 		Model = new Model3D(this, "data/model/LogoV3.fbx");
+		break;
+	case GO_BUNBUN:
+		Model = new Model3D(this, BUNBUN_MODEL);
+		Model->SwitchAnimation(1, 0, 0.25f);
 		break;
 	default:
 		break;
@@ -138,20 +141,29 @@ void Object3D::Update()
 	XMFLOAT3* ModelScale;
 	switch (nObjType)
 	{
-	case GO_SHADOW:
+	case GO_BUNBUN:
 		if (!p_goParent)
 			return;
-		XMFLOAT3 ParentPosition = p_goParent->GetPosition();
-		Position.x = ParentPosition.x;
-		Position.z = ParentPosition.z;
-		break;
-	case GO_TITLE_LOGO:
-		if (Model->GetCurrentAnimation() == 0 && Model->GetCurrentFrameOfAnimation() == 148)
-			Model->SwitchAnimation(1, 0, 1);
+		BunBunControl();
 		break;
 	default:
 		break;
 	}
+}
+
+void Object3D::BunBunControl()
+{
+	Model->SetRotation(p_goParent->GetModel()->GetRotation());
+	switch (Model->GetCurrentAnimation())
+	{
+	case BUN_BUN_APPEARS:
+		if (Model->GetCurrentFrame() >= 4057)
+			SetAnimation(BUN_BUN_IDLE, 0.5f);
+		break;
+	default:
+		break;
+	}
+
 }
 
 
@@ -176,8 +188,10 @@ void Object3D::Draw()
 		return;
 	if (bIsUnlit)
 		GetMainLight()->SetLightEnable(false);
-	if (Model)
+	if (Model && !p_goParent)
 		Model->DrawModel();
+	else if(Model && p_goParent)
+		Model->DrawModel(p_goParent->GetPositionAddr(), p_goParent->GetScaleAddr(), p_goParent->GetRotationAddr());
 	GetMainLight()->SetLightEnable(true);
 	
 
@@ -228,6 +242,21 @@ XMFLOAT3 Object3D::GetRotation()
 XMFLOAT3 Object3D::GetScale()
 {
 	return Scale;
+}
+
+XMFLOAT3 * Object3D::GetPositionAddr()
+{
+	return &Position;
+}
+
+XMFLOAT3 * Object3D::GetRotationAddr()
+{
+	return &Rotation;
+}
+
+XMFLOAT3 * Object3D::GetScaleAddr()
+{
+	return &Scale;
 }
 
 //*****************************************************************************
@@ -287,17 +316,26 @@ void Object3D::SetRotation(XMFLOAT3 fRot)
 //*****************************************************************************
 XMFLOAT4X4* Object3D::GetModelWorld()
 {
+	XMFLOAT3 ParPosition, ParRotation, ParScale;
+	ParPosition = ParRotation = {0,0,0};
+	ParScale = { 1,1,1 };
+	if (p_goParent)
+	{
+		ParPosition = p_goParent->GetPosition();
+		ParRotation = p_goParent->GetRotation();
+		ParScale = p_goParent->GetScale();
+	}
 	XMMATRIX mtxWorld, mtxRot, mtxTranslate, mtxScale;
 	// ワールドマトリックスの初期化
 	mtxWorld = XMMatrixIdentity();
 
-	mtxScale = XMMatrixScaling(Scale.x, Scale.y, Scale.z);
+	mtxScale = XMMatrixScaling(Scale.x*ParScale.x, Scale.y*ParScale.y, Scale.z*ParScale.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScale);
 
-	mtxRot = XMMatrixRotationRollPitchYaw(Rotation.x, Rotation.y, Rotation.z);
+	mtxRot = XMMatrixRotationRollPitchYaw(Rotation.x + ParRotation.x, Rotation.y + ParRotation.y, Rotation.z + ParRotation.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
 
-	mtxTranslate = XMMatrixTranslation(Position.x, Position.y, Position.z);
+	mtxTranslate = XMMatrixTranslation(Position.x + ParPosition.x, Position.y + ParPosition.y, Position.z + ParPosition.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 	
 	XMStoreFloat4x4(&WorldMatrix, mtxWorld);

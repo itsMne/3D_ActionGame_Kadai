@@ -55,6 +55,7 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"BBK",	  KNEEKICK,						true,	AIR_MOVE,	 MAX_ANIMATIONS,		1800},//A
 	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS,		1900},//A
 };
+
 float fAnimationSpeed[] =
 {
 	1,
@@ -96,6 +97,7 @@ float fAnimationSpeed[] =
 	0.75f,//BASIC_CHAIN_B_KICKC,
 	0.5f,//BASIC_CHAIN_B_KICKB_FORWARD,
 	0.5f,//BASIC_CHAIN_B_KICKB_PUNCH,
+	0.5f,//BUNBUN_FLOAT,
 };
 
 Player3D* pCurrentPlayer = nullptr;
@@ -114,6 +116,10 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pLight = GetMainLight();
 	nState = PLAYER_IDLE_STATE;
 	pFloor = nullptr;
+	BunBun = new Object3D(GO_BUNBUN);
+	BunBun->SetParent(this);
+	BunBun->SetPosition({ 0, -100, 50 });
+	BunBun->SetAnimation(BUN_BUN_APPEARS, 0.5f);
 	pCurrentAttackPlaying = nullptr;
 	pPreviousAttack = nullptr;
 	nFightStanceFrameCount = 0;
@@ -205,37 +211,61 @@ void Player3D::Update()
 		AttackStateControl();
 		break;
 	case PLAYER_JUMPING_UP_STATE:
-		if (fGravityForce<0 && Model->GetCurrentFrame() > 894) {
-			GravityControl();
-			MoveControl();
-		}
-		if (Model->GetCurrentFrame() < 888 && Model->GetCurrentAnimation() == JUMP_UP)
-			Model->SetFrameOfAnimation(888);
+		JumpingStateControl();
+		break;
+	case PLAYER_BUNBUN_FLOATING:
+		if (Model->GetCurrentFrame() >= 4098)
+			Model->SetFrameOfAnimation(4060);
+		if (Model->GetCurrentFrame() >= 4040)
+			BunBun->Update();
+		MoveControl();
+		GravityControl();
 		AttackInputsControl();
-		if (Model->GetCurrentAnimation() != JUMP_UP_TO_FALLDOWN)
-			SetAnimation(JUMP_UP, fAnimationSpeed[JUMP_UP]);
-		else
-		{
-			MoveControl();
-			if (Model->GetCurrentFrame() >= 1016)
-				nState = PLAYER_IDLE_STATE;
-			return;
-		}
-		if (Model->GetCurrentFrame() >= 975)
-			Model->SetFrameOfAnimation(905);
-		if(Model->GetCurrentAnimation()==JUMP_UP && fGravityForce==0)
-			SetAnimation(JUMP_UP_TO_FALLDOWN, fAnimationSpeed[JUMP_UP_TO_FALLDOWN]);
-		if (fGravityForce > 0)
-				fGravityForce = 0;
 		break;
 	default:
 		if (!Model->GetLoops())
 			printf("%d\n", Model->GetCurrentFrame());
 		break;
 	}
-	//printf("STATE: %d\n", nState);
 	InputResetControl();
+	TransitionToFloatingBunBun();
 	//printf("INPUTS: %s\n", szInputs);
+}
+
+void Player3D::TransitionToFloatingBunBun()
+{
+	if (GetInput(INPUT_JUMP_HOLD) && Model->GetCurrentAnimation() == AIR_IDLE ) {
+		SetAnimation(BUNBUN_FLOAT, fAnimationSpeed[BUNBUN_FLOAT]);
+		BunBun->SetAnimation(BUN_BUN_APPEARS, 0.5f);
+		BunBun->GetModel()->SetFrameOfAnimation(4020);
+		nState = PLAYER_BUNBUN_FLOATING;
+	}
+}
+
+void Player3D::JumpingStateControl()
+{
+	if (fGravityForce<0 && Model->GetCurrentFrame() > 894) {
+		GravityControl();
+		MoveControl();
+	}
+	if (Model->GetCurrentFrame() < 888 && Model->GetCurrentAnimation() == JUMP_UP)
+		Model->SetFrameOfAnimation(888);
+	AttackInputsControl();
+	if (Model->GetCurrentAnimation() != JUMP_UP_TO_FALLDOWN)
+		SetAnimation(JUMP_UP, fAnimationSpeed[JUMP_UP]);
+	else
+	{
+		MoveControl();
+		if (Model->GetCurrentFrame() >= 1016)
+			nState = PLAYER_IDLE_STATE;
+		return;
+	}
+	if (Model->GetCurrentFrame() >= 975)
+		Model->SetFrameOfAnimation(905);
+	if (Model->GetCurrentAnimation() == JUMP_UP && fGravityForce == 0)
+		SetAnimation(JUMP_UP_TO_FALLDOWN, fAnimationSpeed[JUMP_UP_TO_FALLDOWN]);
+	if (fGravityForce > 0)
+		fGravityForce = 0;
 }
 
 void Player3D::GravityControl()
@@ -247,8 +277,15 @@ void Player3D::GravityControl()
 	}
 	
 	if (--nCancellingGravityFrames > 0) {
-		fGravityForce += GRAVITY_FORCE*0.25f;
-		Position.y -= fGravityForce*0.25f;
+		fGravityForce += GRAVITY_FORCE * 0.25f;
+		Position.y -= fGravityForce * 0.25f;
+		return;
+	}
+	if (nState == PLAYER_BUNBUN_FLOATING) {
+		fGravityForce += GRAVITY_FORCE;
+		Position.y -= fGravityForce * 0.125f;
+		if (fGravityForce > 5)
+			fGravityForce = 5;
 		return;
 	}
 	fGravityForce += GRAVITY_FORCE;
@@ -564,7 +601,6 @@ void Player3D::AttackStateControl()
 			
 		}
 		else {
-			//printf("%f\n", fGravityForce);
 			if (!bUppercutExecute) {
 				fGravityForce += GRAVITY_FORCE;
 				Position.y -= fGravityForce;
@@ -907,7 +943,7 @@ void Player3D::MoveControl()
 {
 	static float RotTarget = 0;
 	//アニメーション
-	if (nState != PLAYER_JUMPING_UP_STATE) {
+	if (nState != PLAYER_JUMPING_UP_STATE && nState != PLAYER_BUNBUN_FLOATING) {
 		if (IsOnTheFloor()) {
 			if (eDirection == DIR_BACKWARD) {
 				SetAnimation(BACKWARD, fAnimationSpeed[BACKWARD]);
@@ -1024,6 +1060,8 @@ void Player3D::Draw()
 	GetMainLight()->SetLightEnable(true);
 #endif
 	Actor::Draw();
+	if(nState == PLAYER_BUNBUN_FLOATING)
+		BunBun->Draw();
 }
 
 //*****************************************************************************

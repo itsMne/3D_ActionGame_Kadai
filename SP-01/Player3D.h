@@ -58,6 +58,7 @@ enum PLAYER_ANIMATIONS
 	BASIC_CHAIN_B_KICKC,
 	BASIC_CHAIN_B_KICKB_FORWARD,
 	BASIC_CHAIN_B_KICKB_PUNCH,
+	BUNBUN_FLOAT,
 	MAX_ANIMATIONS
 };
 enum EPLAYER_STATE
@@ -67,6 +68,7 @@ enum EPLAYER_STATE
 	PLAYER_MOVING_STATE,
 	PLAYER_ATTACKING_STATE,
 	PLAYER_JUMPING_UP_STATE,
+	PLAYER_BUNBUN_FLOATING,
 	PLAYER_STATE_MAX
 };
 enum EPLAYER_HITBOXES
@@ -125,6 +127,7 @@ private:
 	PLAYER_DIRECTION eDirection;
 	bool bPressedForwardMidAttack, bPressedBackwardMidAttack;
 	bool bUppercutExecute, bRouletteExecuted;
+	Object3D* BunBun;
 public:
 	Player3D();
 	Player3D(Light3D* Light);
@@ -132,6 +135,8 @@ public:
 
 	void Init();
 	void Update();
+	void TransitionToFloatingBunBun();
+	void JumpingStateControl();
 	void GravityControl();
 	void IdleStateControl();
 	void FightingStanceStateControl();

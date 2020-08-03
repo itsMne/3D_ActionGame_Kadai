@@ -12,16 +12,24 @@
 enum eGameObjectTypes
 {
 	GO_ACTOR = 0,
-	GO_SHADOW,
 	GO_TITLE_LOGO,
 	GO_FLOOR,
 	GO_DEBUGAIM,
 	GO_CUBE,
 	GO_WALL,
 	GO_ENEMY,
+	GO_BUNBUN,
 	GO_MAX
 };
 
+enum BUNBUN_ANIM
+{
+	BUN_BUN_IDLE,
+	BUN_BUN_APPEARS,
+	BUN_BUN_ABOUTTOFALL,
+	BUN_BUN_DISAPPEARS,
+	BUN_BUN_MAX_ANIM
+};
 //*****************************************************************************
 // クラス
 //*****************************************************************************
@@ -68,11 +76,18 @@ public:
 	virtual ~Object3D();
 	virtual void Init();
 	virtual void Update();
+	void BunBunControl();
 	virtual void Draw();
 	virtual void End();
 	XMFLOAT3 GetPosition();
 	XMFLOAT3 GetRotation();
 	XMFLOAT3 GetScale();
+
+	XMFLOAT3* GetPositionAddr();
+	XMFLOAT3* GetRotationAddr();
+	XMFLOAT3* GetScaleAddr();
+	//void SetParent(Object3D* pParent) { Parent = pParent; };
+
 	Model3D* GetModel();
 	void SetScale(float fScale);
 	void SetScale(XMFLOAT3 fScale);
@@ -98,7 +113,7 @@ public:
 	void SetAnimation(int anim);
 	void SetAnimation(int anim, float fSpeed);
 	//自動で動いているオブジェクトなら
-	void AutomaticMovementControl();
+	//void AutomaticMovementControl();
 	bool MoveToPos(float fSpeed, XMFLOAT3 Destination);
 	void SetMovement(XMFLOAT3 Start, XMFLOAT3 End, float Speed, int nDelayFrames);
 	bool IsMoveableObject();
