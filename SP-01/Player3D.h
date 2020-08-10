@@ -47,7 +47,6 @@ enum PLAYER_ANIMATIONS
 	BACKDROP_KICK,
 	HEADBUTT,
 	KICK_CHAIN_C,
-
 	AIR_PUNCHA,
 	AIR_PUNCHB,
 	AIR_PUNCHC,
@@ -59,6 +58,7 @@ enum PLAYER_ANIMATIONS
 	BASIC_CHAIN_B_KICKB_FORWARD,
 	BASIC_CHAIN_B_KICKB_PUNCH,
 	BUNBUN_FLOAT,
+	KICKDOWN,
 	MAX_ANIMATIONS
 };
 enum EPLAYER_STATE
@@ -74,6 +74,7 @@ enum EPLAYER_STATE
 enum EPLAYER_HITBOXES
 {
 	PLAYER_HB_FEET=0,
+	PLAYER_HB_ATTACK,
 	PLAYER_HB_MAX
 };
 enum AirMove
@@ -90,17 +91,30 @@ enum PLAYER_DIRECTION
 	DIR_BACKWARD,
 	DIR_OTHER,
 };
+typedef struct HITBOX_ACTIVATION_FRAME
+{
+	float InitialFrame;
+	float EndFrame;
+};
+typedef struct ATTACK_HITBOX_SIZE
+{
+	float x,y,z;
+	float speed;
+};
 //*****************************************************************************
 // ç\ë¢ëÃíËã`
 //*****************************************************************************
 typedef struct PLAYER_ATTACK_MOVE
 {
-	char	Input[MAX_PLAYER_INPUT];
-	int		Animation;
-	bool	ResetInputs;
-	AirMove eAirMove;
-	int		nNextChain;
-	int		nAttackID;
+	char					Input[MAX_PLAYER_INPUT];
+	int						Animation;
+	bool					ResetInputs;
+	AirMove					eAirMove;
+	int						nNextChain;
+	int						nMinFrameForInputDetection;
+	HITBOX_ACTIVATION_FRAME fpHitBoxActivation;
+	ATTACK_HITBOX_SIZE		ahsHitboxSize;
+	int						nAttackID;
 };
 
 //*****************************************************************************
@@ -143,6 +157,8 @@ public:
 	void FindMoveByAnimation(int anim);
 	PLAYER_ATTACK_MOVE* GetAttack(int anim);
 	void AttackStateControl();
+	void SetAttackHitboxPosition(float x, float y, float z);
+	void ActivateAttackHitbox(float x, float y, float z, float Speed);
 	void StopAttack();
 	void CalculateDirectionalInput();
 	void SwitchAttack(int nNextAttack);

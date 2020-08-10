@@ -17,7 +17,7 @@
 #define MAX_ATTACKS 24
 #define MAX_INPUT_TIMER 27
 #define MAX_WAIT_TIMER 13
-#define DEBUG_FOUND_ATTACKS true
+#define DEBUG_FOUND_ATTACKS false
 #define VERIFY_ISONFLOOR true
 #define DEBUG_ADD_INPUTS false
 #define MAX_SPEED 6.8f
@@ -25,35 +25,40 @@
 #define SHOW_PLAYER_HITBOX true
 #define SHOW_SPECIFIC_PLAYER_HITBOX -1
 #define JUMP_FORCE 20
+#define DEBUG_DIRECTIONALS false
+#define DEBUG_WAITFRAME false
+
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
+
 Player3D* pMainPlayer3D = nullptr;
 PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 {
-	{"A",	  BASIC_CHAIN_A,				false,	GROUND_MOVE, BASIC_CHAIN_B,			100},
-	{"AA",	  BASIC_CHAIN_B,				false,	GROUND_MOVE, BASIC_CHAIN_C,			200},//AA
-	{"AAA",	  BASIC_CHAIN_C,				true,	GROUND_MOVE, MAX_ANIMATIONS,		300},//AAA
-	{"BFA",	  UPPERCUT,						true,	GROUND_MOVE, MAX_ANIMATIONS,			400},//BFA
-	{"BBA",	  UPPERCUT,						true,	AIR_MOVE,	 MAX_ANIMATIONS,			400},//BFA
-	{"FFA",	  HEADBUTT,						true,	GROUND_MOVE, MAX_ANIMATIONS,		400},//BFA
-	{"BFK",	  BACKDROP_KICK,				true,	GROUND_MOVE, MAX_ANIMATIONS,		400},//BFK
-	{"FFK",	  SLIDE,						true,	GROUND_MOVE, MAX_ANIMATIONS,		400},//BFK
-	{"N",	  BASIC_CHAIN_B_PAUSEA,			true,	GROUND_MOVE, MAX_ANIMATIONS,		500},//AAPA
-	{"K",	  KICK_CHAIN_A,					false,	GROUND_MOVE, KICK_CHAIN_B,			600},//K
-	{"KK",	  KICK_CHAIN_B,					false,	GROUND_MOVE, BASIC_CHAIN_C,			700},//KK
-	{"KKK",	  KICK_CHAIN_C,					true,	GROUND_MOVE, MAX_ANIMATIONS,		800},//KKK
-	{"N",	  SLIDE_KICKUP,					true,	GROUND_MOVE, MAX_ANIMATIONS,		900},//
-	{"AAK",	  BASIC_CHAIN_B_KICKA,			true,	GROUND_MOVE, MAX_ANIMATIONS,		1000},//AAK
-	{"AAKK",  BASIC_CHAIN_B_KICKB,			true,	GROUND_MOVE, MAX_ANIMATIONS,		1100},//AAKK
-	{"AAKKK", BASIC_CHAIN_B_KICKC,			true,	GROUND_MOVE, MAX_ANIMATIONS,		1200},//AAKK
-	{"AAKKA", BASIC_CHAIN_B_KICKB_PUNCH,	true,	GROUND_MOVE, MAX_ANIMATIONS,		1300},//AAKFK
-	{"N",	  BASIC_CHAIN_B_KICKB_FORWARD,	true,	GROUND_MOVE, MAX_ANIMATIONS,		1400},//AAKA
-	{"A",	  AIR_PUNCHA,					false,	AIR_MOVE,	 AIR_PUNCHB,			1500},//A
-	{"N",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,			1600},//A
-	{"N",	  AIR_PUNCHC,					true,	AIR_MOVE,	 MAX_ANIMATIONS,		1700},//A
-	{"BBK",	  KNEEKICK,						true,	AIR_MOVE,	 MAX_ANIMATIONS,		1800},//A
-	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS,		1900},//A
+	{"A",	  BASIC_CHAIN_A,				false,	GROUND_MOVE, BASIC_CHAIN_B,	 1123,	{ 1122, 1133}	,{15, 20, 10, 10},	100},
+	{"n",	  BASIC_CHAIN_B,				false,	GROUND_MOVE, BASIC_CHAIN_C,	 1204,	{ 1200, 1220}	,{15, 20, 10, 10},	200},//AA
+	{"n",	  BASIC_CHAIN_C,				true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 1300, 1320}	,{15, 20, 10, 10},	300},//AAA
+	{"BFA",	  UPPERCUT,						true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 1813, 1837}	,{15, 30, 15,  5},	400},//BFA
+	{"BBA",	  UPPERCUT,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 1813, 1837}	,{15, 30, 15,  5},	400},//BFA
+	{"FFA",	  HEADBUTT,						true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 2866, 2914}	,{15, 20, 60,  8},	400},//BFA
+	{"BFK",	  BACKDROP_KICK,				true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 2680, 2697}	,{15,  0, 60, 12},	400},//BFK
+	{"FFK",	  SLIDE,						true,	GROUND_MOVE, MAX_ANIMATIONS, 482,	{ 467,  512}	,{15, 30, 30,  0},	400},//BFK
+	{"N",	  BASIC_CHAIN_B_PAUSEA,			true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 0, 0}			,{15, 20, 10,  0},	500},//AAPA
+	{"K",	  KICK_CHAIN_A,					false,	GROUND_MOVE, KICK_CHAIN_B,	 2130,	{ 2140, 2162}	,{15, 20, 10,  5},	600},//K
+	{"n",	  KICK_CHAIN_B,					false,	GROUND_MOVE, BASIC_CHAIN_C,	 2270,	{ 2276, 2292}	,{15, 20, 10,  5},	700},//KK
+	{"n",	  KICK_CHAIN_C,					true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 2995, 3028}	,{15, 20, 10, 10},	800},//KKK
+	{"n",	  SLIDE_KICKUP,					true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 0, 0}			,{15, 20, 10,  0},	900},//
+	{"n",	  BASIC_CHAIN_B_KICKA,			true,	GROUND_MOVE, MAX_ANIMATIONS, 3515,	{ 3505, 3556}	,{15, 20, 10,  8},	1000},//AAK
+	{"n",     BASIC_CHAIN_B_KICKB,			true,	GROUND_MOVE, MAX_ANIMATIONS, 3616,	{ 3606, 3652}	,{15, 20, 10,  8},	1100},//AAKK
+	{"n",     BASIC_CHAIN_B_KICKC,			true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 3740, 3765}	,{15, 20, 10,  8},	1200},//AAKK
+	{"n",     BASIC_CHAIN_B_KICKB_PUNCH,	true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 3934, 3973}	,{15, 20, 10,  9},	1300},//AAKFK
+	{"n",	  BASIC_CHAIN_B_KICKB_FORWARD,	true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 3828, 3852}	,{15, 20, 10,  2},	1400},//AAKA
+	{"A",	  AIR_PUNCHA,					false,	AIR_MOVE,	 AIR_PUNCHB,	 3100,	{ 3100, 3113}	,{15, 20, 10,  0},	1500},//A
+	{"n",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,	 3175,	{ 3167, 3191}	,{15, 20, 10,  0},	1600},//A
+	{"n",	  AIR_PUNCHC,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3272, 3290}	,{15, 20, 10,  0},	1700},//A
+	{"BBK",	  KNEEKICK,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{15, 20, 10,  0},	1800},//A
+	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3770, 3394}	,{15, 20, 10,  0},	1900},//A
+	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 0, 0}			,{15, 20, 10,  0},	1900},//K
 };
 
 float fAnimationSpeed[] =
@@ -81,12 +86,11 @@ float fAnimationSpeed[] =
 	1.0f,//	BASIC_CHAIN_B_PAUSEA,
 	1.25f,//KICK_CHAIN_A,
 	1.25f,//KICK_CHAIN_B,
-	1.05f,//	BACKWARD,
+	1.05f,//BACKWARD,
 	2.5f,//BACKWARDTOFORWARD,
 	1.0f,//BACKDROP_KICK,
 	1.25f,//HEADBUTT,
 	1.25f,//KICK_CHAIN_C,
-
 	1.0f,//AIR_PUNCHA,
 	1.0f,//AIR_PUNCHB,
 	1.0f,//AIR_PUNCHC,
@@ -98,6 +102,7 @@ float fAnimationSpeed[] =
 	0.5f,//BASIC_CHAIN_B_KICKB_FORWARD,
 	0.5f,//BASIC_CHAIN_B_KICKB_PUNCH,
 	0.5f,//BUNBUN_FLOAT,
+	1.0f,//KICKDOWN,
 };
 
 Player3D* pCurrentPlayer = nullptr;
@@ -154,6 +159,7 @@ void Player3D::Init()
 		Hitboxes[i] = { 0 };
 	}
 	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 5.0f, 15.0f, 5.0f };
+	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
 	{
@@ -192,6 +198,11 @@ void Player3D::Update()
 	CalculateDirectionalInput();
 	if (nState != PLAYER_IDLE_FIGHT_STATE)
 		nFightStanceFrameCount = 0;
+
+	SetAttackHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45,25.0f,-cosf(XM_PI + Model->GetRotation().y) * 45);
+	Hitboxes[PLAYER_HB_ATTACK].SizeX = Hitboxes[PLAYER_HB_ATTACK].SizeY = Hitboxes[PLAYER_HB_ATTACK].SizeZ = 0;
+	
+	//ステートマシン
 	switch (nState)
 	{
 	case PLAYER_IDLE_STATE:
@@ -221,6 +232,10 @@ void Player3D::Update()
 		MoveControl();
 		GravityControl();
 		AttackInputsControl();
+		if (pFloor)
+			nState = PLAYER_IDLE_STATE;
+		if(!GetInput(INPUT_JUMP_HOLD))
+			nState = PLAYER_IDLE_STATE;
 		break;
 	default:
 		if (!Model->GetLoops())
@@ -353,8 +368,10 @@ void Player3D::FightingStanceStateControl()
 	if (GetAxis(MOVEMENT_AXIS_HORIZONTAL) || GetAxis(MOVEMENT_AXIS_VERTICAL))
 		nState = PLAYER_MOVING_STATE;
 	nFightStanceFrameCount++;
+#if DEBUG_WAITFRAME
 	if(GetInput(INPUT_PUNCH))
 		printf("%d\n", nFightStanceFrameCount);
+#endif
 	if (nFightStanceFrameCount < MAX_WAIT_TIMER && (GetInput(INPUT_PUNCH) || GetInput(INPUT_KICK)) && pPreviousAttack && !pPreviousAttack->ResetInputs)
 	{
 			switch (pPreviousAttack->Animation)
@@ -542,7 +559,8 @@ void Player3D::AttackStateControl()
 	}
 	SetAnimation(pCurrentAttackPlaying->Animation, fAnimationSpeed[pCurrentAttackPlaying->Animation]);
 	XMFLOAT3 rotCamera = Model->GetRotation();
-	if (Model->GetCurrentFrame() > Model->GetEndFrameOfCurrentAnimation() / 2)
+	if (Model->GetCurrentFrame() > pCurrentAttackPlaying->nMinFrameForInputDetection 
+		&& pCurrentAttackPlaying->nMinFrameForInputDetection!=-1)
 	{
 		if(!PressedPunch)
 			PressedPunch = GetInput(INPUT_PUNCH);
@@ -552,6 +570,10 @@ void Player3D::AttackStateControl()
 	else {
 		PressedKick = PressedPunch = false;
 	}
+
+	if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame)
+		ActivateAttackHitbox(pCurrentAttackPlaying->ahsHitboxSize.x, pCurrentAttackPlaying->ahsHitboxSize.y, pCurrentAttackPlaying->ahsHitboxSize.z, pCurrentAttackPlaying->ahsHitboxSize.speed);
+
 	switch (pCurrentAttackPlaying->Animation)
 	{
 	case BASIC_CHAIN_A:
@@ -564,19 +586,19 @@ void Player3D::AttackStateControl()
 				break;
 			}
 		}
-		if (Model->GetCurrentFrame() >= 1155) {
+		if (Model->GetCurrentFrame() >= 1155) 
 			StopAttack();
-		}
+
 		break;
 	case BASIC_CHAIN_B:
 		if (GetInput(INPUT_PUNCH)) {
-			if (Model->GetCurrentFrame() > 1220 && Model->GetCurrentFrame() < 1245) {
+			if (Model->GetCurrentFrame() > 1225) {
 				SwitchAttack(BASIC_CHAIN_C);
 				break;
 			}
 		}
 		if (GetInput(INPUT_KICK) || PressedKick) {
-			if (Model->GetCurrentFrame() > 1220 && Model->GetCurrentFrame() < 1245) {
+			if (Model->GetCurrentFrame() > 1225) {
 				SwitchAttack(BASIC_CHAIN_B_KICKA);
 				break;
 			}
@@ -587,9 +609,9 @@ void Player3D::AttackStateControl()
 
 		break;
 	case BASIC_CHAIN_C:
-		if (Model->GetCurrentFrame() >= 1356) {
+		if (Model->GetCurrentFrame() >= 1356) 
 			StopAttack();
-		}
+
 		break;
 	case UPPERCUT:
 		bPressedForwardMidAttack = bPressedBackwardMidAttack = false;
@@ -608,6 +630,7 @@ void Player3D::AttackStateControl()
 		}
 		if (Model->GetCurrentFrame() >= 1848)
 			StopAttack();
+		SetAttackHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 35, 50, -cosf(XM_PI + Model->GetRotation().y) * 35);
 		break;
 	case HEADBUTT:
 		if (Model->GetCurrentFrame() >= 2943)
@@ -618,7 +641,7 @@ void Player3D::AttackStateControl()
 	case SLIDE:
 		Position.x -= sinf(XM_PI + rotCamera.y) * 15;
 		Position.z -= cosf(XM_PI + rotCamera.y) * 15;
-		if (Model->GetCurrentFrame() >= 510)
+		if (Model->GetCurrentFrame() >= 510 || PressedKick)
 		{
 			if (GetInput(INPUT_KICK) || PressedKick) {
 				SwitchAttack(SLIDE_KICKUP);
@@ -629,6 +652,7 @@ void Player3D::AttackStateControl()
 		{
 			StopAttack();
 		}
+		SetAttackHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45, 0.0f, -cosf(XM_PI + Model->GetRotation().y) * 25);
 		break;
 	case BASIC_CHAIN_B_PAUSEA:
 		if (Model->GetCurrentFrame() >= 2086)
@@ -844,6 +868,22 @@ void Player3D::AttackStateControl()
 	}
 }
 
+void Player3D::SetAttackHitboxPosition(float x, float y, float z)
+{
+	Hitboxes[PLAYER_HB_ATTACK].PositionX = x;
+	Hitboxes[PLAYER_HB_ATTACK].PositionY = y;
+	Hitboxes[PLAYER_HB_ATTACK].PositionZ = z;
+}
+
+void Player3D::ActivateAttackHitbox(float x, float y, float z, float Speed)
+{
+	Hitboxes[PLAYER_HB_ATTACK].SizeX = x;
+	Hitboxes[PLAYER_HB_ATTACK].SizeY = y;
+	Hitboxes[PLAYER_HB_ATTACK].SizeZ = z;
+	Position.x -= sinf(XM_PI + Model->GetRotation().y) * Speed;
+	Position.z -= cosf(XM_PI + Model->GetRotation().y) * Speed;
+}
+
 void Player3D::StopAttack()
 {
 	if (pCurrentAttackPlaying) {
@@ -901,18 +941,24 @@ void Player3D::CalculateDirectionalInput()
 		eDirection = DIR_BACKWARD;
 		AddInput('B');
 		nInputTimer = MAX_INPUT_TIMER /2;
+#if DEBUG_DIRECTIONALS
 		printf("BACKWARD\n", DirInput);
+#endif
 	}
 	else if (DirInput<=0.5f)
 	{
 		AddInput('F');
 		nInputTimer = MAX_INPUT_TIMER / 2;
 		eDirection = DIR_FORWARD;
+#if DEBUG_DIRECTIONALS
 		printf("FORWARD\n", DirInput);
+#endif
 	}
 	else {
 		eDirection = DIR_OTHER;
+#if DEBUG_DIRECTIONALS
 		printf("OTHER\n", DirInput);
+#endif
 	}
 	
 }
