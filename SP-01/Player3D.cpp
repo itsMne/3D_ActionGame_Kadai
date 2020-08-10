@@ -57,8 +57,8 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"n",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,	 3175,	{ 3167, 3191}	,{15, 20, 10,  0},	1600},//A
 	{"n",	  AIR_PUNCHC,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3272, 3290}	,{15, 20, 10,  0},	1700},//A
 	{"BBK",	  KNEEKICK,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{15, 20, 10,  0},	1800},//A
-	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3770, 3394}	,{15, 20, 10,  0},	1900},//A
-	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 0, 0}			,{15, 20, 10,  0},	1900},//K
+	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3363, 3395}	,{15, 20, 10,  0},	1900},//A
+	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4157, 4200}	,{15, 20, 10,  0},	1900},//K
 };
 
 float fAnimationSpeed[] =
@@ -102,7 +102,7 @@ float fAnimationSpeed[] =
 	0.5f,//BASIC_CHAIN_B_KICKB_FORWARD,
 	0.5f,//BASIC_CHAIN_B_KICKB_PUNCH,
 	0.5f,//BUNBUN_FLOAT,
-	1.0f,//KICKDOWN,
+	1.5f,//KICKDOWN,
 };
 
 Player3D* pCurrentPlayer = nullptr;
@@ -361,8 +361,13 @@ void Player3D::FightingStanceStateControl()
 			}
 		}
 	}
-	else 
+	else {
 		SetAnimation(AIR_IDLE, fAnimationSpeed[AIR_IDLE]);
+		if (GetInput(INPUT_KICK)) {
+			SwitchAttack(KICKDOWN);
+			return;
+		}
+	}
 	if (Model->GetLoops() > 1)
 		nState = PLAYER_IDLE_STATE;
 	if (GetAxis(MOVEMENT_AXIS_HORIZONTAL) || GetAxis(MOVEMENT_AXIS_VERTICAL))
@@ -541,6 +546,8 @@ PLAYER_ATTACK_MOVE* Player3D::GetAttack(int anim)
 
 void Player3D::AttackStateControl()
 {
+	if (GetInput(INPUT_KICK) && !IsOnTheFloor()) 
+		SwitchAttack(KICKDOWN);
 	static XMFLOAT3 x3OriginalRotation = { 0,0,0 };
 	static XMFLOAT3 x3RotationChange = { 0,0,0 };
 	static bool PressedPunch, PressedKick;
@@ -570,7 +577,6 @@ void Player3D::AttackStateControl()
 	else {
 		PressedKick = PressedPunch = false;
 	}
-
 	if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame)
 		ActivateAttackHitbox(pCurrentAttackPlaying->ahsHitboxSize.x, pCurrentAttackPlaying->ahsHitboxSize.y, pCurrentAttackPlaying->ahsHitboxSize.z, pCurrentAttackPlaying->ahsHitboxSize.speed);
 
@@ -862,6 +868,22 @@ void Player3D::AttackStateControl()
 	case KNEEKICK:
 		Position.x -= sinf(XM_PI + rotCamera.y) * 25;
 		Position.z -= cosf(XM_PI + rotCamera.y) * 25;
+		break;
+	case KICKDOWN:
+		if (Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame) {
+			fGravityForce = 0;
+		}
+		if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame)
+		{
+			fGravityForce += GRAVITY_FORCE + 1.5f;
+			Position.y -= fGravityForce;
+		}
+		if (Model->GetCurrentFrame() >= 4200 && !pFloor)
+		{
+			Model->SetFrameOfAnimation(pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame);
+		}
+		if(pFloor && Model->GetCurrentFrame() <= 4200)
+			Model->SetFrameOfAnimation(4201);
 		break;
 	default:
 		break;
