@@ -547,6 +547,7 @@ PLAYER_ATTACK_MOVE* Player3D::GetAttack(int anim)
 
 void Player3D::AttackStateControl()
 {
+	static bool bFirstSetOfPunches = false;
 	if (GetInput(INPUT_KICK) && !IsOnTheFloor()) 
 		SwitchAttack(KICKDOWN);
 	static XMFLOAT3 x3OriginalRotation = { 0,0,0 };
@@ -563,8 +564,17 @@ void Player3D::AttackStateControl()
 		nState = PLAYER_IDLE_FIGHT_STATE;
 		nFightStanceFrameCount = 0;
 		PressedKick = PressedPunch = false;
+		bFirstSetOfPunches = false;
 		return;
 	}
+	if(pCurrentAttackPlaying->Animation != BASIC_CHAIN_A &&
+		pCurrentAttackPlaying->Animation != BASIC_CHAIN_B &&
+		pCurrentAttackPlaying->Animation != BASIC_CHAIN_C && 
+		pCurrentAttackPlaying->Animation != AIR_PUNCHA &&
+		pCurrentAttackPlaying->Animation != AIR_PUNCHB &&
+		pCurrentAttackPlaying->Animation != AIR_PUNCHC)
+		bFirstSetOfPunches = false;
+
 	SetAnimation(pCurrentAttackPlaying->Animation, fAnimationSpeed[pCurrentAttackPlaying->Animation]);
 	XMFLOAT3 rotCamera = Model->GetRotation();
 	if (Model->GetCurrentFrame() > pCurrentAttackPlaying->nMinFrameForInputDetection 
@@ -600,6 +610,12 @@ void Player3D::AttackStateControl()
 	case BASIC_CHAIN_B:
 		if (GetInput(INPUT_PUNCH)) {
 			if (Model->GetCurrentFrame() > 1225) {
+				if (!bFirstSetOfPunches)
+				{
+					bFirstSetOfPunches = true;
+					SwitchAttack(BASIC_CHAIN_A);
+					break;
+				}
 				SwitchAttack(BASIC_CHAIN_C);
 				break;
 			}
@@ -616,6 +632,7 @@ void Player3D::AttackStateControl()
 
 		break;
 	case BASIC_CHAIN_C:
+		bFirstSetOfPunches = false;
 		if (Model->GetCurrentFrame() >= 1356) 
 			StopAttack();
 
@@ -813,6 +830,12 @@ void Player3D::AttackStateControl()
 		{
 			if (GetInput(INPUT_PUNCH))
 			{
+				if (!bFirstSetOfPunches)
+				{
+					bFirstSetOfPunches = true;
+					SwitchAttack(AIR_PUNCHA);
+					break;
+				}
 				SwitchAttack(AIR_PUNCHC);
 				break;
 			}
@@ -823,6 +846,7 @@ void Player3D::AttackStateControl()
 		}
 		break;
 	case AIR_PUNCHC:
+		bFirstSetOfPunches = false;
 		if (Model->GetCurrentFrame() >= 3330)
 		{
 			StopAttack();
