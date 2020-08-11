@@ -143,6 +143,10 @@ private:
 	bool bPressedForwardMidAttack, bPressedBackwardMidAttack;
 	bool bUppercutExecute, bRouletteExecuted;
 	Object3D* BunBun;
+	//インプット
+	bool bKick;
+	bool bPunch;
+	bool bLockingOn;
 public:
 	Player3D();
 	Player3D(Light3D* Light);
@@ -150,6 +154,8 @@ public:
 
 	void				Init();
 	void				Update();
+	bool				CheckHoldingBack();
+	bool				CheckHoldingForward();
 	void				TransitionToFloatingBunBun();
 	void				JumpingStateControl();
 	void				GravityControl();
