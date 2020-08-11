@@ -14,6 +14,7 @@
 #define MAX_PLAYER_INPUT 8
 #define	MAX_FLOWERS	20
 
+
 //*****************************************************************************
 // ƒGƒiƒ€
 //*****************************************************************************
@@ -147,34 +148,35 @@ public:
 	Player3D(Light3D* Light);
 	~Player3D();
 
-	void Init();
-	void Update();
-	void TransitionToFloatingBunBun();
-	void JumpingStateControl();
-	void GravityControl();
-	void IdleStateControl();
-	void FightingStanceStateControl();
-	void FindMoveByAnimation(int anim);
-	PLAYER_ATTACK_MOVE* GetAttack(int anim);
-	void AttackStateControl();
-	void SetAttackHitboxPosition(float x, float y, float z);
-	void ActivateAttackHitbox(float x, float y, float z, float Speed);
-	void StopAttack();
-	void CalculateDirectionalInput();
-	void SwitchAttack(int nNextAttack);
-	void MoveControl();
-	void Draw();
-	void End();
-	void Attack(const char * atkInput);
-	void Attack(const char * atkInput, int recursions);
-	bool IsOnTheFloor();
-	void ResetInputs();
-	void AttackInputsControl();
-	void InputResetControl();
-	void AddInput(char A);
-	char GetLastInputInserted();
-	Box GetHitboxPlayer(int hb);
-	void SetFloor(Object3D* Floor) { pFloor = Floor; fGravityForce = 0; };
+	void				Init();
+	void				Update();
+	void				TransitionToFloatingBunBun();
+	void				JumpingStateControl();
+	void				GravityControl();
+	void				IdleStateControl();
+	void				FightingStanceStateControl();
+	void				FindMoveByAnimation(int anim);
+	PLAYER_ATTACK_MOVE*	GetAttack(int anim);
+	void				AttackStateControl();
+	void				SetAttackHitboxPosition(float x, float y, float z);
+	void				ActivateAttackHitbox(float x, float y, float z, float Speed);
+	void				StopAttack();
+	void				CalculateDirectionalInput();
+	void				SwitchAttack(int nNextAttack);
+	void				MoveControl();
+	void				Draw();
+	void				End();
+	void				Attack(const char * atkInput);
+	void				Attack(const char * atkInput, int recursions);
+	bool				IsOnTheFloor();
+	void				ResetInputs();
+	void				AttackInputsControl();
+	void				InputResetControl();
+	void				AddInput(char A);
+	char				GetLastInputInserted();
+	Box					GetHitboxPlayer(int hb);
+	void				SetFloor(Object3D* Floor) { pFloor = Floor; fGravityForce = 0; };
+	float				GetGravityForce();
 };
 
 Player3D* GetPlayer();

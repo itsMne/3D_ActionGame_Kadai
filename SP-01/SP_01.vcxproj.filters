@@ -96,6 +96,7 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="Field.cpp" />
+    <ClCompile Include="Enemy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -176,6 +177,7 @@
     <ClInclude Include="Actor.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="Field.h" />
+    <ClInclude Include="Enemy.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPPファイル">

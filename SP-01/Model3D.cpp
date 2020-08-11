@@ -27,6 +27,7 @@ char ModelPaths[MAX_PRELOADED_MODELS][256] =
 {
 	"data/model/Hana.fbx",
 	"data/model/BunBun.fbx",
+	"data/model/Enemy.fbx",
 };
 CFbxModel* Models[MAX_PRELOADED_MODELS] = { nullptr };
 

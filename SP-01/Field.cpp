@@ -18,6 +18,7 @@
 #define M_SPECULAR		XMFLOAT4(0.0f,0.0f,0.0f,0.0f)
 #define M_AMBIENT		XMFLOAT4(0.0f,0.0f,0.0f,1.0f)
 #define M_EMISSIVE		XMFLOAT4(0.0f,0.0f,0.0f,0.0f)
+#define COL_CHECK_PRECISION 25.0f
 //*****************************************************************************
 // \‘¢‘Ì’è‹`
 //*****************************************************************************
@@ -187,11 +188,29 @@ void Field3D::Update(void)
 	if (pPlayer)
 	{
 		if (!pPlayer->IsOnTheFloor()) {
-			if (!IsInCollision3D(pPlayer->GetHitboxPlayer(PLAYER_HB_FEET), GetHitbox()))
+			if (pPlayer->GetGravityForce() < 0)
 				return;
-			while (IsInCollision3D(pPlayer->GetHitboxPlayer(PLAYER_HB_FEET), GetHitbox()))
-				pPlayer->TranslateY(0.1f);
-			pPlayer->TranslateY(-0.1f);
+			pPlayer->TranslateY(pPlayer->GetGravityForce());
+			float fCurrentGravityForce = pPlayer->GetGravityForce();
+			fCurrentGravityForce /= COL_CHECK_PRECISION;
+		
+			for (int i = 0; i < (int)COL_CHECK_PRECISION; i++)
+			{
+				pPlayer->TranslateY(-fCurrentGravityForce);
+				if (IsInCollision3D(pPlayer->GetHitboxPlayer(PLAYER_HB_FEET), GetHitbox()))
+					break;
+				if(i== (int)COL_CHECK_PRECISION-1)
+					if (!IsInCollision3D(pPlayer->GetHitboxPlayer(PLAYER_HB_FEET), GetHitbox())) 
+						return;
+			}
+			printf("cur: %f div: %f\n", pPlayer->GetGravityForce(), fCurrentGravityForce);
+			pPlayer->TranslateY(pPlayer->GetGravityForce()*10);
+			while (!IsInCollision3D(pPlayer->GetHitboxPlayer(PLAYER_HB_FEET), GetHitbox())) //{
+				pPlayer->TranslateY(-0.01f);
+			
+			//	printf("a");
+			//}
+			//pPlayer->TranslateY(-0.1f);
 			pPlayer->SetFloor(this);
 		}
 	}

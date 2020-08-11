@@ -165,6 +165,7 @@
     <ClCompile Include="Camera3D.cpp" />
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="DXWindow3D.cpp" />
+    <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="FbxModel.cpp" />
     <ClCompile Include="Cube3D.cpp" />
     <ClCompile Include="Field.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="Camera3D.h" />
     <ClInclude Include="debugproc.h" />
     <ClInclude Include="DXWindow3D.h" />
+    <ClInclude Include="Enemy.h" />
     <ClInclude Include="FbxModel.h" />
     <ClInclude Include="Cube3D.h" />
     <ClInclude Include="Field.h" />

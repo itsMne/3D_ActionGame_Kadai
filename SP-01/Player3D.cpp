@@ -27,6 +27,7 @@
 #define JUMP_FORCE 20
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
+#define KICKDOWN_SPEED 10.98
 
 //*****************************************************************************
 // ƒOƒ[ƒoƒ‹•Ï”
@@ -873,9 +874,9 @@ void Player3D::AttackStateControl()
 		if (Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame) {
 			fGravityForce = 0;
 		}
-		if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame)
+		if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame && !pFloor)
 		{
-			fGravityForce += GRAVITY_FORCE + 1.5f;
+			fGravityForce += KICKDOWN_SPEED;
 			Position.y -= fGravityForce;
 		}
 		if (Model->GetCurrentFrame() >= 4200 && !pFloor)
@@ -1140,8 +1141,7 @@ void Player3D::Draw()
 //*****************************************************************************
 void Player3D::End()
 {
-	
-
+	SAFE_DELETE(BunBun);
 }
 
 //*****************************************************************************
@@ -1348,4 +1348,9 @@ Player3D * GetPlayer()
 Box Player3D::GetHitboxPlayer(int hb)
 {
 	return { Hitboxes[hb].PositionX + Position.x, Hitboxes[hb].PositionY + Position.y,Hitboxes[hb].PositionZ + Position.z, Hitboxes[hb].SizeX,Hitboxes[hb].SizeY,Hitboxes[hb].SizeZ };
+}
+
+float Player3D::GetGravityForce()
+{
+	return fGravityForce;
 }
