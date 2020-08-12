@@ -5,8 +5,10 @@
 Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY)
 {
 	Init();
+	Model->SetRotation({ 0,XM_PI,0 });
+	Model->SetScale({ 0.65f, 0.65f, 0.65f });
+	Model->SetPosition({ 0,5,0 });
 }
-
 
 Enemy::~Enemy()
 {
@@ -25,6 +27,7 @@ void Enemy::Update()
 
 void Enemy::Draw()
 {
+	Actor::Draw();
 }
 
 void Enemy::End()

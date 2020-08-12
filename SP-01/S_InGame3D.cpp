@@ -7,6 +7,7 @@
 #include "debugproc.h"
 #include "InputManager.h"
 #include "Billboard2D.h"
+#include "Enemy.h"
 #include "Field.h"
 #include "Sound.h"
 
@@ -23,6 +24,7 @@ int nScore;
 int nScoreToAdd;
 bool bPauseGame;
 Field3D* pFieldTest = nullptr;
+Enemy* pEnemyTest = nullptr;
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -44,6 +46,8 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	pSceneCamera->SetFocalPointGO(pPlayer->GetCameraPlayer());
 	nScoreToAdd = nScore = 0;
 	//PlaySoundGame(SOUND_LABEL_TUTORIAL);
+	pEnemyTest = new Enemy();
+	pEnemyTest->SetPosition({ 0, 100, 0 });
 	bPauseGame = false;
 }
 
@@ -80,6 +84,7 @@ eSceneType S_InGame3D::Update()
 	pFieldTest->Update();
 	pSkybox->Update();
 	pSceneLight->SetDirection({ 0.5f,0.5f,0.5 });
+	pEnemyTest->Update();
 	return SCENE_IN_GAME;
 }
 
@@ -98,13 +103,12 @@ void S_InGame3D::Draw()
 	// モデル描画
 	pFieldTest->Draw();
 	pPlayer->Draw();
-	
+	pEnemyTest->Draw();
 	SetCullMode(CULLMODE_CCW);
 	
 	// 背面カリング (通常は表面のみ描画)
 
 	pSkybox->Draw();
-	
 
 	// Zバッファ無効
 	SetZBuffer(false);
@@ -126,6 +130,7 @@ void S_InGame3D::End()
 	// モデル表示終了処理
 	SAFE_DELETE(pPlayer);
 	SAFE_DELETE(pFieldTest);
+	SAFE_DELETE(pEnemyTest);
 }
 
 //*****************************************************************************

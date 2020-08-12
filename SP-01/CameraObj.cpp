@@ -71,7 +71,8 @@ void Camera3D::PlayerCameraControl()
 
 	static bool bLockOnActivated = false;
 	static float fAcceleration = 0;
-	if (GetInput(INPUT_LOCKON))
+	bool bEnemyLockedOn = true;//temp
+	if (GetInput(INPUT_LOCKON) && bEnemyLockedOn)
 	{
 		if (fLockOnOffset < OFFSET_Y)
 			fLockOnOffset += 0.05f;
@@ -87,7 +88,6 @@ void Camera3D::PlayerCameraControl()
 	}
 	if (GetInput(INPUT_CAMERA) && !bLockOnActivated) {
 		if (pFollowObj) {
-			printf("a");
 			x3TargetRotation = pFollowObj->GetModel()->GetRotation();
 			bLockOnActivated = true;
 		}
