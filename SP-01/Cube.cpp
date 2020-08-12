@@ -1,7 +1,7 @@
 // 境界ボックス デバッグ表示 [Box.cpp]
 #include "Cube.h"
 #include "Shader.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "Light3D.h"
 #include "FbxModel.h"
 
@@ -193,7 +193,7 @@ void Cube::Draw()
 	// 定数バッファ設定
 	SHADER_GLOBAL cb;
 	XMMATRIX mtxWorld = XMLoadFloat4x4(&m_world);
-	Camera3D* pCamera = GetMainCamera();
+	TechCamera* pCamera = GetMainCamera();
 	cb.mWVP = XMMatrixTranspose(mtxWorld *
 		XMLoadFloat4x4(&pCamera->GetViewMatrix()) *
 		XMLoadFloat4x4(&pCamera->GetProjMatrix()));

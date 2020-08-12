@@ -127,7 +127,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pFloor = nullptr;
 	BunBun = new Object3D(GO_BUNBUN);
 	BunBun->SetParent(this);
-	BunBun->SetPosition({ 0, -100, 50 });
+	BunBun->SetPosition({ 0, -100, 0 });
 	BunBun->SetAnimation(BUN_BUN_APPEARS, 0.5f);
 	pCurrentAttackPlaying = nullptr;
 	pPreviousAttack = nullptr;
@@ -135,12 +135,9 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	eDirection = DIR_NONE;
 	nCancellingGravityFrames = 0;
 	bUppercutExecute = bPressedForwardMidAttack = bPressedBackwardMidAttack = false;
+	pCamera = new Camera3D(CAMERA_PLAYER);
+	pCamera->SetObjectToFollow(this);
 	ResetInputs();
-}
-
-Player3D::Player3D(Light3D * Light) :Actor(PLAYER_MODEL, A_PLAYER)
-{
-	Init();
 }
 
 Player3D::~Player3D()
@@ -184,6 +181,8 @@ void Player3D::Init()
 void Player3D::Update()
 {
 	Actor::Update();
+	pCamera->Update();
+
 	if (IsOnTheFloor())
 	{
 		if (GetInput(INPUT_JUMP)) {
@@ -265,7 +264,7 @@ bool Player3D::CheckHoldingBack()
 		return false;
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput = abs((nModelRotation + Rotation.y) - x3CurrentModelRot.y);
+	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
 	if (DirInput >= 3.05f)
 		IsHoldingBack = true;
 	
@@ -283,7 +282,7 @@ bool Player3D::CheckHoldingForward()
 		return false;
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput = abs((nModelRotation + Rotation.y) - x3CurrentModelRot.y);
+	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
 	if (DirInput <= 0.5f)
 		IsHoldingFor = true;
 	return IsHoldingFor;
@@ -956,7 +955,7 @@ void Player3D::CalculateDirectionalInput()
 
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput =abs((nModelRotation + Rotation.y) - x3CurrentModelRot.y);
+	float DirInput =abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
 	if (DirInput >= 3.05f)
 	{
 		eDirection = DIR_BACKWARD;
@@ -1056,7 +1055,7 @@ void Player3D::MoveControl()
 	}
 	
 	if (GetAxis(MOVEMENT_AXIS_HORIZONTAL) || GetAxis(MOVEMENT_AXIS_VERTICAL))
-		RotTarget = nModelRotation + Rotation.y;
+		RotTarget = nModelRotation + Rotation.y + pCamera->GetRotation().y;
 	if (!GetAxis(MOVEMENT_AXIS_HORIZONTAL) && !GetAxis(MOVEMENT_AXIS_VERTICAL) && Model->GetCurrentAnimation() == BACKWARD && Model->GetCurrentFrame() < 2387)
 	{
 		nState = PLAYER_IDLE_STATE;
@@ -1065,25 +1064,8 @@ void Player3D::MoveControl()
 	}
 	if (fVerticalAxis != 0 || fHorizontalAxis != 0 || (Model->GetCurrentAnimation() == BACKWARD && abs(Model->GetRotation().y - RotTarget) > 0.15f))
 	{
-		//XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-		//if (!GetInput(INPUT_LOCKON))
 		if(!bLockingOn)
-			Model->SetRotationY(nModelRotation + Rotation.y);
-		else 
-		{
-			//if (Model->GetCurrentFrame() > 2377 && Model->GetCurrentAnimation() == BACKWARD)
-			//	Model->SetFrameOfAnimation(2350);
-			//if (Model->GetCurrentFrame() > 2387)
-			//{
-			//	if (abs(Model->GetRotation().y - RotTarget) > 0.15f) {
-			//		if(Model->GetRotation().y> RotTarget)
-			//			Model->RotateAroundY(-0.18f);
-			//		else
-			//			Model->RotateAroundY(0.18f);
-			//	}
-			//}
-		}
-
+			Model->SetRotationY(nModelRotation + Rotation.y + pCamera->GetRotation().y);
 	}
 }
 

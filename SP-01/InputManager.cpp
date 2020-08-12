@@ -68,6 +68,8 @@ void UpdateInputManager()
 
 	bInputs[INPUT_PUNCH] = GetMouseTrigger(MOUSEBUTTON_L) || GetKeyTrigger(VK_I) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y && !bHoldingXinput[INPUT_PUNCH]);
 	bInputs[INPUT_LOCKON] = GetKeyPress(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
+	bInputs[INPUT_CAMERA] = GetKeyTrigger(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER
+		&& !bHoldingXinput[INPUT_CAMERA]);
 
 	bInputs[INPUT_DEBUG_AIM_ON] = GetKeyTrigger(VK_1);
 	bInputs[INPUT_DEBUG_CONFIRM] = GetKeyTrigger(VK_2);
@@ -204,6 +206,7 @@ void XinputTriggerControl(bool BeforeInputs)
 		if (bHoldingXinput[INPUT_PAUSE] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START)) bHoldingXinput[INPUT_PAUSE] = false;
 		if (bHoldingXinput[INPUT_MENU_LEFT] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT)) bHoldingXinput[INPUT_MENU_LEFT] = false;
 		if (bHoldingXinput[INPUT_MENU_RIGHT] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT)) bHoldingXinput[INPUT_MENU_RIGHT] = false;
+		if (bHoldingXinput[INPUT_CAMERA] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER)) bHoldingXinput[INPUT_CAMERA] = false;
 
 	}
 	else {
@@ -213,5 +216,6 @@ void XinputTriggerControl(bool BeforeInputs)
 		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START) bHoldingXinput[INPUT_PAUSE] = true;
 		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT) bHoldingXinput[INPUT_MENU_LEFT] = true;
 		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT) bHoldingXinput[INPUT_MENU_RIGHT] = true;
+		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER) bHoldingXinput[INPUT_CAMERA] = true;
 	}
 }

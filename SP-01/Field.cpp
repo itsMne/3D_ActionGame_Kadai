@@ -6,7 +6,7 @@
 #include "Field.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "Player3D.h"
 #include "UniversalStructures.h"
 
@@ -222,7 +222,7 @@ void Field3D::Draw(void)
 {
 	Object3D::Draw();
 	GetDeviceContext()->RSSetState(GetMainWindow()->GetRasterizerState(2));
-	Camera3D* pMainCamera = GetMainCamera();
+	TechCamera* pMainCamera = GetMainCamera();
 	if (!pMainCamera)
 	{
 		printf("ƒƒCƒ“ƒJƒƒ‰‚ª‚ ‚è‚Ü‚¹‚ñ\n");

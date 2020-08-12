@@ -6,7 +6,7 @@
 #include "Cube3D.h"
 #include "Shader.h"
 #include "Texture.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "UniversalStructures.h"
 
 //*****************************************************************************
@@ -190,7 +190,7 @@ void Cube3D::Update(void)
 //*****************************************************************************
 void Cube3D::Draw(void)
 {
-	Camera3D* pMainCamera = GetMainCamera();
+	TechCamera* pMainCamera = GetMainCamera();
 	if (!pMainCamera)
 	{
 		printf("ƒƒCƒ“ƒJƒƒ‰‚ª‚ ‚è‚Ü‚¹‚ñ\n");

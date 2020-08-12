@@ -7,7 +7,7 @@
 #include "main.h"
 #include "FbxModel.h"
 #include "input.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "Object3D.h"
 #include "S_InGame3D.h"
 #include "UniversalStructures.h"

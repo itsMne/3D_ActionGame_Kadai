@@ -4,7 +4,7 @@
 #ifndef	MODEL3D
 #define MODEL3D
 #include "DXWindow3D.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "FbxModel.h"
 #include "Light3D.h"
 
@@ -31,7 +31,7 @@ private:
 	XMFLOAT3		Scale;		// 現在の向き
 	XMFLOAT4X4	g_mtxWorld;		// ワールドマトリックス
 	bool bIsMoving = false;
-	Camera3D* pMainCamera;
+	TechCamera* pMainCamera;
 	float fFrame;
 	int nFramCount;
 	int nAnimationFrameSlowness;

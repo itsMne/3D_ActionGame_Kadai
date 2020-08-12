@@ -5,6 +5,7 @@
 #define PLAYER3D_H
 #include "Actor.h"
 #include "Cube3D.h"
+#include "CameraObj.h"
 #include "Billboard2D.h"
 
 //*****************************************************************************
@@ -147,9 +148,10 @@ private:
 	bool bKick;
 	bool bPunch;
 	bool bLockingOn;
+
+	Camera3D* pCamera;
 public:
 	Player3D();
-	Player3D(Light3D* Light);
 	~Player3D();
 
 	void				Init();
@@ -183,6 +185,7 @@ public:
 	Box					GetHitboxPlayer(int hb);
 	void				SetFloor(Object3D* Floor) { pFloor = Floor; fGravityForce = 0; };
 	float				GetGravityForce();
+	Camera3D*			GetCameraPlayer() { return pCamera; };
 };
 
 Player3D* GetPlayer();

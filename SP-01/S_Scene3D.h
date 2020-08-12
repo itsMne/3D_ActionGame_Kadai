@@ -3,7 +3,7 @@
 //*****************************************************************************
 #pragma once
 #include "DXWindow3D.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "Light3D.h"
 
 //*****************************************************************************
@@ -24,7 +24,7 @@ enum eSceneType
 class Scene3D
 {
 protected:
-	Camera3D* pSceneCamera;
+	TechCamera* pSceneCamera;
 	DXWindow3D* MainWindow = nullptr;
 	Light3D* pSceneLight = nullptr;
 	ID3D11DeviceContext* pDeviceContext;

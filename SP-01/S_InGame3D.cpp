@@ -41,7 +41,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	g_pDevice = GetDevice();
 	pSceneLight = GetMainLight();
 	InitDebugProc();
-	pSceneCamera->SetFocalPointGO(pPlayer);
+	pSceneCamera->SetFocalPointGO(pPlayer->GetCameraPlayer());
 	nScoreToAdd = nScore = 0;
 	//PlaySoundGame(SOUND_LABEL_TUTORIAL);
 	bPauseGame = false;

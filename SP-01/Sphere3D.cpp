@@ -6,7 +6,7 @@
 #include "Sphere3D.h"
 #include "main.h"
 #include "Texture.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
@@ -169,7 +169,7 @@ void Sphere3D::Update(void)
 	pMesh->Rotation.x += fRotSpeed.x;
 	pMesh->Rotation.y += fRotSpeed.y;
 	pMesh->Rotation.z += fRotSpeed.z;
-	Camera3D* pCam = GetMainCamera();
+	TechCamera* pCam = GetMainCamera();
 	//printf("a");
 	if (!pCam)
 		return;

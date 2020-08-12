@@ -19,6 +19,7 @@ enum eGameObjectTypes
 	GO_WALL,
 	GO_ENEMY,
 	GO_BUNBUN,
+	GO_CAMERA,
 	GO_MAX
 };
 
@@ -52,7 +53,7 @@ protected:
 	XMFLOAT3 Position;
 	XMFLOAT3 InitialPosition;
 	XMFLOAT3 Scale;
-	Camera3D* pMainCamera;
+	TechCamera* pMainCamera;
 	XMFLOAT4X4 WorldMatrix;
 	int nObjType;
 	bool bUse;

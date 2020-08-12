@@ -4,7 +4,7 @@
 // Author : Mane
 //*****************************************************************************
 #include "Mesh3D.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "Light3D.h"
 #include "Shader.h"
 #include "Texture.h"
@@ -175,7 +175,7 @@ void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 
 	SHADER_GLOBAL cb;
 	XMMATRIX mtxWorld = XMLoadFloat4x4(&pMesh->mtxWorld);
-	Camera3D* camera = GetMainCamera();
+	TechCamera* camera = GetMainCamera();
 	cb.mWVP = XMMatrixTranspose(mtxWorld *
 		XMLoadFloat4x4(&camera->GetViewMatrix()) * XMLoadFloat4x4(&camera->GetProjMatrix()));
 	cb.mW = XMMatrixTranspose(mtxWorld);

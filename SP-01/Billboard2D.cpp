@@ -6,7 +6,7 @@
 #include "Billboard2D.h"
 #include "Texture.h"
 #include "Mesh3D.h"
-#include "Camera3D.h"
+#include "TechnicalCamera.h"
 #include "input.h"
 #include "debugproc.h"
 #include "Light3D.h"
@@ -90,7 +90,7 @@ HRESULT Billboard2D::Init(const char* szpath)
 //*****************************************************************************
 void Billboard2D::Update()
 {
-	Camera3D* camera = GetMainCamera();
+	TechCamera* camera = GetMainCamera();
 	Rotation= camera->GetCameraAngle();
 	if (++nAnimeCount >= 3) {
 		++uv.U;

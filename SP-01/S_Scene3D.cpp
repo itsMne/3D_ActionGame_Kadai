@@ -10,7 +10,7 @@
 //*****************************************************************************
 Scene3D::Scene3D(bool Main)
 {
-	pSceneCamera = new Camera3D(Main);
+	pSceneCamera = new TechCamera(Main);
 	MainWindow = GetMainWindow();
 	pSceneLight = new Light3D(Main);
 	if (MainWindow)

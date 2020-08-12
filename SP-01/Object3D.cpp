@@ -149,6 +149,12 @@ void Object3D::Update()
 	default:
 		break;
 	}
+	if (Rotation.y > XM_2PI) {
+		Rotation.y -= XM_2PI;
+	}
+	if (Rotation.y < -XM_2PI) {
+		Rotation.y += XM_2PI;
+	}
 }
 
 void Object3D::BunBunControl()
@@ -404,9 +410,7 @@ void Object3D::RotateAroundX(float x)
 void Object3D::RotateAroundY(float y)
 {
 	Rotation.y -= y;
-	if (Rotation.y > XM_2PI) {
-		Rotation.y -= XM_2PI;
-	}
+
 }
 
 //*****************************************************************************
