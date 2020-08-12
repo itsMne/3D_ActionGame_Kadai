@@ -11,6 +11,8 @@
 #include <d3dcompiler.h>
 #endif
 
+#pragma comment(lib, "libfbxsdk-mt")
+
 // マクロ
 #ifndef SAFE_RELEASE
 #define SAFE_RELEASE(p)			{if(p){(p)->Release();(p)=nullptr;}}
@@ -22,7 +24,7 @@
 #define SAFE_DELETE_ARRAY(p)	{if(p){delete[]p;(p)=nullptr;}}
 #endif
 
-#define MAX_REF_POLY	60		// 最大共有頂点参照数
+#define MAX_REF_POLY			60	// 最大共有頂点参照数
 
 // 定数
 enum EByOpacity {
@@ -42,8 +44,13 @@ struct TFbxMaterial {
 	DWORD		dwNumFace;		// このマテリアルのポリゴン数
 	TFbxMaterial()
 	{
-		ZeroMemory(this, sizeof(TFbxMaterial));
+		Ka = DirectX::XMFLOAT4(0, 0, 0, 0);
 		Kd = DirectX::XMFLOAT4(1, 1, 1, 1);
+		Ks = DirectX::XMFLOAT4(0, 0, 0, 0);
+		Ke = DirectX::XMFLOAT4(0, 0, 0, 0);
+		pTexture = nullptr;
+		pTexEmmisive = nullptr;
+		dwNumFace = 0;
 	}
 	~TFbxMaterial()
 	{
@@ -60,7 +67,6 @@ struct TFbxVertex {
 	float		fBoneWeight[4];	// ボーン重み
 	TFbxVertex()
 	{
-		//ZeroMemory(this, sizeof(TFbxVertex));
 		vPos = DirectX::XMFLOAT3(0, 0, 0);
 		vNorm = DirectX::XMFLOAT3(0, 0, 0);
 		vTex = DirectX::XMFLOAT2(0, 0);
@@ -76,7 +82,8 @@ struct TBone {
 
 	TBone()
 	{
-		ZeroMemory(this, sizeof(TBone));
+		XMStoreFloat4x4(&mBindPose, DirectX::XMMatrixIdentity());
+		mNewPose = mBindPose;
 	}
 };
 
@@ -86,7 +93,9 @@ struct TSkinInfo {
 	FbxCluster**	ppCluster;
 	TSkinInfo()
 	{
-		ZeroMemory(this, sizeof(TSkinInfo));
+		nNumBone = 0;
+		pBoneArray = nullptr;
+		ppCluster = nullptr;
 	}
 };
 
@@ -98,7 +107,9 @@ struct TPolyTable {
 
 	TPolyTable()
 	{
-		ZeroMemory(this, sizeof(TPolyTable));
+		ZeroMemory(nPolyIndex, sizeof(nPolyIndex));
+		ZeroMemory(nIndex123, sizeof(nIndex123));
+		nNumRef = 0;
 	}
 };
 
@@ -108,12 +119,17 @@ struct TPolyTable {
 class CFbxLight
 {
 public:
-	CFbxLight();
-
 	DirectX::XMFLOAT4 m_diffuse;
 	DirectX::XMFLOAT4 m_ambient;
 	DirectX::XMFLOAT4 m_specular;
 	DirectX::XMFLOAT3 m_direction;
+
+	CFbxLight() : m_diffuse(1.f, 1.f, 1.f, 1.f),
+		m_ambient(0.f, 0.f, 0.f, 1.f),
+		m_specular(0.f, 0.f, 0.f, 1.f),
+		m_direction(0.f, 0.f, 1.f)
+	{
+	}
 };
 
 // メッシュ クラス
@@ -133,7 +149,6 @@ public:
 	ID3D11SamplerState* m_pSampleLinear;
 	ID3D11Buffer* m_pConstantBuffer0;
 	ID3D11Buffer* m_pConstantBuffer1;
-	ID3D11Buffer* m_pConstantBufferBone;
 	FbxNode* m_pFBXNode;						// FBXから姿勢行列を取り出す際に使うFBXポインタ
 	DirectX::XMFLOAT4X4 m_mView;
 	DirectX::XMFLOAT4X4 m_mProj;
@@ -143,6 +158,7 @@ public:
 	DirectX::XMFLOAT4X4 m_mParentOrientation;	// 親の姿勢行列
 	DirectX::XMFLOAT4X4 m_mFBXOrientation;		// 自分の姿勢行列 (親から見た相対姿勢)
 	DirectX::XMFLOAT4X4 m_mFinalWorld;			// 最終的なワールド行列 (この姿勢でレンダリングする)
+	TFbxMaterial* m_pMateUsr;
 
 private:
 	// メッシュ関連
@@ -153,14 +169,29 @@ private:
 	ID3D11Buffer** m_ppIndexBuffer;
 	TFbxMaterial* m_pMaterial;
 	DWORD m_dwNumMaterial;
+	// ↓頂点配列/インデックス配列を追加.
+	TFbxVertex* m_pVertex;	// 頂点配列
+	int** m_ppIndex;		// インデックス配列(の配列)
 	// ボーン
 	int m_nNumSkin;
 	TSkinInfo* m_pBoneTable;
+	ID3D11Buffer* m_pConstantBufferBone;
+
 public:
 	// メソッド
 	HRESULT CreateFromFBX(FbxMesh* pFbxMesh);
 	void RenderMesh(EByOpacity byOpacity = eNoAffect);
 	void SetNewPoseMatrices(int nFrame);
+	// ↓追加2
+	int GetVertexCount();
+	int GetVertex(TFbxVertex* pVertex, int nCount);
+	int GetIndexCount();
+	int GetIndex(int* pIndex, int nCount, int& nTop);
+
+	void CalcBoundingBox(DirectX::XMFLOAT3& vMin,
+		DirectX::XMFLOAT3& vMax);
+	void CalcBoundingSphere(DirectX::XMFLOAT3& vCenter,
+		float& fRadius);
 
 private:
 	HRESULT CreateIndexBuffer(DWORD dwSize, int* pIndex, ID3D11Buffer** ppIndexBuffer);
@@ -180,7 +211,7 @@ public:
 	// メソッド
 	void Render(DirectX::XMFLOAT4X4& mWorld, DirectX::XMFLOAT4X4& mView, DirectX::XMFLOAT4X4& mProj, EByOpacity byOpacity = eNoAffect);
 	HRESULT Init(ID3D11Device* pDevice, ID3D11DeviceContext* pContext, LPCSTR pszFileName);
-	void SetLight(CFbxLight* light);
+	void SetLight(CFbxLight& light);
 	void SetCamera(DirectX::XMFLOAT3& vCamera);
 	void SetAnimFrame(int nFrame);
 	int GetMaxAnimFrame();
@@ -189,6 +220,18 @@ public:
 	int GetCurrentAnimationFrame();
 	void SetAnimStack(int nAnimStack);
 	int GetMaxNumberOfAnimations();
+	int GetMaxAnimStack();
+	void SetMaterial(TFbxMaterial* pMaterial = nullptr);
+	// ↓追加2
+	int GetVertexCount();
+	int GetVertex(TFbxVertex* pVertex, int nCount);
+	int GetIndexCount();
+	int GetIndex(int* pIndex, int nCount);
+
+	DirectX::XMFLOAT3& GetCenter();	// 境界ボックス/球 中心座標
+	DirectX::XMFLOAT3& GetBBox();	// 境界ボックス サイズ
+	float GetRadius();				// 境界球半径
+
 private:
 	CFbxMesh* m_pRootMesh;
 	// 外部のデバイス等情報
@@ -197,7 +240,6 @@ private:
 	ID3D11SamplerState* m_pSampleLinear;
 	ID3D11Buffer* m_pConstantBuffer0;
 	ID3D11Buffer* m_pConstantBuffer1;
-	ID3D11Buffer* m_pConstantBufferBone;
 	ID3D11InputLayout* m_pVertexLayout;
 	ID3D11VertexShader* m_pVertexShader;
 	ID3D11PixelShader* m_pPixelShader;
@@ -205,12 +247,18 @@ private:
 	DirectX::XMFLOAT4X4 m_mProj;
 	DirectX::XMFLOAT4X4 m_mWorld;
 	// FBX
-	FbxManager *m_pSdkManager;
+	FbxManager* m_pSdkManager;
 	FbxImporter* m_pImporter;
 	FbxScene* m_pScene;
 	DirectX::XMFLOAT4X4 m_mFinalWorld;//最終的なワールド行列（この姿勢でレンダリングする）
-	CFbxLight* m_light;
+	CFbxLight m_light;
 	DirectX::XMFLOAT3 m_vCamera;
+	TFbxMaterial* m_pMaterial;
+	TFbxMaterial m_material;
+
+	DirectX::XMFLOAT3 m_vCenter;
+	DirectX::XMFLOAT3 m_vBBox;
+	float m_fRadius;
 	int nAnimationNumber;
 private:
 	// アニメーションフレーム
@@ -228,4 +276,6 @@ private:
 	void RecursiveRender(CFbxMesh* pMesh, EByOpacity byOpacity);
 	void SetNewPoseMatrices(CFbxMesh* pMesh, int nFrame);
 	void DestroyMesh(CFbxMesh* pMesh);
+
+	void CalcBoundingSphere();
 };

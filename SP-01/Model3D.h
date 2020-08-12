@@ -44,6 +44,7 @@ private:
 	int nCountLoop;
 	bool bLoop;
 	bool bPreLoadedModel;
+	CFbxLight* pCfbxLight;
 public:
 	Model3D(void* Parent, const char*ModelPath);
 	Model3D(void* Parent, int ModelPath);

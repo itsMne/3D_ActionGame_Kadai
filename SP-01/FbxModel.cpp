@@ -12,6 +12,7 @@
 #pragma comment(lib, "zlib-mt")
 
 #define MAX_BONE_MATRIX	256
+
 using namespace DirectX;
 
 // シェーダに渡す値
@@ -49,8 +50,35 @@ struct SHADER_BONE {
 //---------------------------------------------------------------------------------------
 CFbxMesh::CFbxMesh()
 {
-	ZeroMemory(this, sizeof(CFbxMesh));
-	XMStoreFloat4x4(&m_mFBXOrientation, XMMatrixIdentity());
+	m_ppChild = nullptr;
+	m_dwNumChild = 0;
+	m_pDevice = nullptr;
+	m_pDeviceContext = nullptr;
+	m_pSampleLinear = nullptr;
+	m_pConstantBuffer0 = nullptr;
+	m_pConstantBuffer1 = nullptr;
+	m_pConstantBufferBone = nullptr;
+	m_pFBXNode = nullptr;
+	XMStoreFloat4x4(&m_mView, XMMatrixIdentity());
+	m_mProj = m_mView;
+	m_mParentOrientation = m_mView;
+	m_mFBXOrientation = m_mView;
+	m_mFinalWorld = m_mView;
+	m_pMateUsr = nullptr;
+	m_pLight = nullptr;
+	m_pCamera = nullptr;
+	m_dwNumVert = 0;
+	m_dwNumFace = 0;
+	m_dwNumUV = 0;
+	m_pVertexBuffer = nullptr;
+	m_ppIndexBuffer = nullptr;
+	m_pMaterial = nullptr;
+	m_dwNumMaterial = 0;
+	m_nNumSkin = 0;
+	m_pBoneTable = nullptr;
+	// ↓追加
+	m_pVertex = nullptr;
+	m_ppIndex = nullptr;
 }
 
 //---------------------------------------------------------------------------------------
@@ -58,6 +86,15 @@ CFbxMesh::CFbxMesh()
 //---------------------------------------------------------------------------------------
 CFbxMesh::~CFbxMesh()
 {
+	// ↓追加
+	SAFE_DELETE_ARRAY(m_pVertex);
+	if (m_ppIndex) {
+		for (DWORD i = 0; i < m_dwNumMaterial; ++i) {
+			SAFE_DELETE_ARRAY(m_ppIndex[i]);
+		}
+		SAFE_DELETE_ARRAY(m_ppIndex);
+	}
+
 	SAFE_DELETE_ARRAY(m_pMaterial);
 	SAFE_RELEASE(m_pVertexBuffer);
 	for (DWORD i = 0; i < m_dwNumMaterial; ++i) {
@@ -65,6 +102,7 @@ CFbxMesh::~CFbxMesh()
 	}
 	SAFE_DELETE_ARRAY(m_ppIndexBuffer);
 	SAFE_DELETE_ARRAY(m_ppChild);
+	SAFE_RELEASE(m_pConstantBufferBone);
 }
 
 //---------------------------------------------------------------------------------------
@@ -105,7 +143,8 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 			iIndex0 = pFbxMesh->GetTextureUVIndex(i, 0);
 			iIndex1 = pFbxMesh->GetTextureUVIndex(i, 1);
 			iIndex2 = pFbxMesh->GetTextureUVIndex(i, 2);
-		} else {
+		}
+		else {
 			iStartIndex = pFbxMesh->GetPolygonVertexIndex(i);
 			piIndex = pFbxMesh->GetPolygonVertices();	//（頂点インデックス）読み込み
 			iIndex0 = piIndex[iStartIndex + 0];
@@ -171,7 +210,8 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 		for (DWORD k = 0; k < m_dwNumUV; ++k) {
 			if (eRefMode == FbxLayerElement::eIndexToDirect) {
 				index = pUVIndex->GetAt(k);
-			} else {
+			}
+			else {
 				index = k;
 			}
 			v2 = pUVDirect->GetAt(index);
@@ -187,6 +227,8 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 	// マテリアルの数だけインデックスバッファを作成
 	m_ppIndexBuffer = new ID3D11Buffer*[m_dwNumMaterial];
 	ZeroMemory(m_ppIndexBuffer, sizeof(ID3D11Buffer*) * m_dwNumMaterial);
+	m_ppIndex = new int*[m_dwNumMaterial];
+	ZeroMemory(m_ppIndex, sizeof(int*) * m_dwNumMaterial);
 	FbxDouble3 Color, Alpha;
 	FbxDouble Factor, AlphaFactor;
 	for (DWORD i = 0; i < m_dwNumMaterial; ++i) {
@@ -225,7 +267,8 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 			m_pMaterial[i].Ke.y = static_cast<float>(Color[1] * Factor);
 			m_pMaterial[i].Ke.z = static_cast<float>(Color[2] * Factor);
 			m_pMaterial[i].Ka.w = 0.0f;	// テクスチャ無
-		} else if (pMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId)) {
+		}
+		else if (pMaterial->GetClassId().Is(FbxSurfaceLambert::ClassId)) {
 			FbxSurfaceLambert* pLambert = (FbxSurfaceLambert*)pMaterial;
 			// 環境光
 			Color = pLambert->Ambient.Get();
@@ -282,6 +325,7 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 					strcat_s(fname, _countof(fname), ext);
 					hr = CreateTextureFromFile(m_pDevice, fname, &m_pMaterial[i].pTexture);
 					if (FAILED(hr)) {
+						MessageBoxA(0, "テクスチャ読み込み失敗", fname, MB_OK);
 						delete[] pvVB;
 						return hr;
 					}
@@ -343,7 +387,8 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 					pIndex[iCount] = pFbxMesh->GetTextureUVIndex(k, 0, FbxLayerElement::eTextureDiffuse);
 					pIndex[iCount + 1] = pFbxMesh->GetTextureUVIndex(k, 1, FbxLayerElement::eTextureDiffuse);
 					pIndex[iCount + 2] = pFbxMesh->GetTextureUVIndex(k, 2, FbxLayerElement::eTextureDiffuse);
-				} else {
+				}
+				else {
 					pIndex[iCount] = pFbxMesh->GetPolygonVertex(k, 0);
 					pIndex[iCount + 1] = pFbxMesh->GetPolygonVertex(k, 1);
 					pIndex[iCount + 2] = pFbxMesh->GetPolygonVertex(k, 2);
@@ -353,6 +398,11 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 		}
 		if (iCount > 0) {
 			CreateIndexBuffer(iCount * sizeof(int), pIndex, &m_ppIndexBuffer[i]);
+			// ↓追加
+			m_ppIndex[i] = new int[iCount];
+			for (int j = 0; j < iCount; ++j) {
+				m_ppIndex[i][j] = pIndex[j];
+			}
 		}
 		m_pMaterial[i].dwNumFace = iCount / 3;	// そのマテリアル内のポリゴン数		
 		delete[] pIndex;
@@ -360,20 +410,17 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 
 	// 頂点からポリゴンを逆引きするための逆引きテーブルを作る 
 	TPolyTable* PolyTable = new TPolyTable[m_dwNumVert];
-	for (DWORD i = 0; i < m_dwNumVert; ++i) {
-		for (DWORD k = 0; k < m_dwNumFace; ++k) {
-			for (int m = 0; m < 3; ++m) {
-				if (pFbxMesh->GetPolygonVertex(k, m) == i) {
-					if (PolyTable[i].nNumRef >= MAX_REF_POLY) {
-						delete[] PolyTable;
-						delete[] pvVB;
-						return E_FAIL;
-					}
-					PolyTable[i].nPolyIndex[PolyTable[i].nNumRef] = k;
-					PolyTable[i].nIndex123[PolyTable[i].nNumRef] = m;
-					PolyTable[i].nNumRef++;
-				}
+	for (DWORD k = 0; k < m_dwNumFace; ++k) {
+		for (int m = 0; m < 3; ++m) {
+			int i = pFbxMesh->GetPolygonVertex(k, m);
+			if (PolyTable[i].nNumRef >= MAX_REF_POLY) {
+				delete[] PolyTable;
+				delete[] pvVB;
+				return E_FAIL;
 			}
+			PolyTable[i].nPolyIndex[PolyTable[i].nNumRef] = k;
+			PolyTable[i].nIndex123[PolyTable[i].nNumRef] = m;
+			PolyTable[i].nNumRef++;
 		}
 	}
 
@@ -390,11 +437,21 @@ HRESULT CFbxMesh::CreateFromFBX(FbxMesh* pFbxMesh)
 
 	// ワーク削除
 	delete[] PolyTable;
-	delete[] pvVB;
+	//delete[] pvVB;	削除
 
-	if (FAILED(hr)) {
-		return hr;
-	}
+	// ↓追加
+	m_pVertex = pvVB;
+
+	// コンスタントバッファ ボーン用 作成
+	D3D11_BUFFER_DESC cb;
+	ZeroMemory(&cb, sizeof(cb));
+	cb.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cb.ByteWidth = sizeof(SHADER_BONE);
+	cb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cb.MiscFlags = 0;
+	cb.Usage = D3D11_USAGE_DYNAMIC;
+	hr = m_pDevice->CreateBuffer(&cb, nullptr, &m_pConstantBufferBone);
+
 	return hr;
 }
 
@@ -452,13 +509,17 @@ void CFbxMesh::RenderMesh(EByOpacity byOpacity)
 		if (m_pMaterial[i].dwNumFace == 0) {
 			continue;
 		}
+		// ユーザ定義マテリアル
+		TFbxMaterial* pMaterial = &m_pMaterial[i];
+		if (m_pMateUsr)
+			pMaterial = m_pMateUsr;
 		// 透明度による描画
 		switch (byOpacity) {
 		case eOpacityOnly:
-			if (m_pMaterial[i].Kd.w < 1.0f) continue;
+			if (pMaterial->Kd.w < 1.0f) continue;
 			break;
 		case eTransparentOnly:
-			if (m_pMaterial[i].Kd.w >= 1.0f) continue;
+			if (pMaterial->Kd.w >= 1.0f) continue;
 			break;
 		default:
 			break;
@@ -472,23 +533,26 @@ void CFbxMesh::RenderMesh(EByOpacity byOpacity)
 		D3D11_MAPPED_SUBRESOURCE pData;
 		if (SUCCEEDED(m_pDeviceContext->Map(m_pConstantBuffer1, 0, D3D11_MAP_WRITE_DISCARD, 0, &pData))) {
 			SHADER_MATERIAL sg;
-			sg.vAmbient = XMLoadFloat4(&m_pMaterial[i].Ka);
-			sg.vDiffuse = XMLoadFloat4(&m_pMaterial[i].Kd);
-			sg.vSpecular = XMLoadFloat4(&m_pMaterial[i].Ks);
-			sg.vEmissive = XMLoadFloat4(&m_pMaterial[i].Ke);
+			sg.vAmbient = XMLoadFloat4(&pMaterial->Ka);
+			sg.vDiffuse = XMLoadFloat4(&pMaterial->Kd);
+			sg.vSpecular = XMLoadFloat4(&pMaterial->Ks);
+			sg.vEmissive = XMLoadFloat4(&pMaterial->Ke);
 			memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(sg));
 			m_pDeviceContext->Unmap(m_pConstantBuffer1, 0);
 		}
 		m_pDeviceContext->VSSetConstantBuffers(1, 1, &m_pConstantBuffer1);
 		m_pDeviceContext->PSSetConstantBuffers(1, 1, &m_pConstantBuffer1);
 		// テクスチャをシェーダに渡す
+		m_pDeviceContext->PSSetSamplers(0, 1, &m_pSampleLinear);
 		if (m_pMaterial[i].pTexture || m_pMaterial[i].pTexEmmisive) {
-			m_pDeviceContext->PSSetSamplers(0, 1, &m_pSampleLinear);
 			if (m_pMaterial[i].pTexture)
 				m_pDeviceContext->PSSetShaderResources(0, 1, &m_pMaterial[i].pTexture);
 			if (m_pMaterial[i].pTexEmmisive)
 				m_pDeviceContext->PSSetShaderResources(1, 1, &m_pMaterial[i].pTexEmmisive);
 		}
+		// ボーンをシェーダに渡す
+		m_pDeviceContext->VSSetConstantBuffers(2, 1, &m_pConstantBufferBone);
+		m_pDeviceContext->PSSetConstantBuffers(2, 1, &m_pConstantBufferBone);
 		// 描画
 		m_pDeviceContext->DrawIndexed(m_pMaterial[i].dwNumFace * 3, 0, 0);
 	}
@@ -504,6 +568,7 @@ HRESULT CFbxMesh::ReadSkinInfo(FbxMesh* pFbxMesh, TFbxVertex* pvVB, TPolyTable* 
 	if (nSkinCount <= 0) return S_OK;
 	m_pBoneTable = new TSkinInfo[nSkinCount];
 	m_nNumSkin = nSkinCount;
+	int offset = 0;
 	for (int nSkin = 0; nSkin < nSkinCount; ++nSkin) {
 		TSkinInfo& bt = m_pBoneTable[nSkin];
 		// デフォーマ取得
@@ -529,20 +594,31 @@ HRESULT CFbxMesh::ReadSkinInfo(FbxMesh* pFbxMesh, TFbxVertex* pvVB, TPolyTable* 
 				double* pdWeight = bt.ppCluster[i]->GetControlPointWeights();
 				// 頂点側からインデックスをたどって、頂点サイドで整理する
 				for (int k = 0; k < nNumIndex; ++k) {
-					for (int m = 0; m < 4; ++m) {	// 5本以上の場合は、重みの大きい順に4本に絞る
+					int m;
+					for (m = 0; m < 4; ++m) {
+						if (pvVB[piIndex[k]].uBoneIndex[m] == i + offset) {
+							if (i + offset == 0 && pvVB[piIndex[k]].fBoneWeight[m] <= 0.0f) {
+								continue;
+							}
+							break;
+						}
+					}
+					if (m < 4) continue;	// 設定済ならスキップ
+					for (m = 0; m < 4; ++m) {	// 5本以上の場合は、重みの大きい順に4本に絞る
 						if (pdWeight[k] > pvVB[piIndex[k]].fBoneWeight[m]) {
 							for (int n = 4 - 1; n > m; --n) {
 								pvVB[piIndex[k]].uBoneIndex[n] = pvVB[piIndex[k]].uBoneIndex[n - 1];
 								pvVB[piIndex[k]].fBoneWeight[n] = pvVB[piIndex[k]].fBoneWeight[n - 1];
 							}
-							pvVB[piIndex[k]].uBoneIndex[m] = i;
+							pvVB[piIndex[k]].uBoneIndex[m] = i + offset;
 							pvVB[piIndex[k]].fBoneWeight[m] = static_cast<float>(pdWeight[k]);
 							break;
 						}
 					}
 				}
 			}
-		} else {
+		}
+		else {
 			// UVインデックスベースの場合 (頂点数<UV数)
 			int PolyIndex = 0;
 			int UVIndex = 0;
@@ -558,13 +634,23 @@ HRESULT CFbxMesh::ReadSkinInfo(FbxMesh* pFbxMesh, TFbxVertex* pvVB, TPolyTable* 
 						// 頂点→属すポリゴン→そのポリゴンのUVインデックス と逆引き
 						PolyIndex = PolyTable[piIndex[k]].nPolyIndex[p];
 						UVIndex = pFbxMesh->GetTextureUVIndex(PolyIndex, PolyTable[piIndex[k]].nIndex123[p], FbxLayerElement::eTextureDiffuse);
-						for (int m = 0; m < 4; ++m) {	// 5本以上の場合は、重みの大きい順に4本に絞る
+						int m;
+						for (m = 0; m < 4; ++m) {
+							if (pvVB[UVIndex].uBoneIndex[m] == i + offset) {
+								if (i + offset == 0 && pvVB[UVIndex].fBoneWeight[m] <= 0.0f) {
+									continue;
+								}
+								break;
+							}
+						}
+						if (m < 4) continue;	// 設定済ならスキップ
+						for (m = 0; m < 4; ++m) {	// 5本以上の場合は、重みの大きい順に4本に絞る
 							if (pdWeight[k] > pvVB[UVIndex].fBoneWeight[m]) {
 								for (int n = 4 - 1; n > m; --n) {
 									pvVB[UVIndex].uBoneIndex[n] = pvVB[UVIndex].uBoneIndex[n - 1];
 									pvVB[UVIndex].fBoneWeight[n] = pvVB[UVIndex].fBoneWeight[n - 1];
 								}
-								pvVB[UVIndex].uBoneIndex[m] = i;
+								pvVB[UVIndex].uBoneIndex[m] = i + offset;
 								pvVB[UVIndex].fBoneWeight[m] = static_cast<float>(pdWeight[k]);
 								break;
 							}
@@ -579,9 +665,9 @@ HRESULT CFbxMesh::ReadSkinInfo(FbxMesh* pFbxMesh, TFbxVertex* pvVB, TPolyTable* 
 		bt.pBoneArray = new TBone[nNumBone];
 		XMFLOAT4X4 m(
 			-1, 0, 0, 0,
-			 0, 1, 0, 0,
-			 0, 0, 1, 0,
-			 0, 0, 0, 1);
+			0, 1, 0, 0,
+			0, 0, 1, 0,
+			0, 0, 0, 1);
 		for (int i = 0; i < nNumBone; ++i) {
 			FbxAMatrix mtx;
 			bt.ppCluster[i]->GetTransformLinkMatrix(mtx);
@@ -593,6 +679,8 @@ HRESULT CFbxMesh::ReadSkinInfo(FbxMesh* pFbxMesh, TFbxVertex* pvVB, TPolyTable* 
 			XMStoreFloat4x4(&bt.pBoneArray[i].mBindPose,
 				XMLoadFloat4x4(&bt.pBoneArray[i].mBindPose) * XMLoadFloat4x4(&m));
 		}
+
+		offset += nNumBone;
 	}
 	return S_OK;
 }
@@ -606,9 +694,9 @@ void CFbxMesh::SetNewPoseMatrices(int nFrame)
 
 	XMFLOAT4X4 m(
 		-1, 0, 0, 0,
-		 0, 1, 0, 0,
-		 0, 0, 1, 0,
-		 0, 0, 0, 1);
+		0, 1, 0, 0,
+		0, 0, 1, 0,
+		0, 0, 0, 1);
 	FbxTime time;
 	time.SetTime(0, 0, 0, nFrame, 0, 0, FbxTime::eFrames60);	// 60フレーム/秒 と推定 厳密には状況ごとに調べる必要あり
 	for (int nSkinIndex = 0; nSkinIndex < m_nNumSkin; ++nSkinIndex) {
@@ -642,8 +730,6 @@ void CFbxMesh::SetNewPoseMatrices(int nFrame)
 		memcpy_s(pData.pData, pData.RowPitch, (void*)&sg, sizeof(SHADER_BONE));
 		m_pDeviceContext->Unmap(m_pConstantBufferBone, 0);
 	}
-	m_pDeviceContext->VSSetConstantBuffers(2, 1, &m_pConstantBufferBone);
-	m_pDeviceContext->PSSetConstantBuffers(2, 1, &m_pConstantBufferBone);
 }
 
 //---------------------------------------------------------------------------------------
@@ -658,13 +744,160 @@ XMFLOAT4X4 CFbxMesh::GetCurrentPoseMatrix(int nSkin, int nIndex)
 	return ret;
 }
 
+// ↓追加2
+//---------------------------------------------------------------------------------------
+// 子のメッシュも含めた頂点数を取得
+//---------------------------------------------------------------------------------------
+int CFbxMesh::GetVertexCount()
+{
+	int nCount = (int)m_dwNumVert;
+	for (DWORD i = 0; i < m_dwNumChild; ++i) {
+		nCount += m_ppChild[i]->GetVertexCount();
+	}
+	return nCount;
+}
+
+//---------------------------------------------------------------------------------------
+// 子のメッシュも含めた頂点配列を取得
+//---------------------------------------------------------------------------------------
+int CFbxMesh::GetVertex(TFbxVertex* pVertex, int nCount)
+{
+	int nCopy = 0;
+	if (nCount >= (int)m_dwNumVert) {
+		memcpy_s(pVertex, sizeof(TFbxVertex) * nCount,
+			m_pVertex, sizeof(TFbxVertex) * m_dwNumVert);
+		nCopy += m_dwNumVert;
+		pVertex += m_dwNumVert;
+		nCount -= m_dwNumVert;
+		for (DWORD i = 0; i < m_dwNumChild; ++i) {
+			int nVert = m_ppChild[i]->GetVertex(pVertex, nCount);
+			nCopy += nVert;
+			pVertex += nVert;
+			nCount -= nVert;
+		}
+	}
+	return nCopy;
+}
+
+//---------------------------------------------------------------------------------------
+// 子のメッシュも含めたインデックス数を取得
+//---------------------------------------------------------------------------------------
+int CFbxMesh::GetIndexCount()
+{
+	int nCount = 0;
+	for (DWORD i = 0; i < m_dwNumMaterial; ++i) {
+		nCount += m_pMaterial[i].dwNumFace * 3;
+	}
+	for (DWORD i = 0; i < m_dwNumChild; ++i) {
+		nCount += m_ppChild[i]->GetIndexCount();
+	}
+	return nCount;
+}
+
+//---------------------------------------------------------------------------------------
+// 子のメッシュも含めたインデックス配列を取得
+//---------------------------------------------------------------------------------------
+int CFbxMesh::GetIndex(int* pIndex, int nCount, int& nTop)
+{
+	int nCopy = 0;
+	for (DWORD i = 0; i < m_dwNumMaterial; ++i) {
+		int nIndex = m_pMaterial[i].dwNumFace * 3;
+		if (nCount >= nIndex) {
+			for (int j = 0; j < nIndex; ++j) {
+				pIndex[j] = m_ppIndex[i][j] + nTop;
+			}
+			nCopy += nIndex;
+			pIndex += nIndex;
+			nCount -= nIndex;
+		}
+	}
+	nTop += m_dwNumVert;
+	for (DWORD i = 0; i < m_dwNumChild; ++i) {
+		int nIndex = m_ppChild[i]->GetIndex(pIndex, nCount, nTop);
+		nCopy += nIndex;
+		pIndex += nIndex;
+		nCount -= nIndex;
+	}
+	return nCopy;
+}
+// ↑追加2
+
+//---------------------------------------------------------------------------------------
+// 頂点座標最小値最大値取得
+//---------------------------------------------------------------------------------------
+void CFbxMesh::CalcBoundingBox(XMFLOAT3& vMin,
+	XMFLOAT3& vMax)
+{
+	TFbxVertex* pVertex = m_pVertex;
+	for (DWORD i = 0; i < m_dwNumVert; ++i, ++pVertex) {
+		if (vMin.x > pVertex->vPos.x)
+			vMin.x = pVertex->vPos.x;
+		if (vMin.y > pVertex->vPos.y)
+			vMin.y = pVertex->vPos.y;
+		if (vMin.z > pVertex->vPos.z)
+			vMin.z = pVertex->vPos.z;
+		if (vMax.x < pVertex->vPos.x)
+			vMax.x = pVertex->vPos.x;
+		if (vMax.y < pVertex->vPos.y)
+			vMax.y = pVertex->vPos.y;
+		if (vMax.z < pVertex->vPos.z)
+			vMax.z = pVertex->vPos.z;
+	}
+	CFbxMesh** ppChild = m_ppChild;
+	for (DWORD i = 0; i < m_dwNumChild; ++i, ++ppChild) {
+		(*ppChild)->CalcBoundingBox(vMin, vMax);
+	}
+}
+
+//---------------------------------------------------------------------------------------
+// 中心座標からの最長距離取得
+//---------------------------------------------------------------------------------------
+void CFbxMesh::CalcBoundingSphere(XMFLOAT3& vCenter,
+	float& fRadius)
+{
+	TFbxVertex* pVertex = m_pVertex;
+	for (DWORD i = 0; i < m_dwNumVert; ++i, ++pVertex) {
+		float fDX = pVertex->vPos.x - vCenter.x;
+		float fDY = pVertex->vPos.y - vCenter.y;
+		float fDZ = pVertex->vPos.z - vCenter.z;
+		float fDist = sqrtf(fDX * fDX + fDY * fDY +
+			fDZ * fDZ);
+		if (fRadius < fDist)
+			fRadius = fDist;
+	}
+	CFbxMesh** ppChild = m_ppChild;
+	for (DWORD i = 0; i < m_dwNumChild; ++i, ++ppChild) {
+		(*ppChild)->CalcBoundingSphere(vCenter, fRadius);
+	}
+}
+
 //---------------------------------------------------------------------------------------
 // コンストラクタ
 //---------------------------------------------------------------------------------------
 CFbxModel::CFbxModel()
 {
-	ZeroMemory(this, sizeof(CFbxModel));
+	m_pRootMesh = nullptr;
+	m_pDevice = nullptr;
+	m_pDeviceContext = nullptr;
+	m_pSampleLinear = nullptr;
+	m_pConstantBuffer0 = nullptr;
+	m_pConstantBuffer1 = nullptr;
+	m_pVertexLayout = nullptr;
+	m_pVertexShader = nullptr;
+	m_pPixelShader = nullptr;
+	XMStoreFloat4x4(&m_mView, XMMatrixIdentity());
+	m_mProj = m_mView;
+	m_mWorld = m_mView;
+	m_mFinalWorld = m_mView;
+	m_pSdkManager = nullptr;
+	m_pImporter = nullptr;
+	m_pScene = nullptr;
 	m_vCamera = XMFLOAT3(0, 0, -1);
+	m_nAnimFrame = 0;
+	m_nAnimStack = 0;
+	m_pMaterial = nullptr;
+	m_vCenter = m_vBBox = XMFLOAT3(0, 0, 0);
+	m_fRadius = -1.0f;
 }
 
 //---------------------------------------------------------------------------------------
@@ -673,6 +906,7 @@ CFbxModel::CFbxModel()
 CFbxModel::~CFbxModel()
 {
 	DestroyMesh(m_pRootMesh);
+	SAFE_RELEASE(m_pSampleLinear);
 	if (m_pSdkManager) m_pSdkManager->Destroy();
 }
 
@@ -687,7 +921,6 @@ HRESULT CFbxModel::LoadRecursive(FbxNode* pNode, CFbxMesh* pFBXMesh)
 	pFBXMesh->m_pDeviceContext = m_pDeviceContext;
 	pFBXMesh->m_pConstantBuffer0 = m_pConstantBuffer0;
 	pFBXMesh->m_pConstantBuffer1 = m_pConstantBuffer1;
-	pFBXMesh->m_pConstantBufferBone = m_pConstantBufferBone;
 	pFBXMesh->m_pSampleLinear = m_pSampleLinear;
 	pFBXMesh->m_pFBXNode = pNode;
 
@@ -699,7 +932,7 @@ HRESULT CFbxModel::LoadRecursive(FbxNode* pNode, CFbxMesh* pFBXMesh)
 			// メッシュ作成
 			hr = pFBXMesh->CreateFromFBX(pNode->GetMesh());
 			if (FAILED(hr)) {
-				//MessageBoxW(0, L"メッシュ生成エラー", L"CFbxMesh::CreateFromFBX", MB_OK);
+				MessageBoxW(0, L"メッシュ生成エラー", L"CFbxMesh::CreateFromFBX", MB_OK);
 				return hr;
 			}
 			break;
@@ -721,7 +954,8 @@ HRESULT CFbxModel::LoadRecursive(FbxNode* pNode, CFbxMesh* pFBXMesh)
 				return hr;
 			}
 		}
-	} else {
+	}
+	else {
 		pFBXMesh->m_ppChild = nullptr;
 	}
 	return hr;
@@ -737,16 +971,10 @@ HRESULT CFbxModel::Init(ID3D11Device* pDevice, ID3D11DeviceContext *pContext, LP
 
 	HRESULT hr = InitShader();
 	if (FAILED(hr)) {
+		MessageBoxW(0, L"メッシュ用シェーダ作成失敗", nullptr, MB_OK);
 		return hr;
 	}
-	char* pszFName = nullptr;
-	size_t uFName = 0;
-	FbxAnsiToUTF8(pszFileName, pszFName, &uFName);
-	hr = CreateFromFBX(pszFName);
-	if (pszFName) FbxFree(pszFName);
-	if (FAILED(hr)) {
-		return hr;
-	}
+
 	// テクスチャ用サンプラ作成
 	CD3D11_DEFAULT def;
 	CD3D11_SAMPLER_DESC sd(def);
@@ -754,6 +982,20 @@ HRESULT CFbxModel::Init(ID3D11Device* pDevice, ID3D11DeviceContext *pContext, LP
 	sd.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
 	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	hr = m_pDevice->CreateSamplerState(&sd, &m_pSampleLinear);
+	if (FAILED(hr)) {
+		MessageBoxW(0, L"テクスチャ用サンプラ作成失敗", nullptr, MB_OK);
+		return hr;
+	}
+
+	char* pszFName = nullptr;
+	size_t uFName = 0;
+	FbxAnsiToUTF8(pszFileName, pszFName, &uFName);
+	hr = CreateFromFBX(pszFName);
+	if (pszFName) FbxFree(pszFName);
+	if (FAILED(hr)) {
+		MessageBoxW(0, L"メッシュ作成失敗", nullptr, MB_OK);
+		return hr;
+	}
 
 	return hr;
 }
@@ -791,17 +1033,6 @@ HRESULT CFbxModel::InitShader()
 	cb.MiscFlags = 0;
 	cb.Usage = D3D11_USAGE_DYNAMIC;
 	hr = m_pDevice->CreateBuffer(&cb, nullptr, &m_pConstantBuffer1);
-	if (FAILED(hr)) {
-		return hr;
-	}
-
-	// コンスタントバッファ ボーン用 作成
-	cb.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cb.ByteWidth = sizeof(SHADER_BONE);
-	cb.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cb.MiscFlags = 0;
-	cb.Usage = D3D11_USAGE_DYNAMIC;
-	hr = m_pDevice->CreateBuffer(&cb, nullptr, &m_pConstantBufferBone);
 
 	return hr;
 }
@@ -830,6 +1061,7 @@ HRESULT CFbxModel::InitFBX(LPCSTR szFileName)
 		nAnimationNumber = m_strAnimStackName.GetCount();
 		SetAnimStack(0);
 	}
+
 
 	return S_OK;
 }
@@ -892,8 +1124,9 @@ void CFbxModel::RenderMesh(CFbxMesh* pMesh, EByOpacity byOpacity)
 {
 	pMesh->m_mView = m_mView;
 	pMesh->m_mProj = m_mProj;
-	pMesh->m_pLight = m_light;
+	pMesh->m_pLight = &m_light;
 	pMesh->m_pCamera = &m_vCamera;
+	pMesh->m_pMateUsr = m_pMaterial;
 	pMesh->RenderMesh(byOpacity);
 }
 
@@ -915,23 +1148,11 @@ void CFbxModel::RecursiveRender(CFbxMesh* pMesh, EByOpacity byOpacity)
 		}
 	}
 
-	//Del
-	XMMATRIX mtxWorld;
-	XMMATRIX mtxRot;
-	XMFLOAT4X4* MatToUse = &pMesh->m_mFBXOrientation;
-	mtxWorld = XMLoadFloat4x4(MatToUse);
-	mtxRot = XMMatrixRotationRollPitchYaw(rand()%4, rand() % 4, rand() % 4);
-	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRot);
-	//XMStoreFloat4x4(MatToUse, mtxWorld);
-	//Del_END
-
 	// 親の姿勢行列と合成
 	pMesh->m_mParentOrientation = m_mWorld;
 	XMStoreFloat4x4(&pMesh->m_mFinalWorld,
 		XMLoadFloat4x4(&pMesh->m_mFBXOrientation) * XMLoadFloat4x4(&pMesh->m_mParentOrientation));
 	RenderMesh(pMesh, byOpacity);
-
-
 	for (DWORD i = 0; i < pMesh->m_dwNumChild; ++i) {
 		RecursiveRender(pMesh->m_ppChild[i], byOpacity);
 	}
@@ -979,6 +1200,167 @@ int CFbxModel::GetMaxAnimFrame()
 	return static_cast<int>(m_tStop.GetFrameCount(FbxTime::eFrames60));
 }
 
+//---------------------------------------------------------------------------------------
+// アニメーション数取得
+//---------------------------------------------------------------------------------------
+int CFbxModel::GetMaxAnimStack()
+{
+	return m_strAnimStackName.GetCount();
+}
+
+//---------------------------------------------------------------------------------------
+// アニメーション切換
+//---------------------------------------------------------------------------------------
+void CFbxModel::SetAnimStack(int nAnimStack)
+{
+	int nStackCount = GetMaxAnimStack();
+	if (nAnimStack < 0 || nAnimStack >= nStackCount)
+		return;
+	m_nAnimStack = nAnimStack;
+	FbxAnimStack *AnimationStack = m_pScene->FindMember<FbxAnimStack>(m_strAnimStackName[m_nAnimStack]->Buffer());
+	m_pScene->SetCurrentAnimationStack(AnimationStack);
+	FbxTakeInfo *takeInfo = m_pScene->GetTakeInfo(*m_strAnimStackName[m_nAnimStack]);
+	m_tStart = takeInfo->mLocalTimeSpan.GetStart();
+	m_tStop = takeInfo->mLocalTimeSpan.GetStop();
+}
+
+//---------------------------------------------------------------------------------------
+// 光源設定
+//---------------------------------------------------------------------------------------
+void CFbxModel::SetLight(CFbxLight& light)
+{
+	m_light = light;
+}
+
+//---------------------------------------------------------------------------------------
+// 視点座標設定
+//---------------------------------------------------------------------------------------
+void CFbxModel::SetCamera(DirectX::XMFLOAT3& vCamera)
+{
+	m_vCamera = vCamera;
+}
+
+//---------------------------------------------------------------------------------------
+// マテリアル設定
+//---------------------------------------------------------------------------------------
+void CFbxModel::SetMaterial(TFbxMaterial* pMaterial)
+{
+	if (pMaterial) {
+		m_material = *pMaterial;
+		m_pMaterial = &m_material;
+	}
+	else {
+		m_pMaterial = nullptr;
+	}
+}
+
+// ↓追加2
+//---------------------------------------------------------------------------------------
+// 頂点数取得
+//---------------------------------------------------------------------------------------
+int CFbxModel::GetVertexCount()
+{
+	if (m_pRootMesh) {
+		return m_pRootMesh->GetVertexCount();
+	}
+	return 0;
+}
+
+//---------------------------------------------------------------------------------------
+// 頂点配列取得
+//---------------------------------------------------------------------------------------
+int CFbxModel::GetVertex(TFbxVertex* pVertex, int nCount)
+{
+	if (m_pRootMesh) {
+		return m_pRootMesh->GetVertex(pVertex, nCount);
+	}
+	return 0;
+}
+
+//---------------------------------------------------------------------------------------
+// インデックス数の取得
+//---------------------------------------------------------------------------------------
+int CFbxModel::GetIndexCount()
+{
+	if (m_pRootMesh) {
+		return m_pRootMesh->GetIndexCount();
+	}
+	return 0;
+}
+
+//---------------------------------------------------------------------------------------
+// インデックス配列の取得
+//---------------------------------------------------------------------------------------
+int CFbxModel::GetIndex(int* pIndex, int nCount)
+{
+	if (m_pRootMesh) {
+		int nTop = 0;
+		return m_pRootMesh->GetIndex(pIndex, nCount, nTop);
+	}
+	return 0;
+}
+
+//---------------------------------------------------------------------------------------
+// 境界ボックス、境界球算出
+//---------------------------------------------------------------------------------------
+void CFbxModel::CalcBoundingSphere()
+{
+	XMFLOAT3 vMin, vMax;
+	vMin.x = vMin.y = vMin.z = FLT_MAX;
+	vMax.x = vMax.y = vMax.z = -FLT_MAX;
+	if (m_pRootMesh) {
+		m_pRootMesh->CalcBoundingBox(vMin, vMax);
+		m_vCenter.x = (vMax.x + vMin.x) / 2.0f;
+		m_vCenter.y = (vMax.y + vMin.y) / 2.0f;
+		m_vCenter.z = (vMax.z + vMin.z) / 2.0f;
+		m_vBBox.x = (vMax.x - vMin.x) / 2.0f;
+		m_vBBox.y = (vMax.y - vMin.y) / 2.0f;
+		m_vBBox.z = (vMax.z - vMin.z) / 2.0f;
+
+		m_fRadius = -1.0f;
+		m_pRootMesh->CalcBoundingSphere(m_vCenter,
+			m_fRadius);
+	}
+}
+
+//---------------------------------------------------------------------------------------
+// 境界ボックス(境界球)中心座標取得
+//---------------------------------------------------------------------------------------
+XMFLOAT3& CFbxModel::GetCenter()
+{
+	if (m_fRadius < 0.0f) {
+		CalcBoundingSphere();
+	}
+	return m_vCenter;
+}
+
+//---------------------------------------------------------------------------------------
+// 境界ボックス サイズ(縦横奥行きの半分)取得
+//---------------------------------------------------------------------------------------
+XMFLOAT3& CFbxModel::GetBBox()
+{
+	if (m_fRadius < 0.0f) {
+		CalcBoundingSphere();
+	}
+	return m_vBBox;
+}
+
+//---------------------------------------------------------------------------------------
+// 境界球半径取得
+//---------------------------------------------------------------------------------------
+float CFbxModel::GetRadius()
+{
+	if (m_fRadius < 0.0f) {
+		CalcBoundingSphere();
+	}
+	return m_fRadius;
+}
+
+
+//---------------------------------------------------------------------------------------
+// アニメーション フレーム数取得
+//---------------------------------------------------------------------------------------
+
 int CFbxModel::GetInitialAnimFrame()
 {
 	return static_cast<int>(m_tStart.GetFrameCount(FbxTime::eFrames60));
@@ -994,52 +1376,12 @@ int CFbxModel::GetCurrentAnimationFrame()
 	return m_nAnimFrame;
 }
 
-//---------------------------------------------------------------------------------------
-// アニメーション切換
-//---------------------------------------------------------------------------------------
-void CFbxModel::SetAnimStack(int nAnimStack)
-{
-	int nStackCount = m_strAnimStackName.GetCount();
-	if (nAnimStack < 0 || nAnimStack >= nStackCount)
-		return;
-	m_nAnimStack = nAnimStack;//a
-	FbxAnimStack *AnimationStack = m_pScene->FindMember<FbxAnimStack>(m_strAnimStackName[m_nAnimStack]->Buffer());
-	m_pScene->SetCurrentAnimationStack(AnimationStack);
-	FbxTakeInfo *takeInfo = m_pScene->GetTakeInfo(*m_strAnimStackName[m_nAnimStack]);
-	m_tStart = takeInfo->mLocalTimeSpan.GetStart();
-	m_tStop = takeInfo->mLocalTimeSpan.GetStop();
-}
 
 int CFbxModel::GetMaxNumberOfAnimations()
 {
 	return nAnimationNumber;
 }
 
-//---------------------------------------------------------------------------------------
-// 光源設定
-//---------------------------------------------------------------------------------------
-void CFbxModel::SetLight(CFbxLight* light)
-{
-	m_light = light;
-}
-
-//---------------------------------------------------------------------------------------
-// 視点座標設定
-//---------------------------------------------------------------------------------------
-void CFbxModel::SetCamera(DirectX::XMFLOAT3& vCamera)
-{
-	m_vCamera = vCamera;
-}
-
-//---------------------------------------------------------------------------------------
-// コンストラクタ
-//---------------------------------------------------------------------------------------
-CFbxLight::CFbxLight() : m_diffuse(1.f, 1.f, 1.f, 1.f),
-	m_ambient(0.f, 0.f, 0.f, 1.f),
-	m_specular(0.f, 0.f, 0.f, 1.f),
-	m_direction(0.f, 0.f, 1.f)
-{
-}
 
 //=======================================================================================
 //	End of File

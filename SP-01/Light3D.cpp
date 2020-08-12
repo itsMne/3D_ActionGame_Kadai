@@ -9,14 +9,12 @@
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
-#define LIGHT0_DIFFUSE XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-#define LIGHT0_DIFFUSE XMFLOAT4(1.0f, 0, 0, 1.0f)
-#define LIGHT0_AMBIENT XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-#define LIGHT0_AMBIENT XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f)
-#define LIGHT0_SPECULAR XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-#define LIGHT0_SPECULAR XMFLOAT4(1.0f, .0.0f, 0.0f, 1.0f)
-#define LIGHT0_DIR XMFLOAT3(0.0f, -1.0f, 1.0f)
-
+#define LIGHT0_DIFFUSE	XMFLOAT4(1.0f,1.0f,1.0f,1.0f)
+#define LIGHT0_AMBIENT	XMFLOAT4(0.2f,0.2f,0.2f,1.0f)
+#define LIGHT0_SPECULAR	XMFLOAT4(1.0f,1.0f,1.0f,1.0f)
+#define LIGHT0_DIR_X	(-1.0f)
+#define LIGHT0_DIR_Y	(-1.0f)
+#define LIGHT0_DIR_Z	(1.0f)
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -51,17 +49,11 @@ Light3D::~Light3D()
 //*****************************************************************************
 HRESULT Light3D::Init(void)
 {
-	XMFLOAT3 vecDir;
-
-	// 拡散光
-	g_UnivLight.m_diffuse = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-
-	// 環境光
-	g_UnivLight.m_ambient = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-
-	// ライトの方向の設定
-	vecDir = LIGHT0_DIR;
-	XMStoreFloat3(&g_UnivLight.m_direction, XMVector3Normalize(XMLoadFloat3(&vecDir)));
+	XMStoreFloat3(&g_UnivLight.m_direction,
+		XMVector3Normalize(XMVectorSet(LIGHT0_DIR_X, LIGHT0_DIR_Y, LIGHT0_DIR_Z, 0.0f)));
+	g_UnivLight.m_diffuse = LIGHT0_DIFFUSE;
+	g_UnivLight.m_ambient = LIGHT0_AMBIENT;
+	g_UnivLight.m_specular = LIGHT0_SPECULAR;
 	return S_OK;
 }
 
@@ -162,10 +154,13 @@ Light3D * GetMainLight()
 void  Light3D::SetLightEnable(bool bEnable)
 {
 	if (bEnable) {
-		XMFLOAT3 vecDir = LIGHT0_DIR;
-		XMStoreFloat3(&g_UnivLight.m_direction, XMVector3Normalize(XMLoadFloat3(&vecDir)));
+		XMStoreFloat3(&g_UnivLight.m_direction,
+			XMVector3Normalize(XMVectorSet(LIGHT0_DIR_X, LIGHT0_DIR_Y, LIGHT0_DIR_Z, 0.0f)));
 	}
 	else {
 		g_UnivLight.m_direction = XMFLOAT3(0, 0, 0);
 	}
+	g_UnivLight.m_diffuse = LIGHT0_DIFFUSE;
+	g_UnivLight.m_ambient = LIGHT0_AMBIENT;
+	g_UnivLight.m_specular = LIGHT0_SPECULAR;
 }

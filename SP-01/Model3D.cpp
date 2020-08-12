@@ -102,8 +102,9 @@ HRESULT Model3D::InitModel(const char* ModelPath)
 #endif
 	if (SUCCEEDED(hr)) {
 		g_pModel->SetCamera(pMainCamera->GetCameraPos());
-		if (pLight)
-			g_pModel->SetLight(pLight->GetLight());
+		pCfbxLight = pLight->GetLight();
+		if (pCfbxLight)
+			g_pModel->SetLight(*pCfbxLight);
 	}
 	bPreLoadedModel = false;
 	return hr;
@@ -527,8 +528,10 @@ void Model3D::SetRotationY(float roty)
 //*****************************************************************************
 void Model3D::SetLight(Light3D * newLight)
 {
-	if(g_pModel && newLight)
-		g_pModel->SetLight(newLight->GetLight());
+	if (g_pModel && newLight) {
+		pCfbxLight = newLight->GetLight();
+		g_pModel->SetLight(*pCfbxLight);
+	}
 }
 
 //*****************************************************************************
