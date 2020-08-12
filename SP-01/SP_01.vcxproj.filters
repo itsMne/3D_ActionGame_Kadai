@@ -93,10 +93,18 @@
     <ClCompile Include="Object3D.cpp">
       <Filter>CPPファイル\ゲームCPP</Filter>
     </ClCompile>
-    <ClCompile Include="Actor.cpp" />
-    <ClCompile Include="Cube.cpp" />
-    <ClCompile Include="Field.cpp" />
-    <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="Actor.cpp">
+      <Filter>CPPファイル\ゲームCPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Cube.cpp">
+      <Filter>CPPファイル\ゲームCPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Enemy.cpp">
+      <Filter>CPPファイル\ゲームCPP</Filter>
+    </ClCompile>
+    <ClCompile Include="Field.cpp">
+      <Filter>CPPファイル\ゲームCPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -174,10 +182,18 @@
     <ClInclude Include="Object3D.h">
       <Filter>Hファイル\エンジンH</Filter>
     </ClInclude>
-    <ClInclude Include="Actor.h" />
-    <ClInclude Include="Cube.h" />
-    <ClInclude Include="Field.h" />
-    <ClInclude Include="Enemy.h" />
+    <ClInclude Include="Actor.h">
+      <Filter>Hファイル\ゲームH</Filter>
+    </ClInclude>
+    <ClInclude Include="Cube.h">
+      <Filter>Hファイル\ゲームH</Filter>
+    </ClInclude>
+    <ClInclude Include="Enemy.h">
+      <Filter>Hファイル\ゲームH</Filter>
+    </ClInclude>
+    <ClInclude Include="Field.h">
+      <Filter>Hファイル\ゲームH</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPPファイル">
