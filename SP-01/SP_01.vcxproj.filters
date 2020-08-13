@@ -106,6 +106,7 @@
     <ClCompile Include="Polygon2D.cpp">
       <Filter>CPPファイル\エンジンCPP</Filter>
     </ClCompile>
+    <ClCompile Include="cUI.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -196,6 +197,7 @@
     <ClInclude Include="Polygon2D.h">
       <Filter>Hファイル\エンジンH</Filter>
     </ClInclude>
+    <ClInclude Include="cUI.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPPファイル">

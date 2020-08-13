@@ -4,12 +4,13 @@
 // Author : Mane
 //*****************************************************************************
 #include "S_InGame3D.h"
+#include "InputManager.h"
 #include "debugproc.h"
 #include "InputManager.h"
 #include "Billboard2D.h"
 #include "Enemy.h"
 #include "Field.h"
-#include "Polygon2D.h"
+#include "cUI.h"
 #include "Sound.h"
 
 //*****************************************************************************
@@ -23,10 +24,10 @@
 S_InGame3D* pCurrentGame = nullptr;
 int nScore;
 int nScoreToAdd;
-bool bPauseGame;
+bool bGamePaused;
 Field3D* pFieldTest = nullptr;
 Enemy* pEnemyTest = nullptr;
-Polygon2D* PauseScreen;
+cUI* PauseScreen;
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -50,12 +51,9 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	//PlaySoundGame(SOUND_LABEL_TUTORIAL);
 	pEnemyTest = new Enemy();
 	pEnemyTest->SetPosition({ 0, 100, 0 });
-	bPauseGame = false;
-	PauseScreen = new Polygon2D("data/texture/PauseScreen.tga");
-	PauseScreen->SetUVSize(5.0f, 4.0f);
-	PauseScreen->SetSpeedAnimationFrameChange(2);
-	PauseScreen->SetPolygonSize(1280, 720);
-	PauseScreen->SetAlpha(0.5f);
+	bGamePaused = false;
+	PauseScreen = new cUI(UI_PAUSE);
+
 }
 
 
@@ -86,13 +84,20 @@ void S_InGame3D::Init()
 //*****************************************************************************
 eSceneType S_InGame3D::Update()
 {
+	if (GetInput(INPUT_PAUSE))
+		bGamePaused ^= true;
+	PauseScreen->Update();
+	if (bGamePaused) 
+	{
+		return SCENE_IN_GAME;
+	}
 	pSceneCamera->Update();
 	pPlayer->Update();
 	pFieldTest->Update();
 	pSkybox->Update();
 	pSceneLight->SetDirection({ 0.5f,0.5f,0.5 });
 	pEnemyTest->Update();
-	PauseScreen->UpdatePolygon();
+
 	return SCENE_IN_GAME;
 }
 
@@ -121,7 +126,7 @@ void S_InGame3D::Draw()
 	// Zバッファ無効
 	SetZBuffer(false);
 
-	PauseScreen->DrawPolygon(GetDeviceContext());
+	PauseScreen->Draw();
 	// デバッグ文字列表示
 	DrawDebugProc();
 }
@@ -194,5 +199,5 @@ void AddScore(int add)
 //*****************************************************************************
 bool IsGamePaused()
 {
-	return bPauseGame;
+	return bGamePaused;
 }

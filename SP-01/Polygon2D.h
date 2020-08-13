@@ -71,13 +71,14 @@ public:
 	void SetPolygonPos(float fX, float fY);
 	void SetPolygonPosY(float y);
 	void SetPolygonPos(float fX, float fY, bool IsInit);
-	void SetPolygonSize(float fScaleX, float fScaleY);
+	void SetSize(float fScaleX, float fScaleY);
 	void SetPolygonAngle(float fAngle);
 	void SetPolygonUV(float fU, float fV);
 	void SetPolygonFrameSize(float fWidth, float fHeight);
 	void SetUVSize(float fWidth, float fHeight);
 	void SetColor(float fRed, float fGreen, float fBlue);
 	void SetAlpha(float fAlpha);
+	void ScaleUp(float scale);
 	void RotateAroundY(float frot);
 	void RotateAroundZ(float frot);
 	HRESULT MakeVertexPolygon(ID3D11Device* pDevice);

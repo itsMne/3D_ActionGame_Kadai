@@ -350,7 +350,7 @@ void Polygon2D::SetPolygonPos(float fX, float fY, bool IsInit)
 //=============================================================================
 // 表示サイズの設定
 //=============================================================================
-void Polygon2D::SetPolygonSize(float fScaleX, float fScaleY)
+void Polygon2D::SetSize(float fScaleX, float fScaleY)
 {
 	Scale.x = fScaleX;
 	Scale.y = fScaleY;
@@ -408,6 +408,12 @@ void Polygon2D::SetAlpha(float fAlpha)
 		g_colPolygon.w = fAlpha;
 		g_bInvalidate = true;
 	}
+}
+
+void Polygon2D::ScaleUp(float scale)
+{
+	Scale.x += scale;
+	Scale.y += scale;
 }
 
 void Polygon2D::RotateAroundY(float frot)

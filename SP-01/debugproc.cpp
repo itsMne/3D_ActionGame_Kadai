@@ -77,7 +77,7 @@ void DrawDebugProc(void)
 		SCREEN_HEIGHT * 0.5f - FONT_HEIGHT * 0.5f);
 	
 	DebugProcPolygon->SetPolygonFrameSize(8.0f / 128.0f, 8.0f / 128.0f);
-	DebugProcPolygon->SetPolygonSize(FONT_WIDTH, FONT_HEIGHT);
+	DebugProcPolygon->SetSize(FONT_WIDTH, FONT_HEIGHT);
 	for (char* pChr = &g_szDebug[0]; *pChr; ++pChr) {
 		if (*pChr == '\n') {
 			vPos.x = SCREEN_WIDTH * -0.5f + FONT_WIDTH * 0.5f;

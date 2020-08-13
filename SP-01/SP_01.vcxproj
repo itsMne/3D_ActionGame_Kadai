@@ -163,6 +163,7 @@
     <ClCompile Include="Billboard2D.cpp" />
     <ClCompile Include="CameraObj.cpp" />
     <ClCompile Include="Cube.cpp" />
+    <ClCompile Include="cUI.cpp" />
     <ClCompile Include="TechnicalCamera.cpp" />
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="DXWindow3D.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="Billboard2D.h" />
     <ClInclude Include="CameraObj.h" />
     <ClInclude Include="Cube.h" />
+    <ClInclude Include="cUI.h" />
     <ClInclude Include="TechnicalCamera.h" />
     <ClInclude Include="debugproc.h" />
     <ClInclude Include="DXWindow3D.h" />
