@@ -50,13 +50,19 @@ static HRESULT MakeVertexField(ID3D11Device* pDevice);
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
+
+char szTexturePaths[TEX_FIELD_MAX][256] = {
+	"",
+	"data/texture/field001.tga",
+};
+ID3D11ShaderResourceView*	pFieldTextures[TEX_FIELD_MAX] = { nullptr };
 Field3D::Field3D() : Object3D(GO_FLOOR)
 {
 	pSceneLight = nullptr;
 	nTextureSubDivisions = 1;
 }
 
-Field3D::Field3D(const char * TexturePath) : Object3D(GO_FLOOR)
+Field3D::Field3D(int TexturePath) : Object3D(GO_FLOOR)
 {
 	pSceneLight = GetMainLight();
 	nTextureSubDivisions = 1;
@@ -75,9 +81,9 @@ Field3D::~Field3D()
 //引数：void
 //戻：void
 //*****************************************************************************
-HRESULT Field3D::Init(Light3D* SceneLight, const char* TexturePath)
+HRESULT Field3D::Init(Light3D* SceneLight, int TexturePath)
 {
-	strcpy(szTexturePath, TexturePath);
+	nTexPath = TexturePath;
 	SetTextureSubdivisions(10.0f / Scale.x);
 	SetFieldLight(SceneLight);
 	ID3D11Device* pDevice = GetDevice();
@@ -135,9 +141,12 @@ HRESULT Field3D::Init(Light3D* SceneLight, const char* TexturePath)
 	g_Ke = M_EMISSIVE;
 
 	// テクスチャの読み込み
-	hr = CreateTextureFromFile(pDevice,			// デバイスへのポインタ
-		TexturePath,	// ファイルの名前
-		&g_pTexture);	// 読み込むメモリー
+	if (!pFieldTextures[nTexPath]) {
+		hr = CreateTextureFromFile(pDevice,			// デバイスへのポインタ
+			szTexturePaths[nTexPath],	// ファイルの名前
+			&pFieldTextures[nTexPath]);	// 読み込むメモリー
+	}
+	g_pTexture = pFieldTextures[nTexPath];
 	if (FAILED(hr)) {
 		printf("FAILED TEXTURE LOAD\n");
 		return hr;
@@ -420,9 +429,9 @@ void Field3D::SetTextureSubdivisions(int newSubs)
 //引数：void
 //戻：char*
 //*****************************************************************************
-char * Field3D::GetTexturePath()
+int Field3D::GetTexturePath()
 {
-	return szTexturePath;
+	return nTexPath;
 }
 
 

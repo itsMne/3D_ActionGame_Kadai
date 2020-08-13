@@ -19,6 +19,8 @@ private:
 	Player3D* pPlayer;
 	Sphere3D* pSkybox;
 	Light3D* pSceneLight;
+	Go_List* Enemies;
+	Go_List* Fields;
 public:
 	S_InGame3D();
 	~S_InGame3D();

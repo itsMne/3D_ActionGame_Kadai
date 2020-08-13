@@ -7,6 +7,8 @@
 #include "Cube3D.h"
 #include "S_InGame3D.h"
 #include "Player3D.h"
+#include "Enemy.h"
+#include "Field.h"
 #include "Sound.h"
 
 //*****************************************************************************
@@ -857,6 +859,81 @@ Object3D * Go_List::CheckCollision(Box hb, bool bIgnoreUnused)
 		pPositionList = pPositionList->next;
 	}
 	return nullptr;
+}
+
+Object3D * Go_List::AddEnemy(XMFLOAT3 newPosition)
+{
+	return  AddEnemy(newPosition, false, { 0,0,0 }, { 0,0,0 }, 0, 0);
+}
+
+Object3D * Go_List::AddEnemy(XMFLOAT3 newPosition, bool Moveable, XMFLOAT3 Start, XMFLOAT3 End, float Speed, int DelayFrames)
+{
+	go_node* pPositionList = HeadNode;
+	if (HeadNode != nullptr) {
+		while (pPositionList->next != nullptr) {
+			pPositionList = pPositionList->next;
+		}
+		go_node* pWorkList = new go_node();
+		pWorkList->Object = new Enemy();
+		Enemy* enemy = (Enemy*)(pWorkList->Object);
+		enemy->SetPosition(newPosition, true);
+		if (Moveable)
+			enemy->SetMovement(Start, End, Speed, DelayFrames);
+		pWorkList->next = nullptr;
+		pPositionList->next = pWorkList;
+		nObjectCount++;
+		return pWorkList->Object;
+	}
+	else {
+		HeadNode = new go_node();
+		HeadNode->Object = new Enemy();
+		Enemy* enemy = (Enemy*)(HeadNode->Object);
+		enemy->SetPosition(newPosition);
+		if (Moveable)
+			enemy->SetMovement(Start, End, Speed, DelayFrames);
+		HeadNode->next = nullptr;
+		nObjectCount++;
+		return HeadNode->Object;
+	}
+	return nullptr;
+}
+
+Object3D * Go_List::AddField(XMFLOAT3 newPosition, XMFLOAT3 newScale, int TexturePath)
+{
+	return AddField(newPosition, newScale, TexturePath, false, { 0,0,0 }, { 0,0,0 }, 0, 0);
+}
+
+Object3D * Go_List::AddField(XMFLOAT3 newPosition, XMFLOAT3 newScale, int TexturePath, bool Moveable, XMFLOAT3 Start, XMFLOAT3 End, float Speed, int DelayFrames)
+{
+	go_node* pPositionList = HeadNode;
+	if (HeadNode != nullptr) {
+		while (pPositionList->next != nullptr) {
+			pPositionList = pPositionList->next;
+		}
+		go_node* pWorkList = new go_node();
+		pWorkList->Object = new Field3D(TexturePath);
+		Field3D* field = (Field3D*)(pWorkList->Object);
+		field->SetScale(newScale);
+		field->SetPosition(newPosition);
+		if (Moveable)
+			field->SetMovement(Start, End, Speed, DelayFrames);
+		pWorkList->next = nullptr;
+		pPositionList->next = pWorkList;
+		nObjectCount++;
+		return pWorkList->Object;
+	}
+	else {
+		HeadNode = new go_node();
+		HeadNode->Object = new Field3D(TexturePath);
+		Field3D* field = (Field3D*)(HeadNode->Object);
+		field->SetScale(newScale);
+		field->SetPosition(newPosition);
+		if (Moveable)
+			field->SetMovement(Start, End, Speed, DelayFrames);
+		HeadNode->next = nullptr;
+		nObjectCount++;
+		return HeadNode->Object;
+	}
 }
 
 //*****************************************************************************

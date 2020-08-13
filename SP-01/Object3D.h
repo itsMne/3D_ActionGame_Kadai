@@ -158,6 +158,11 @@ public:
 	int GetNumberOfObjects();
 	Object3D* CheckCollision(Box hb);
 	Object3D * CheckCollision(Box hb, bool bIgnoreUnused);
+	Object3D* AddEnemy(XMFLOAT3 newPosition);
+	Object3D* AddEnemy(XMFLOAT3 newPosition, bool Moveable, XMFLOAT3 Start, XMFLOAT3 End, float Speed, int DelayFrames);
+
+	Object3D* AddField(XMFLOAT3 newPosition, XMFLOAT3 newScale, int TexturePath);
+	Object3D* AddField(XMFLOAT3 newPosition, XMFLOAT3 newScale, int TexturePath, bool Moveable, XMFLOAT3 Start, XMFLOAT3 End, float Speed, int DelayFrames);
 	void DeleteLastPosObject();
 	void DeleteObject(Object3D*);
 	void Update();

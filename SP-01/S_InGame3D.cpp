@@ -25,8 +25,6 @@ S_InGame3D* pCurrentGame = nullptr;
 int nScore;
 int nScoreToAdd;
 bool bGamePaused;
-Field3D* pFieldTest = nullptr;
-Enemy* pEnemyTest = nullptr;
 cUI* PauseScreen;
 //*****************************************************************************
 // コンストラクタ関数
@@ -39,9 +37,6 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	pPlayer = new Player3D();
 	pPlayer->SetPosition({ 2.578626f, 119.499969f, -138.668900f });
 	pSkybox = new Sphere3D("data/texture/Skybox.tga");
-	pFieldTest = new Field3D("data/texture/field001.tga");
-	pFieldTest->SetPosition({ 2.578626f, 100, -138.668900f });
-	pFieldTest->SetScale({ 1000,10,1000 });
 	//HRESULT	hr;
 	g_pDevice = GetDevice();
 	pSceneLight = GetMainLight();
@@ -49,8 +44,10 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	pSceneCamera->SetFocalPointGO(pPlayer->GetCameraPlayer());
 	nScoreToAdd = nScore = 0;
 	//PlaySoundGame(SOUND_LABEL_TUTORIAL);
-	pEnemyTest = new Enemy();
-	pEnemyTest->SetPosition({ 0, 100, 0 });
+	Enemies = new Go_List();
+	Fields = new Go_List();
+	Enemies->AddEnemy({ 0, 100, 0 });
+	Fields->AddField({ 2.578626f, 100, -138.668900f }, { 1000,10,1000 }, TEX_FIELD_A);
 	bGamePaused = false;
 	PauseScreen = new cUI(UI_PAUSE);
 
@@ -93,10 +90,10 @@ eSceneType S_InGame3D::Update()
 	}
 	pSceneCamera->Update();
 	pPlayer->Update();
-	pFieldTest->Update();
+	Fields->Update();
 	pSkybox->Update();
 	pSceneLight->SetDirection({ 0.5f,0.5f,0.5 });
-	pEnemyTest->Update();
+	Enemies->Update();
 
 	return SCENE_IN_GAME;
 }
@@ -114,9 +111,9 @@ void S_InGame3D::Draw()
 
 	SetCullMode(CULLMODE_NONE);
 	// モデル描画
-	pFieldTest->Draw();
+	Fields->Draw();
 	pPlayer->Draw();
-	pEnemyTest->Draw();
+	Enemies->Draw();
 	SetCullMode(CULLMODE_CCW);
 	
 	// 背面カリング (通常は表面のみ描画)
@@ -143,8 +140,8 @@ void S_InGame3D::End()
 	// フィールド終了処理
 	// モデル表示終了処理
 	SAFE_DELETE(pPlayer);
-	SAFE_DELETE(pFieldTest);
-	SAFE_DELETE(pEnemyTest);
+	SAFE_DELETE(Fields);
+	SAFE_DELETE(Enemies);
 }
 
 //*****************************************************************************

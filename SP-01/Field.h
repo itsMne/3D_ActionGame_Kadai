@@ -7,6 +7,13 @@
 #include "Object3D.h"
 #include "Light3D.h"
 
+enum FIELD_TEXTURES
+{
+	TEX_INVISIBLE,
+	TEX_FIELD_A,
+	TEX_FIELD_MAX
+};
+
 //*****************************************************************************
 // ƒNƒ‰ƒX
 //*****************************************************************************
@@ -33,14 +40,14 @@ private:
 	Light3D*					pSceneLight;
 	int							nTextureSubDivisions;
 	ID3D11Buffer* mVertexBuffer;
-	char szTexturePath[256];
+	int nTexPath;
 	ID3D11Buffer* mIndexBuffer;
 
 public:
 	Field3D();
-	Field3D(const char* TexturePath);
+	Field3D(int TexturePath);
 	~Field3D();
-	HRESULT Init(Light3D* SceneLight, const char* TexturePath);
+	HRESULT Init(Light3D* SceneLight, int TexturePath);
 	void End(void);
 	void Update(void);
 	void Draw(void);
@@ -51,5 +58,5 @@ public:
 	void SetScale(float newScale);
 	void SetScale(XMFLOAT3 newScale);
 	void SetTextureSubdivisions(int newSubs);
-	char* GetTexturePath();
+	int GetTexturePath();
 };
