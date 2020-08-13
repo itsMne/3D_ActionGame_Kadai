@@ -272,6 +272,8 @@ void Field3D::Draw(void)
 	CFbxLight& light = *pSceneLight->GetLight();
 	if (pSceneLight)
 	{
+		if (bIsUnlit || NO_LIGHT_DEFAULT)
+			pSceneLight->SetLightEnable(false);
 		cb2.vLightDir = XMVectorSet(light.m_direction.x, light.m_direction.y, light.m_direction.z, 0.f);
 		cb2.vLa = XMLoadFloat4(&light.m_ambient);
 		cb2.vLd = XMLoadFloat4(&light.m_diffuse);
@@ -293,6 +295,7 @@ void Field3D::Draw(void)
 
 	// ƒ|ƒŠƒSƒ“‚Ì•`‰æ
 	//pDeviceContext->DrawIndexed(0, 0, 4);
+	pSceneLight->SetLightEnable(true);
 	pDeviceContext->Draw(NUM_VERTEX, 0);
 }
 

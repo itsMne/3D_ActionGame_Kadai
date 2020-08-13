@@ -104,7 +104,7 @@ HRESULT Model3D::InitModel(const char* ModelPath)
 		g_pModel->SetCamera(pMainCamera->GetCameraPos());
 		pCfbxLight = pLight->GetLight();
 		if (pCfbxLight)
-			g_pModel->SetLight(*pCfbxLight);
+			g_pModel->SetLight(pCfbxLight);
 	}
 	bPreLoadedModel = false;
 	return hr;
@@ -530,7 +530,7 @@ void Model3D::SetLight(Light3D * newLight)
 {
 	if (g_pModel && newLight) {
 		pCfbxLight = newLight->GetLight();
-		g_pModel->SetLight(*pCfbxLight);
+		g_pModel->SetLight(pCfbxLight);
 	}
 }
 

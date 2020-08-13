@@ -9,6 +9,7 @@
 #include "Billboard2D.h"
 #include "Enemy.h"
 #include "Field.h"
+#include "Polygon2D.h"
 #include "Sound.h"
 
 //*****************************************************************************
@@ -25,6 +26,7 @@ int nScoreToAdd;
 bool bPauseGame;
 Field3D* pFieldTest = nullptr;
 Enemy* pEnemyTest = nullptr;
+Polygon2D* PauseScreen;
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -49,6 +51,11 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	pEnemyTest = new Enemy();
 	pEnemyTest->SetPosition({ 0, 100, 0 });
 	bPauseGame = false;
+	PauseScreen = new Polygon2D("data/texture/PauseScreen.tga");
+	PauseScreen->SetUVSize(5.0f, 4.0f);
+	PauseScreen->SetSpeedAnimationFrameChange(2);
+	PauseScreen->SetPolygonSize(1280, 720);
+	PauseScreen->SetAlpha(0.5f);
 }
 
 
@@ -85,6 +92,7 @@ eSceneType S_InGame3D::Update()
 	pSkybox->Update();
 	pSceneLight->SetDirection({ 0.5f,0.5f,0.5 });
 	pEnemyTest->Update();
+	PauseScreen->UpdatePolygon();
 	return SCENE_IN_GAME;
 }
 
@@ -113,6 +121,7 @@ void S_InGame3D::Draw()
 	// Zバッファ無効
 	SetZBuffer(false);
 
+	PauseScreen->DrawPolygon(GetDeviceContext());
 	// デバッグ文字列表示
 	DrawDebugProc();
 }

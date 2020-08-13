@@ -153,7 +153,7 @@ void Mesh3D::Update()
 //*****************************************************************************
 void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 {
-	if (bisUnlit)
+	if (bisUnlit || NO_LIGHT_DEFAULT)
 		GetMainLight()->SetLightEnable(false);
 	if (bNoCull)
 		SetCullMode(CULLMODE_NONE);

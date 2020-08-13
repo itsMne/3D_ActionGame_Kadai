@@ -192,7 +192,7 @@ void Object3D::Draw()
 	GetDeviceContext()->RSSetState(GetMainWindow()->GetRasterizerState(1));
 	if (!bUse)
 		return;
-	if (bIsUnlit)
+	if (bIsUnlit || NO_LIGHT_DEFAULT)
 		GetMainLight()->SetLightEnable(false);
 	if (Model && !p_goParent)
 		Model->DrawModel();

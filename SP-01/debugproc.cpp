@@ -96,7 +96,7 @@ void DrawDebugProc(void)
 	}
 	// テクスチャ設定を元に戻す
 	DebugProcPolygon->SetColor(1.0f, 1.0f, 1.0f);
-	DebugProcPolygon->SetPolygonAlpha(1.0f);
+	DebugProcPolygon->SetAlpha(1.0f);
 	DebugProcPolygon->SetPolygonUV(0.0f, 0.0f);
 	DebugProcPolygon->SetPolygonFrameSize(1.0f, 1.0f);
 }

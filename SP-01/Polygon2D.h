@@ -49,9 +49,16 @@ protected:
 	XMFLOAT4X4					g_mWorld;				// ワールド変換行列
 	XMFLOAT4X4					g_mTex;					// テクスチャ変換行列
 
+	XMFLOAT2					x2UVFrame;
+	bool						bAnimationHorizontal;
+	bool						bUsesAnimation;
+	int							nAnimeFrameChange;
+	int							nFrameAnimCounter;
 public:
 	ID3D11ShaderResourceView *	gpTexture;
 	XMFLOAT2					x2UV;			// UV座標
+	XMFLOAT2					x2UVMaxFrameSize;			// UV座標
+
 	Polygon2D();
 	Polygon2D(const char * TexturePath);
 	~Polygon2D();
@@ -68,8 +75,9 @@ public:
 	void SetPolygonAngle(float fAngle);
 	void SetPolygonUV(float fU, float fV);
 	void SetPolygonFrameSize(float fWidth, float fHeight);
+	void SetUVSize(float fWidth, float fHeight);
 	void SetColor(float fRed, float fGreen, float fBlue);
-	void SetPolygonAlpha(float fAlpha);
+	void SetAlpha(float fAlpha);
 	void RotateAroundY(float frot);
 	void RotateAroundZ(float frot);
 	HRESULT MakeVertexPolygon(ID3D11Device* pDevice);
@@ -79,5 +87,6 @@ public:
 	XMFLOAT2 GetPolygonPos();
 	XMFLOAT2 GetPolygonInitialPos();
 	void bScaleUp(float scal);
+	void SetSpeedAnimationFrameChange(int speed) { nFrameAnimCounter = nAnimeFrameChange = speed; bUsesAnimation = true; }
 };
 #endif

@@ -30,7 +30,8 @@
 #define CULLMODE_CW		1					// 前面カリング
 #define CULLMODE_CCW	2					// 背面カリング
 #define USE_CONSOLE true
-#define MAX_DECORATIONS 127-1
+#define NO_LIGHT_DEFAULT true
+#define MAX_DECORATIONS 127-1//DEL
 using namespace DirectX;
 
 //*****************************************************************************

@@ -45,9 +45,6 @@
     <ClCompile Include="Model3D.cpp">
       <Filter>CPPファイル\ゲームCPP</Filter>
     </ClCompile>
-    <ClCompile Include="Polygon2D.cpp">
-      <Filter>CPPファイル\ゲームCPP</Filter>
-    </ClCompile>
     <ClCompile Include="Light3D.cpp">
       <Filter>CPPファイル\ゲームCPP</Filter>
     </ClCompile>
@@ -106,6 +103,9 @@
     <ClCompile Include="Sphere3D.cpp">
       <Filter>CPPファイル\エンジンCPP</Filter>
     </ClCompile>
+    <ClCompile Include="Polygon2D.cpp">
+      <Filter>CPPファイル\エンジンCPP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -131,9 +131,6 @@
     </ClInclude>
     <ClInclude Include="Texture.h">
       <Filter>Hファイル\エンジンH</Filter>
-    </ClInclude>
-    <ClInclude Include="Polygon2D.h">
-      <Filter>Hファイル\ゲームH</Filter>
     </ClInclude>
     <ClInclude Include="Model3D.h">
       <Filter>Hファイル\ゲームH</Filter>
@@ -194,6 +191,9 @@
       <Filter>Hファイル\エンジンH</Filter>
     </ClInclude>
     <ClInclude Include="Sphere3D.h">
+      <Filter>Hファイル\エンジンH</Filter>
+    </ClInclude>
+    <ClInclude Include="Polygon2D.h">
       <Filter>Hファイル\エンジンH</Filter>
     </ClInclude>
   </ItemGroup>

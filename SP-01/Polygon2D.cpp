@@ -55,7 +55,9 @@ Polygon2D::~Polygon2D()
 HRESULT Polygon2D::InitPolygon(ID3D11Device* pDevice)
 {
 	HRESULT hr = S_OK;
-
+	nAnimeFrameChange = 0;
+	bAnimationHorizontal = true;
+	bUsesAnimation = false;
 	// シェーダ初期化
 	static const D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -107,10 +109,10 @@ HRESULT Polygon2D::InitPolygon(ID3D11Device* pDevice)
 
 	x2UV = XMFLOAT2(0.0f, 0.0f);
 	x2Frame = XMFLOAT2(1.0f, 1.0f);
-
+	x2UVFrame = { 0,0 };
 	// 頂点情報の作成
 	hr = MakeVertexPolygon(pDevice);
-
+	nFrameAnimCounter = 0;
 	return hr;
 }
 
@@ -138,7 +140,26 @@ void Polygon2D::UninitPolygon(void)
 //=============================================================================
 void Polygon2D::UpdatePolygon(void)
 {
-	// (何もしない)
+	if (bUsesAnimation)
+	{
+		if (bAnimationHorizontal)
+		{
+			if (++nFrameAnimCounter >= nAnimeFrameChange)
+			{
+				nFrameAnimCounter = 0;
+				x2UVFrame.x++;
+				if (x2UVFrame.x >= x2UVMaxFrameSize.x)
+				{
+					x2UVFrame.x = 0;
+					x2UVFrame.y++;
+					if (x2UVFrame.y >= x2UVMaxFrameSize.y)
+						x2UVFrame.y = 0;
+				}
+			}
+		}
+		SetPolygonFrameSize(1.0/ x2UVMaxFrameSize.x, 1.0/ x2UVMaxFrameSize.y);
+		SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+	}
 }
 
 //=============================================================================
@@ -361,6 +382,13 @@ void Polygon2D::SetPolygonFrameSize(float fWidth, float fHeight)
 	x2Frame.y = fHeight;
 }
 
+void Polygon2D::SetUVSize(float fWidth, float fHeight)
+{
+	x2UVMaxFrameSize = { fWidth, fHeight };
+	SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+	SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+}
+
 //=============================================================================
 // 頂点カラーの設定
 //=============================================================================
@@ -374,7 +402,7 @@ void Polygon2D::SetColor(float fRed, float fGreen, float fBlue)
 	}
 }
 
-void Polygon2D::SetPolygonAlpha(float fAlpha)
+void Polygon2D::SetAlpha(float fAlpha)
 {
 	if (fAlpha != g_colPolygon.w) {
 		g_colPolygon.w = fAlpha;
