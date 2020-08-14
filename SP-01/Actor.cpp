@@ -1,11 +1,12 @@
 #include "Actor.h"
-#define GRAVITY_FORCE 0.35f
+#include "S_InGame3D.h"
 
-Actor::Actor(int Model, int Type):Object3D(GetMainLight(), Model, GO_ACTOR)
+Actor::Actor(int Model, int Type):Object3D(GetMainLight(), Model, GO_ACTOR), pFloor(nullptr)
 {
 	nActorType = Type;
 	bUseGravity = false;
 	bGravityIsActive = false;
+	pGame = GetCurrentGame();
 }
 
 

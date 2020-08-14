@@ -21,10 +21,10 @@
 #define VERIFY_ISONFLOOR true
 #define DEBUG_ADD_INPUTS false
 #define MAX_SPEED 6.8f
-#define GRAVITY_FORCE 0.98f
-#define SHOW_PLAYER_HITBOX true
+#define GRAVITY_FORCE 0.98f*2
+#define SHOW_PLAYER_HITBOX false
 #define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_ATTACK
-#define JUMP_FORCE 20
+#define JUMP_FORCE 20*1.34f
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
 #define KICKDOWN_SPEED 10.98
@@ -126,7 +126,6 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	nInputTimer = 0;
 	pLight = GetMainLight();
 	nState = PLAYER_IDLE_STATE;
-	pFloor = nullptr;
 	pLockedEnemy = nullptr;
 	BunBun = new Object3D(GO_BUNBUN);
 	BunBun->SetParent(this);
@@ -278,8 +277,6 @@ void Player3D::LockingControl()
 			Hitboxes[PLAYER_HB_LOCKON].PositionY = 25.0f;
 			Hitboxes[PLAYER_HB_LOCKON].PositionZ = -cosf(XM_PI + Model->GetRotation().y) * fDistance;
 			pLockedEnemy = (Actor*)(((S_InGame3D*)pGame)->GetList(GO_ENEMY)->CheckCollision(GetHitboxPlayer(PLAYER_HB_LOCKON)));
-			if (pLockedEnemy)
-				printf("ENEMY FOUND\n");
 		}
 
 	}
@@ -294,7 +291,6 @@ void Player3D::LockingControl()
 			PlayerPos.y = 0;
 			EnemyPos.y = 0;
 			float dis = GetDistance(PlayerPos, EnemyPos)/400;
-			printf("%f\n", dis);
 			if (dis > 1.85f)
 				pLockedEnemy = nullptr;
 		}
@@ -777,6 +773,8 @@ void Player3D::AttackStateControl()
 		if (Model->GetCurrentFrame() >= 632 && Model->GetCurrentFrame() <= 690) {
 			fGravityForce += GRAVITY_FORCE;
 			Position.y -= fGravityForce;
+			if (fGravityForce > 0)
+				fGravityForce = 0;
 		}
 		else {
 			fGravityForce = -JUMP_FORCE*1.25f;
@@ -785,6 +783,9 @@ void Player3D::AttackStateControl()
 				fGravityForce = 0;
 				StopAttack();
 				nState = PLAYER_IDLE_STATE;
+				pFloor = nullptr;
+				SetAnimation(AIR_IDLE, fAnimationSpeed[AIR_IDLE]);
+				nCancellingGravityFrames = 15;
 			}
 		}
 		break;
@@ -872,10 +873,7 @@ void Player3D::AttackStateControl()
 	case ROULETTE:
 		//‰ñ‚é‚±‚Æ‚ÌƒRƒ“ƒgƒ[ƒ‹
 		if (Model->GetCurrentFrame() <= 3337)
-		{
 			x3OriginalRotation = Model->GetRotation();
-			printf("ROT %f\n", x3OriginalRotation.y);
-		}
 		else if (Model->GetCurrentFrame() > 3337 && Model->GetCurrentFrame() < 3350)
 		{
 			x3RotationChange.y -= 0.1f;

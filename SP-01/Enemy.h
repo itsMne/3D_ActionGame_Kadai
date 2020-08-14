@@ -40,6 +40,7 @@ public:
 	~Enemy();
 	void Init();
 	void Update();
+	void GravityControl();
 	void Draw();
 	void End();
 

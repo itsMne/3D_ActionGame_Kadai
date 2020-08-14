@@ -130,12 +130,9 @@ class Player3D :
 private:
 	float fPlayerSpeed;
 	int nState;
-	Object3D* pFloor;
 	char szInputs[MAX_PLAYER_INPUT + 1];
 	PLAYER_ATTACK_MOVE* pCurrentAttackPlaying;
 	PLAYER_ATTACK_MOVE* pPreviousAttack;
-	Scene3D* pGame;
-	float fGravityForce;
 	int nInputTimer;
 	int nCancellingGravityFrames;
 	int nFightStanceFrameCount;
