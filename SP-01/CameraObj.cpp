@@ -105,7 +105,7 @@ void Camera3D::Update()
 
 
 	// ˆÚ“®‚ð”½‰f
-	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x + fShakeIntensity, Position.y + ParentPos.y, Position.z + ParentPos.z + (fLockOnOffset*30) + fShakeIntensity + fZoomIntensity);
+	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x + fShakeIntensity - (sinf(XM_PI + Rotation.y)*fZoomIntensity), Position.y + ParentPos.y, Position.z + ParentPos.z + (fLockOnOffset*30) + fShakeIntensity - (cosf(XM_PI + Rotation.y)*fZoomIntensity));
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 
