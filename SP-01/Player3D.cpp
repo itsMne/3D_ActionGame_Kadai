@@ -23,7 +23,7 @@
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f
 #define SHOW_PLAYER_HITBOX true
-#define SHOW_SPECIFIC_PLAYER_HITBOX -1
+#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_FEET
 #define JUMP_FORCE 20
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
@@ -125,6 +125,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pLight = GetMainLight();
 	nState = PLAYER_IDLE_STATE;
 	pFloor = nullptr;
+	pLockedEnemy = nullptr;
 	BunBun = new Object3D(GO_BUNBUN);
 	BunBun->SetParent(this);
 	BunBun->SetPosition({ 0, -100, 0 });
@@ -161,6 +162,7 @@ void Player3D::Init()
 	}
 	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 5.0f, 15.0f, 5.0f };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
+	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
 	{
@@ -168,6 +170,9 @@ void Player3D::Init()
 		pVisualHitboxes[i]->Init("data/texture/hbox.tga");
 		pVisualHitboxes[i]->SetScale({ Hitboxes[i].SizeX, Hitboxes[i].SizeY, Hitboxes[i].SizeZ });
 		pVisualHitboxes[i]->SetPosition({ Hitboxes[i].PositionX,Hitboxes[i].PositionY,Hitboxes[i].PositionZ });
+		if (SHOW_SPECIFIC_PLAYER_HITBOX == -1 || SHOW_SPECIFIC_PLAYER_HITBOX == i)
+			continue;
+		pVisualHitboxes[i]->SetInvisible(true);
 	}
 #endif
 }
@@ -1079,7 +1084,6 @@ void Player3D::Draw()
 {
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	GetMainLight()->SetLightEnable(false);
-#if SHOW_SPECIFIC_PLAYER_HITBOX < 0
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
 	{
 		if (!pVisualHitboxes[i])continue;
@@ -1088,14 +1092,7 @@ void Player3D::Draw()
 		pVisualHitboxes[i]->SetPosition({ pHB.PositionX, pHB.PositionY, pHB.PositionZ });
 		pVisualHitboxes[i]->Draw();
 	}
-#else
-	if (!pVisualHitboxes[SHOW_SPECIFIC_PLAYER_HITBOX]) {
-		Box pHB = GetHitboxPlayer(SHOW_SPECIFIC_PLAYER_HITBOX);
-		pVisualHitboxes[SHOW_SPECIFIC_PLAYER_HITBOX]->SetScale({ pHB.SizeX, pHB.SizeY, pHB.SizeZ });
-		pVisualHitboxes[SHOW_SPECIFIC_PLAYER_HITBOX]->SetPosition({ pHB.PositionX, pHB.PositionY, pHB.PositionZ });
-		pVisualHitboxes[SHOW_SPECIFIC_PLAYER_HITBOX]->Draw();
-	}	
-#endif
+
 	GetMainLight()->SetLightEnable(true);
 #endif
 	Actor::Draw();

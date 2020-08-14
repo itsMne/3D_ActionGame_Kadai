@@ -36,6 +36,7 @@ private:
 	Light3D*					pSceneLight;
 	int							nTextureSubDivisions;
 	bool bIsPlane;
+	bool bInvisible;
 public:
 	Cube3D();
 	Cube3D(bool IsPlane);
@@ -53,5 +54,6 @@ public:
 	void SetTextureSubdivisions(int newSubs);
 	Box GetHitbox();
 	void SetAsPlane(bool);
+	void SetInvisible(bool inv) { bInvisible = inv; };
 };
 

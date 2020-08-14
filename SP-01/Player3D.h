@@ -77,6 +77,7 @@ enum EPLAYER_HITBOXES
 {
 	PLAYER_HB_FEET=0,
 	PLAYER_HB_ATTACK,
+	PLAYER_HB_LOCKON,
 	PLAYER_HB_MAX
 };
 enum AirMove
@@ -148,7 +149,8 @@ private:
 	bool bKick;
 	bool bPunch;
 	bool bLockingOn;
-
+	//ÉçÉbÉNÉIÉì
+	Actor* pLockedEnemy;
 	Camera3D* pCamera;
 public:
 	Player3D();
@@ -186,6 +188,7 @@ public:
 	void				SetFloor(Object3D* Floor) { pFloor = Floor; fGravityForce = 0; };
 	float				GetGravityForce();
 	Camera3D*			GetCameraPlayer() { return pCamera; };
+	Actor*				GetLockedEnemy() { return pLockedEnemy; };
 };
 
 Player3D* GetPlayer();

@@ -53,7 +53,7 @@ Cube3D::Cube3D(): Object3D(GO_CUBE)
 {
 	pSceneLight = nullptr;
 	nTextureSubDivisions = 1;
-	bIsPlane = false;
+	bInvisible = bIsPlane = false;
 }
 
 Cube3D::Cube3D(bool IsPlane) : Object3D(GO_CUBE)
@@ -190,6 +190,8 @@ void Cube3D::Update(void)
 //*****************************************************************************
 void Cube3D::Draw(void)
 {
+	if (bInvisible)
+		return;
 	TechCamera* pMainCamera = GetMainCamera();
 	if (!pMainCamera)
 	{
