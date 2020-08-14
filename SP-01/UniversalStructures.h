@@ -86,3 +86,4 @@ XMFLOAT3 GetForwardVector(XMFLOAT3 Rot);
 XMFLOAT3 GetVectorDifference(XMFLOAT3 a, XMFLOAT3 b);
 XMFLOAT3 NormalizeVector(XMFLOAT3 v);
 XMFLOAT3 MultiplyVectorByFloat(XMFLOAT3 a, float flot);
+float GetDistance(XMFLOAT3 obj1, XMFLOAT3 obj2);

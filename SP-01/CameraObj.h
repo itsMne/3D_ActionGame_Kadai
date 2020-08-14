@@ -15,7 +15,7 @@ private:
 	XMFLOAT4X4	g_mtxWorld;		// ワールドマトリックス
 	XMFLOAT3	x3TargetRotation;
 	float	    fLockOnOffset;
-	int nCameraType;
+	int			nCameraType;
 public:
 	Camera3D(int type);
 	~Camera3D();

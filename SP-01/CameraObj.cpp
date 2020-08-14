@@ -1,4 +1,5 @@
 #include "CameraObj.h"
+#include "Player3D.h"
 #include "InputManager.h"
 
 #define OFFSET_Y 0.35f
@@ -68,11 +69,12 @@ void Camera3D::Update()
 void Camera3D::PlayerCameraControl()
 {
 	//printf("Cur: %f  --  Tar: %f\n", Rotation.y, x3TargetRotation.y);
-
+	if (!pFollowObj)
+		return;
 	static bool bLockOnActivated = false;
 	static float fAcceleration = 0;
-	bool bEnemyLockedOn = true;//temp
-	if (GetInput(INPUT_LOCKON) && bEnemyLockedOn)
+	Player3D* pPlayer = (Player3D *)pFollowObj;
+	if (GetInput(INPUT_LOCKON) && pPlayer->GetLockedEnemy())
 	{
 		if (fLockOnOffset < OFFSET_Y)
 			fLockOnOffset += 0.05f;
@@ -87,15 +89,24 @@ void Camera3D::PlayerCameraControl()
 			fLockOnOffset = 0;
 	}
 	if (GetInput(INPUT_CAMERA) && !bLockOnActivated) {
-		if (pFollowObj) {
-			x3TargetRotation = pFollowObj->GetModel()->GetRotation();
-			bLockOnActivated = true;
-		}
-		else
-			return;
+		x3TargetRotation = pFollowObj->GetModel()->GetRotation();
+		bLockOnActivated = true;
 	}
+	if (!bLockOnActivated && pPlayer->GetLockedEnemy() && (!pPlayer->GetCurrentAttack() || (pPlayer->GetCurrentAttack() && pPlayer->GetCurrentAttack()->Animation!=ROULETTE)))
+	{
+		float calc = abs(pFollowObj->GetModel()->GetRotation().y - x3TargetRotation.y);
+		//float fDistance = (x2*x1)2 + (y2*y1)2 + (z2*z1)2
+		
+		if (calc >= 3.0f && calc<=3.15f)
+		{
+			bLockOnActivated = true;
+			x3TargetRotation.y = pFollowObj->GetModel()->GetRotation().y-0.1f;
+		}
+	}
+
 	if (!bLockOnActivated)
 		return;
+
 	if (Rotation.y > x3TargetRotation.y) {
 		RotateAroundY(0.01f+ fAcceleration);
 		if (Rotation.y < x3TargetRotation.y)

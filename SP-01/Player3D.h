@@ -6,6 +6,7 @@
 #include "Actor.h"
 #include "Cube3D.h"
 #include "CameraObj.h"
+#include "S_Scene3D.h"
 #include "Billboard2D.h"
 
 //*****************************************************************************
@@ -133,7 +134,7 @@ private:
 	char szInputs[MAX_PLAYER_INPUT + 1];
 	PLAYER_ATTACK_MOVE* pCurrentAttackPlaying;
 	PLAYER_ATTACK_MOVE* pPreviousAttack;
-	//float fAnalogLockInput;
+	Scene3D* pGame;
 	float fGravityForce;
 	int nInputTimer;
 	int nCancellingGravityFrames;
@@ -158,6 +159,7 @@ public:
 
 	void				Init();
 	void				Update();
+	void LockingControl();
 	bool				CheckHoldingBack();
 	bool				CheckHoldingForward();
 	void				TransitionToFloatingBunBun();
@@ -187,8 +189,10 @@ public:
 	Box					GetHitboxPlayer(int hb);
 	void				SetFloor(Object3D* Floor) { pFloor = Floor; fGravityForce = 0; };
 	float				GetGravityForce();
+	void				FaceLockedEnemy();
 	Camera3D*			GetCameraPlayer() { return pCamera; };
 	Actor*				GetLockedEnemy() { return pLockedEnemy; };
+	PLAYER_ATTACK_MOVE* GetCurrentAttack() { return pCurrentAttackPlaying; };
 };
 
 Player3D* GetPlayer();

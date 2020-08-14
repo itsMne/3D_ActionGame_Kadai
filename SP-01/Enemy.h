@@ -23,6 +23,7 @@ enum ENEMY_HITBOXES
 {
 	ENEMY_HB_FEET = 0,
 	ENEMY_HB_ATTACK,
+	ENEMY_HB_BODY,
 	ENEMY_HB_MAX
 };
 class Enemy :
@@ -41,6 +42,8 @@ public:
 	void Update();
 	void Draw();
 	void End();
+
+	Box GetHitboxEnemy(int i);
 	
 };
 

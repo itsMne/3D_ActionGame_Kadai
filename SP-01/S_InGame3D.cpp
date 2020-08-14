@@ -152,6 +152,17 @@ void S_InGame3D::End()
 //*****************************************************************************
 Go_List * S_InGame3D::GetList(int Type)
 {
+	switch (Type)
+	{
+	case GO_ENEMY:
+		return Enemies;
+		break;
+	case GO_FLOOR:
+		return Fields;
+		break;
+	default:
+		break;
+	}
 	return nullptr;
 }
 

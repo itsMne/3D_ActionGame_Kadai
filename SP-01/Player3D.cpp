@@ -23,12 +23,14 @@
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f
 #define SHOW_PLAYER_HITBOX true
-#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_FEET
+#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_ATTACK
 #define JUMP_FORCE 20
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
 #define KICKDOWN_SPEED 10.98
-
+#define LOCK_ON_DISTANCE 550.0f
+#define BACKWARD_INPUT_OFFSET 2.5f
+#define FORWARD_INPUT_OFFSET 0.75f
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -139,6 +141,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pCamera = new Camera3D(CAMERA_PLAYER);
 	pCamera->SetObjectToFollow(this);
 	ResetInputs();
+	pGame = nullptr;
 }
 
 Player3D::~Player3D()
@@ -162,7 +165,7 @@ void Player3D::Init()
 	}
 	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 5.0f, 15.0f, 5.0f };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
-	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
+	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
 	{
@@ -187,7 +190,11 @@ void Player3D::Update()
 {
 	Actor::Update();
 	pCamera->Update();
-
+	if (!pGame) {
+		pGame = GetCurrentGame();
+		if (!pGame)
+			return;
+	}
 	if (IsOnTheFloor())
 	{
 		if (GetInput(INPUT_JUMP)) {
@@ -213,6 +220,8 @@ void Player3D::Update()
 	bKick = GetInput(INPUT_PUNCH) && CheckHoldingBack();
 	bPunch = GetInput(INPUT_PUNCH) && !CheckHoldingBack();
 	bLockingOn = GetInput(INPUT_LOCKON);
+	//ロックオン確認する
+	LockingControl();
 	//ステートマシン
 	switch (nState)
 	{
@@ -258,6 +267,40 @@ void Player3D::Update()
 	//printf("INPUTS: %s\n", szInputs);
 }
 
+void Player3D::LockingControl()
+{
+	if (!pLockedEnemy && bLockingOn)
+	{
+		float fDistance = 0;
+		while (!pLockedEnemy && (fDistance += 0.1f) <LOCK_ON_DISTANCE)
+		{
+			Hitboxes[PLAYER_HB_LOCKON].PositionX = -sinf(XM_PI + Model->GetRotation().y) * fDistance;
+			Hitboxes[PLAYER_HB_LOCKON].PositionY = 25.0f;
+			Hitboxes[PLAYER_HB_LOCKON].PositionZ = -cosf(XM_PI + Model->GetRotation().y) * fDistance;
+			pLockedEnemy = (Actor*)(((S_InGame3D*)pGame)->GetList(GO_ENEMY)->CheckCollision(GetHitboxPlayer(PLAYER_HB_LOCKON)));
+			if (pLockedEnemy)
+				printf("ENEMY FOUND\n");
+		}
+
+	}
+	if (!bLockingOn)
+		pLockedEnemy = nullptr;
+	else {
+		FaceLockedEnemy();
+		if (pLockedEnemy)
+		{
+			XMFLOAT3 EnemyPos = pLockedEnemy->GetPosition();
+			XMFLOAT3 PlayerPos = GetPosition();
+			PlayerPos.y = 0;
+			EnemyPos.y = 0;
+			float dis = GetDistance(PlayerPos, EnemyPos)/400;
+			printf("%f\n", dis);
+			if (dis > 1.85f)
+				pLockedEnemy = nullptr;
+		}
+	}
+}
+
 bool Player3D::CheckHoldingBack()
 {
 	if (!bLockingOn)
@@ -270,7 +313,7 @@ bool Player3D::CheckHoldingBack()
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
 	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
-	if (DirInput >= 3.05f)
+	if (DirInput >= BACKWARD_INPUT_OFFSET)
 		IsHoldingBack = true;
 	
 	return IsHoldingBack;
@@ -288,7 +331,7 @@ bool Player3D::CheckHoldingForward()
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
 	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
-	if (DirInput <= 0.5f)
+	if (DirInput <= FORWARD_INPUT_OFFSET)
 		IsHoldingFor = true;
 	return IsHoldingFor;
 }
@@ -961,7 +1004,7 @@ void Player3D::CalculateDirectionalInput()
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
 	float DirInput =abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
-	if (DirInput >= 3.05f)
+	if (DirInput >= BACKWARD_INPUT_OFFSET)
 	{
 		eDirection = DIR_BACKWARD;
 		AddInput('B');
@@ -970,7 +1013,7 @@ void Player3D::CalculateDirectionalInput()
 		printf("BACKWARD\n", DirInput);
 #endif
 	}
-	else if (DirInput<=0.5f)
+	else if (DirInput<= FORWARD_INPUT_OFFSET)
 	{
 		AddInput('F');
 		nInputTimer = MAX_INPUT_TIMER / 2;
@@ -1092,7 +1135,6 @@ void Player3D::Draw()
 		pVisualHitboxes[i]->SetPosition({ pHB.PositionX, pHB.PositionY, pHB.PositionZ });
 		pVisualHitboxes[i]->Draw();
 	}
-
 	GetMainLight()->SetLightEnable(true);
 #endif
 	Actor::Draw();
@@ -1339,4 +1381,36 @@ Box Player3D::GetHitboxPlayer(int hb)
 float Player3D::GetGravityForce()
 {
 	return fGravityForce;
+}
+
+//*****************************************************************************
+//FaceLockedEnemy関数
+//プレイヤーの回転を変更して、敵を見る
+//引数：void
+//戻：void
+//*****************************************************************************
+void Player3D::FaceLockedEnemy()
+{
+	static int nFaceCooldown = 2;
+	if (--nFaceCooldown > 0)
+		return;
+	nFaceCooldown = 2;
+	//Player3D* pLockedEnemy = (Player3D*)pPlayerPointer;
+	if (!pLockedEnemy)
+		return;
+	XMFLOAT3 a;
+	XMFLOAT3 calc = GetVectorDifference(pLockedEnemy->GetPosition(), Position);
+	a.x = sin(GetRotation().y);
+	a.y = sin(GetRotation().x);
+	a.z = cos(GetRotation().y);
+	XMFLOAT3 b = NormalizeVector(calc);
+	XMVECTOR dot = XMVector3Dot(XMLoadFloat3(&a), XMLoadFloat3(&b));
+
+
+	float rotationAngle = (float)acos(XMVectorGetX(dot));
+	rotationAngle = ceilf(rotationAngle * 10) / 10;
+	if (pLockedEnemy->GetPosition().x < Position.x)
+		Model->SetRotationY(-rotationAngle);
+	else
+		Model->SetRotationY(rotationAngle);
 }

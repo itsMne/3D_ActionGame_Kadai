@@ -147,3 +147,17 @@ XMFLOAT3 MultiplyVectorByFloat(XMFLOAT3 a, float flot)
 {
 	return { a.x*flot, a.y*flot, a.z*flot };
 }
+
+float GetDistance(XMFLOAT3 obj1, XMFLOAT3 obj2)
+{
+	float distance, tempx, tempy, tempz;
+	tempx = (obj1.x - obj2.x);
+	tempx = pow(tempx, 2.0f);
+	tempy = (obj1.y - obj2.y);
+	tempy = pow(tempy, 2.0f);
+	tempz = (obj1.z - obj2.z);
+	tempz = pow(tempz, 2.0f);
+	distance = tempx + tempy + tempz;
+	distance = sqrt(distance);
+	return distance;
+}
