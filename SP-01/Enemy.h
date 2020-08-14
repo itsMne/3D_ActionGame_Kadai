@@ -26,25 +26,35 @@ enum ENEMY_HITBOXES
 	ENEMY_HB_BODY,
 	ENEMY_HB_MAX
 };
+
+enum ENEMY_STATES
+{
+	EN_STATE_IDLE,
+	EN_STATE_DAMAGED,
+};
+
 class Enemy :
 	public Actor
 {
 private:
 	//ヒットボックス
-	Box Hitboxes[ENEMY_HB_MAX];
+	Box		Hitboxes[ENEMY_HB_MAX];
 	Cube3D* pVisualHitboxes[ENEMY_HB_MAX];
 	//プレイヤーのポインター
-	Actor* pPlayer;
+	Actor*	pPlayer;
+	//状態
+	int		nState;
+	bool bCanBeAttacked;
+	bool bAlternatePunchAnim;
 public:
 	Enemy();
 	~Enemy();
 	void Init();
 	void Update();
+	void DamagedStateControl();
 	void GravityControl();
 	void Draw();
 	void End();
-
 	Box GetHitboxEnemy(int i);
-	
 };
 

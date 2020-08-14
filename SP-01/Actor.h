@@ -29,5 +29,6 @@ public:
 	virtual void Draw();
 	virtual void End();
 	int GetActorType();
+	void FaceActor(Actor* pToFace);
 };
 

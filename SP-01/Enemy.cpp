@@ -1,18 +1,28 @@
 #include "Enemy.h"
 #include "input.h"
 #include "S_InGame3D.h"
+#include "TechnicalCamera.h"
+#include "Player3D.h"
 
 #define SHOW_ENEMY_HITBOX true
-#define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_FEET
+#define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_BODY
 #define GRAVITY_FORCE 0.98f
-Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY)
+
+float fEnemyAnimations[ENEMY_MAX] =
+{
+	1,
+	1,
+	1,
+};
+
+Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(true)
 {
 	Init();
 	Model->SetRotation({ 0,XM_PI,0 });
 	Model->SetScale({ 0.65f, 0.65f, 0.65f });
 	Model->SetPosition({ 0,5,0 });
-	Model->SwitchAnimation(EN_IDLE, 0, 1);
-	
+	SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
+	nState = EN_STATE_IDLE;
 }
 
 Enemy::~Enemy()
@@ -30,7 +40,7 @@ void Enemy::Init()
 	}
 	Hitboxes[ENEMY_HB_FEET] = { 0, 14.0f, 0, 5.0f, 15.0f, 5.0f };
 	Hitboxes[ENEMY_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
-	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 70.0f, 0, 15.0f, 80.0f, 10.0f };
+	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 15.0f, 90.0f, 10.0f };
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
 	{
@@ -48,12 +58,78 @@ void Enemy::Init()
 void Enemy::Update()
 {
 	Actor::Update();
+	if (!pPlayer)
+	{
+		pPlayer = GetPlayer();
+		if (!pPlayer)
+			return;
+	}
+	Player3D* Player = (Player3D*)pPlayer;
 #ifdef DEBUG_GRAVITY
 	if (GetKeyPress(VK_UP)) {
 		Position.y++; return;
 	}
 #endif
 	GravityControl();
+	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED) {
+		nState = EN_STATE_DAMAGED;
+		if (!bAlternatePunchAnim)
+			SetAnimation(EN_PUNCHED_A, fEnemyAnimations[EN_PUNCHED_A]);
+		else
+			SetAnimation(EN_PUNCHED_B, fEnemyAnimations[EN_PUNCHED_B]);
+		FaceActor(pPlayer);
+		bCanBeAttacked = false;
+		bAlternatePunchAnim ^= true;
+	}
+	switch (nState)
+	{
+	case EN_STATE_IDLE:
+		SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
+		break;
+	case EN_STATE_DAMAGED:
+		DamagedStateControl();
+		break;
+	default:
+		break;
+	}
+
+}
+
+void Enemy::DamagedStateControl()
+{
+	if (Model->GetLoops() > 0)
+	{
+		nState = EN_STATE_IDLE;
+		SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
+	}
+	Player3D* Player = (Player3D*)pPlayer;
+	PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
+	float PosY = Position.y;
+	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && bCanBeAttacked) {
+		bAlternatePunchAnim ^= true;
+		FaceActor(pPlayer);
+		bCanBeAttacked = false;
+	}
+	if(!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)))
+		bCanBeAttacked = true;
+	if (!pPlayerAttack) {
+		bCanBeAttacked = true;
+		return;
+	}
+	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	switch (pPlayerAttack->Animation)
+	{
+	default:
+		if(!bAlternatePunchAnim)
+			SetAnimation(EN_PUNCHED_A, fEnemyAnimations[EN_PUNCHED_A]);
+		else
+			SetAnimation(EN_PUNCHED_B, fEnemyAnimations[EN_PUNCHED_B]);
+		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+		Position.y = PosY;
+		pCamera->SetShaking(1.5f, 7, 3);
+		pCamera->SetZooming(60, 15, 2, 2);
+		break;
+	}
 }
 
 void Enemy::GravityControl()

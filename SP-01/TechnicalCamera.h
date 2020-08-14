@@ -67,6 +67,7 @@ public:
 	XMFLOAT4X4& GetProj() { return m_mProj; }
 	XMFLOAT3& GetEye() { return vEye; }
 	XMFLOAT3& GetLook() { return LookEye; }
+	void* GetFocalPoint() { return FocalPoint; };
 };
 
 //*****************************************************************************

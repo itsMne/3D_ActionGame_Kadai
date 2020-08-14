@@ -8,7 +8,8 @@ Camera3D::Camera3D(int nCamType):Object3D(GO_CAMERA), pFollowObj(nullptr)
 {
 	Init();
 	nCameraType = nCamType;
-	fLockOnOffset = 0;
+	nFramesPerShake = fShakeIntensity = nShakeFrames = fLockOnOffset = 0;
+	fZoomSpeed = fZoomTargetIntensity = fZoomIntensity = nZoomFrames = fZoomAcceleration = 0;
 }
 
 
@@ -30,6 +31,54 @@ void Camera3D::Update()
 	default:
 		break;
 	}
+
+	if (Rotation.y > XM_2PI) {
+		Rotation.y -= XM_2PI;
+	}
+	if (Rotation.y < -XM_2PI) {
+		Rotation.y += XM_2PI;
+	}
+
+	//揺るぐ
+	if (--nShakeFrames <= 0)
+	{
+		nShakeFrames = 0;
+		fShakeIntensity = 0;
+	}
+	else {
+		static int FrameCount = nFramesPerShake;
+		if (--FrameCount <= 0)
+		{
+			FrameCount = nFramesPerShake;
+			fShakeIntensity *= -1;
+		}
+	}
+	//ズームイン
+	if (--nZoomFrames <= 0)
+	{
+		fZoomTargetIntensity = nZoomFrames = 0;
+	}
+	fZoomSpeed += fZoomAcceleration;
+	if (fZoomIntensity != fZoomTargetIntensity)
+	{
+		if (fZoomIntensity < fZoomTargetIntensity)
+		{
+			fZoomIntensity += fZoomSpeed;
+			if (fZoomIntensity > fZoomTargetIntensity)
+				fZoomIntensity = fZoomTargetIntensity;
+		}
+		else if (fZoomIntensity > fZoomTargetIntensity)
+		{
+			fZoomIntensity -= fZoomSpeed;
+			if (fZoomIntensity < fZoomTargetIntensity)
+				fZoomIntensity = fZoomTargetIntensity;
+		}
+	}
+	else
+	{
+		fZoomSpeed = 0;
+	}
+	//カメラ設定
 	XMFLOAT3 ParentPos = { 0,0,0 };
 	XMFLOAT3 ParentScale = { 1,1,1 };//親の拠点と親の大きさ
 	if (pFollowObj) {
@@ -56,9 +105,8 @@ void Camera3D::Update()
 
 
 	// 移動を反映
-	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x, Position.y + ParentPos.y, Position.z + ParentPos.z + fLockOnOffset*30);
+	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x + fShakeIntensity, Position.y + ParentPos.y, Position.z + ParentPos.z + (fLockOnOffset*30) + fShakeIntensity + fZoomIntensity);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
-
 
 
 	// ワールドマトリックスの設定
@@ -69,11 +117,9 @@ void Camera3D::Update()
 void Camera3D::PlayerCameraControl()
 {
 	//printf("Cur: %f  --  Tar: %f\n", Rotation.y, x3TargetRotation.y);
-	if (!pFollowObj)
-		return;
 	static bool bLockOnActivated = false;
 	static float fAcceleration = 0;
-	Player3D* pPlayer = (Player3D *)pFollowObj;
+	Player3D* pPlayer = GetPlayer();
 	if (GetInput(INPUT_LOCKON) && pPlayer->GetLockedEnemy())
 	{
 		if (fLockOnOffset < OFFSET_Y)
@@ -89,18 +135,18 @@ void Camera3D::PlayerCameraControl()
 			fLockOnOffset = 0;
 	}
 	if (GetInput(INPUT_CAMERA) && !bLockOnActivated) {
-		x3TargetRotation = pFollowObj->GetModel()->GetRotation();
+		x3TargetRotation = pPlayer->GetModel()->GetRotation();
 		bLockOnActivated = true;
 	}
 	if (!bLockOnActivated && pPlayer->GetLockedEnemy() && (!pPlayer->GetCurrentAttack() || (pPlayer->GetCurrentAttack() && pPlayer->GetCurrentAttack()->Animation!=ROULETTE)))
 	{
-		float calc = abs(pFollowObj->GetModel()->GetRotation().y - x3TargetRotation.y);
+		float calc = abs(pPlayer->GetModel()->GetRotation().y - x3TargetRotation.y);
 		//float fDistance = (x2*x1)2 + (y2*y1)2 + (z2*z1)2
 		
 		if (calc >= 3.0f && calc<=3.15f)
 		{
 			bLockOnActivated = true;
-			x3TargetRotation.y = pFollowObj->GetModel()->GetRotation().y-0.1f;
+			x3TargetRotation.y = pPlayer->GetModel()->GetRotation().y-0.1f;
 		}
 	}
 

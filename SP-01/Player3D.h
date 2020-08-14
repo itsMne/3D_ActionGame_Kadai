@@ -184,9 +184,10 @@ public:
 	void				AddInput(char A);
 	char				GetLastInputInserted();
 	Box					GetHitboxPlayer(int hb);
+	XMFLOAT3			GetHitboxPos(int hb);
 	void				SetFloor(Object3D* Floor) { pFloor = Floor; fGravityForce = 0; };
 	float				GetGravityForce();
-	void				FaceLockedEnemy();
+	//void				FaceLockedEnemy();
 	Camera3D*			GetCameraPlayer() { return pCamera; };
 	Actor*				GetLockedEnemy() { return pLockedEnemy; };
 	PLAYER_ATTACK_MOVE* GetCurrentAttack() { return pCurrentAttackPlaying; };

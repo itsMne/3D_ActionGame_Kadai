@@ -22,7 +22,7 @@
 #define DEBUG_ADD_INPUTS false
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f*2
-#define SHOW_PLAYER_HITBOX false
+#define SHOW_PLAYER_HITBOX true
 #define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_ATTACK
 #define JUMP_FORCE 20*1.34f
 #define DEBUG_DIRECTIONALS false
@@ -283,7 +283,7 @@ void Player3D::LockingControl()
 	if (!bLockingOn)
 		pLockedEnemy = nullptr;
 	else {
-		FaceLockedEnemy();
+		FaceActor(pLockedEnemy);
 		if (pLockedEnemy)
 		{
 			XMFLOAT3 EnemyPos = pLockedEnemy->GetPosition();
@@ -792,7 +792,7 @@ void Player3D::AttackStateControl()
 	case BASIC_CHAIN_B_KICKA:
 		if (Model->GetCurrentFrame() >= 3553)
 		{
-			if (bKick || PressedKick) {
+			if (bKick || PressedKick || bPunch || PressedPunch) {
 				SwitchAttack(BASIC_CHAIN_B_KICKB);
 				break;
 			}
@@ -803,24 +803,20 @@ void Player3D::AttackStateControl()
 		}
 		break;
 	case BASIC_CHAIN_B_KICKB:
-		if (eDirection == DIR_FORWARD)
-		{
-			bPressedForwardMidAttack = true;
-		}
 		if (Model->GetCurrentFrame() >= 3649)
 		{
-			if (bKick || PressedKick) {
-				if (bPressedForwardMidAttack)
+			if (bKick || PressedKick || bPunch || PressedPunch) {
+				if (CheckHoldingForward())
 				{
 					SwitchAttack(BASIC_CHAIN_B_KICKB_FORWARD);
 					break;
 				}
+				if (CheckHoldingBack())
+				{
+					SwitchAttack(BASIC_CHAIN_B_KICKB_PUNCH);
+					break;
+				}
 				SwitchAttack(BASIC_CHAIN_B_KICKC);
-				break;
-			}
-			if (bPunch || PressedPunch)
-			{
-				SwitchAttack(BASIC_CHAIN_B_KICKB_PUNCH);
 				break;
 			}
 		}
@@ -890,7 +886,6 @@ void Player3D::AttackStateControl()
 					Model->SetRotation({ x3OriginalRotation.x, x3OriginalRotation.y, x3RotationChange.z });
 			}
 		}
-		//
 		if (Model->GetCurrentFrame() < 3366 || Model->GetCurrentFrame() > 3396) {
 			fGravityForce = -JUMP_FORCE;
 			if (pFloor)
@@ -1376,6 +1371,11 @@ Box Player3D::GetHitboxPlayer(int hb)
 	return { Hitboxes[hb].PositionX + Position.x, Hitboxes[hb].PositionY + Position.y,Hitboxes[hb].PositionZ + Position.z, Hitboxes[hb].SizeX,Hitboxes[hb].SizeY,Hitboxes[hb].SizeZ };
 }
 
+XMFLOAT3 Player3D::GetHitboxPos(int hb)
+{
+	return { Hitboxes[hb].PositionX + Position.x, Hitboxes[hb].PositionY + Position.y,Hitboxes[hb].PositionZ + Position.z };
+}
+
 float Player3D::GetGravityForce()
 {
 	return fGravityForce;
@@ -1387,7 +1387,7 @@ float Player3D::GetGravityForce()
 //ˆø”Fvoid
 //–ßFvoid
 //*****************************************************************************
-void Player3D::FaceLockedEnemy()
+/*void Player3D::FaceLockedEnemy()
 {
 	static int nFaceCooldown = 2;
 	if (--nFaceCooldown > 0)
@@ -1411,4 +1411,4 @@ void Player3D::FaceLockedEnemy()
 		Model->SetRotationY(-rotationAngle);
 	else
 		Model->SetRotationY(rotationAngle);
-}
+}*/

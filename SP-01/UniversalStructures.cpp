@@ -13,6 +13,8 @@
 //*****************************************************************************
 bool IsInCollision3D(Box a, Box b)
 {
+	if (a.SizeX == 0 || b.SizeX == 0 || a.SizeY == 0 || b.SizeY == 0 || a.SizeZ == 0 || b.SizeZ == 0)
+		return false;
 	//check the X axis
 	float comX = a.PositionX - b.PositionX;
 	if (comX < 0)
