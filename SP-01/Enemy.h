@@ -52,6 +52,7 @@ public:
 	void Init();
 	void Update();
 	void DamagedStateControl();
+	void CameraRumbleControl(int nAttackAnim);
 	void GravityControl();
 	void Draw();
 	void End();

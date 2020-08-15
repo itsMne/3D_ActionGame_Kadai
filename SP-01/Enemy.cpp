@@ -80,6 +80,8 @@ void Enemy::Update()
 		FaceActor(pPlayer);
 		bCanBeAttacked = false;
 		bAlternatePunchAnim ^= true;
+		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
+		CameraRumbleControl(pPlayerAttack->Animation);
 	}
 	switch (nState)
 	{
@@ -105,10 +107,12 @@ void Enemy::DamagedStateControl()
 	Player3D* Player = (Player3D*)pPlayer;
 	PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 	float PosY = Position.y;
+	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && bCanBeAttacked) {
 		bAlternatePunchAnim ^= true;
 		FaceActor(pPlayer);
 		bCanBeAttacked = false;
+		CameraRumbleControl(pPlayerAttack->Animation);
 	}
 	if(!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)))
 		bCanBeAttacked = true;
@@ -116,7 +120,6 @@ void Enemy::DamagedStateControl()
 		bCanBeAttacked = true;
 		return;
 	}
-	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
 	switch (pPlayerAttack->Animation)
 	{
 	default:
@@ -126,8 +129,19 @@ void Enemy::DamagedStateControl()
 			SetAnimation(EN_PUNCHED_B, fEnemyAnimations[EN_PUNCHED_B]);
 		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
 		Position.y = PosY;
-		pCamera->SetShaking(1.5f, 7, 3);
 		pCamera->SetZooming(60, 15, 2, 2);
+		break;
+	}
+}
+
+void Enemy::CameraRumbleControl(int nAttackAnim)
+{
+	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	switch (nAttackAnim)
+	{
+	default:
+		//pCamera->SetShaking(1.5f, 7, 3);
+		pCamera->SetShaking(6.0f, 7, 2);
 		break;
 	}
 }
