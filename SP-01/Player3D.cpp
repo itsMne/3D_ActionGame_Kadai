@@ -439,7 +439,7 @@ void Player3D::FightingStanceStateControl()
 		else if(pPreviousAttack && pPreviousAttack->Animation == SLIDE)
 		{
 			SetAnimation(SLIDE_STANDUP_FIGHT, fAnimationSpeed[SLIDE_STANDUP_FIGHT]);
-			if (bKick)
+			if (bKick || bPunch)
 				SwitchAttack(SLIDE_KICKUP);
 			if (Model->GetCurrentFrame()>=548)
 			{
@@ -455,6 +455,8 @@ void Player3D::FightingStanceStateControl()
 			return;
 		}
 	}
+	if(Model->GetCurrentAnimation()==SLIDE_STANDUP_FIGHT && Model->GetCurrentFrame()>=549)
+		SetAnimation(FIGHT_STANCE, fAnimationSpeed[FIGHT_STANCE]);
 	if (Model->GetLoops() > 1)
 		nState = PLAYER_IDLE_STATE;
 	if (GetAxis(MOVEMENT_AXIS_HORIZONTAL) || GetAxis(MOVEMENT_AXIS_VERTICAL))
@@ -1052,6 +1054,8 @@ void Player3D::MoveControl()
 {
 	static float RotTarget = 0;
 	//アニメーション
+	if (Model->GetCurrentAnimation() == SLIDE_STANDUP_FIGHT)
+		return;
 	if (nState != PLAYER_JUMPING_UP_STATE && nState != PLAYER_BUNBUN_FLOATING) {
 		if (IsOnTheFloor()) {
 			if (bLockingOn && !CheckHoldingForward() && (GetAxis(MOVEMENT_AXIS_HORIZONTAL)!=0 || GetAxis(MOVEMENT_AXIS_VERTICAL) !=0)) {

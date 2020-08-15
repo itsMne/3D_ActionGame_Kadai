@@ -10,9 +10,19 @@
 
 float fEnemyAnimations[ENEMY_MAX] =
 {
-	1,
-	1,
-	1,
+	1,//EN_IDLE,
+	1,//EN_PUNCHED_A,
+	1,//EN_PUNCHED_B,
+	1,//EN_KICKED_A,
+	1,//EN_KICKED_B,
+	1,//EN_SENDTOAIR_AIRIDLE,
+	1,//EN_JUMPED_ABOVE,
+	1,//EN_LAUNCHED_FORWARD,
+	1,//EN_STRONG_HITFORWARD,
+	1,//EN_ATTACK_1,
+	1,//EN_ATTACK_2,
+	1,//EN_DEATH,
+	1,//EN_WALKING,
 };
 
 Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(true)
@@ -127,6 +137,14 @@ void Enemy::DamagedStateControl()
 	}
 	switch (pPlayerAttack->Animation)
 	{
+	case SLIDE:
+		if(Player->GetModel()->GetCurrentAnimation()< 527)
+			Player->GetModel()->SetFrameOfAnimation(527);
+		SetAnimation(EN_PUNCHED_B, fEnemyAnimations[EN_KICKED_A]);
+		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+		Position.y = PosY;
+		pCamera->SetZooming(-60, 15, 2, 2);
+		break;
 	default:
 		if(!bAlternatePunchAnim)
 			SetAnimation(EN_PUNCHED_A, fEnemyAnimations[EN_PUNCHED_A]);
