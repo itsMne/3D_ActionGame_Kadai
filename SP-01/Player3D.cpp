@@ -23,7 +23,7 @@
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f*2
 #define SHOW_PLAYER_HITBOX true
-#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_ATTACK
+#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_OBJECT_COL
 #define JUMP_FORCE 20*1.34f
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
@@ -164,6 +164,7 @@ void Player3D::Init()
 	}
 	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 5.0f, 15.0f, 5.0f };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
+	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
@@ -213,7 +214,8 @@ void Player3D::Update()
 	if (nState != PLAYER_IDLE_FIGHT_STATE)
 		nFightStanceFrameCount = 0;
 
-	SetAttackHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45,25.0f,-cosf(XM_PI + Model->GetRotation().y) * 45);
+	SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 10, 25.0f, -cosf(XM_PI + Model->GetRotation().y) * 10, PLAYER_HB_OBJECT_COL);
+	SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45,25.0f,-cosf(XM_PI + Model->GetRotation().y) * 45, PLAYER_HB_ATTACK);
 	Hitboxes[PLAYER_HB_ATTACK].SizeX = Hitboxes[PLAYER_HB_ATTACK].SizeY = Hitboxes[PLAYER_HB_ATTACK].SizeZ = 0;
 
 	bKick = GetInput(INPUT_PUNCH) && CheckHoldingBack();
@@ -695,7 +697,7 @@ void Player3D::AttackStateControl()
 		}
 		if (Model->GetCurrentFrame() >= 1848)
 			StopAttack();
-		SetAttackHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 35, 50, -cosf(XM_PI + Model->GetRotation().y) * 35);
+		SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 35, 50, -cosf(XM_PI + Model->GetRotation().y) * 35, PLAYER_HB_ATTACK);
 		break;
 	case HEADBUTT:
 		if (Model->GetCurrentFrame() >= 2943)
@@ -717,7 +719,7 @@ void Player3D::AttackStateControl()
 		{
 			StopAttack();
 		}
-		SetAttackHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45, 0.0f, -cosf(XM_PI + Model->GetRotation().y) * 25);
+		SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45, 0.0f, -cosf(XM_PI + Model->GetRotation().y) * 25, PLAYER_HB_ATTACK);
 		break;
 	case BASIC_CHAIN_B_PAUSEA:
 		if (Model->GetCurrentFrame() >= 2086)
@@ -929,11 +931,11 @@ void Player3D::AttackStateControl()
 	}
 }
 
-void Player3D::SetAttackHitboxPosition(float x, float y, float z)
+void Player3D::SetHitboxPosition(float x, float y, float z, int HB)
 {
-	Hitboxes[PLAYER_HB_ATTACK].PositionX = x;
-	Hitboxes[PLAYER_HB_ATTACK].PositionY = y;
-	Hitboxes[PLAYER_HB_ATTACK].PositionZ = z;
+	Hitboxes[HB].PositionX = x;
+	Hitboxes[HB].PositionY = y;
+	Hitboxes[HB].PositionZ = z;
 }
 
 void Player3D::ActivateAttackHitbox(float x, float y, float z, float Speed)

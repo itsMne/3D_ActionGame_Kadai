@@ -104,6 +104,7 @@ public:
 	void InitModel(const char* szPath);
 	void InitModel(int szPath);
 	void SetParent(Object3D* pNewParent);
+	void Translate(XMFLOAT3 translation);
 	void TranslateX(float translation);
 	void TranslateY(float translation);
 	void TranslateZ(float translation);

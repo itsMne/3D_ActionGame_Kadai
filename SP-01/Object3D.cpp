@@ -477,6 +477,13 @@ void Object3D::SetParent(Object3D * pNewParent)
 	p_goParent = pNewParent;
 }
 
+void Object3D::Translate(XMFLOAT3 translation)
+{
+	TranslateX(translation.x);
+	TranslateY(translation.y);
+	TranslateZ(translation.z);
+}
+
 //*****************************************************************************
 //TranslateX関数
 //プレイヤーに動かせる（X座標）

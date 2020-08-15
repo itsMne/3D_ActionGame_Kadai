@@ -79,6 +79,7 @@ enum EPLAYER_HITBOXES
 	PLAYER_HB_FEET=0,
 	PLAYER_HB_ATTACK,
 	PLAYER_HB_LOCKON,
+	PLAYER_HB_OBJECT_COL,
 	PLAYER_HB_MAX
 };
 enum AirMove
@@ -167,7 +168,7 @@ public:
 	void				FindMoveByAnimation(int anim);
 	PLAYER_ATTACK_MOVE*	GetAttack(int anim);
 	void				AttackStateControl();
-	void				SetAttackHitboxPosition(float x, float y, float z);
+	void				SetHitboxPosition(float x, float y, float z, int HB);
 	void				ActivateAttackHitbox(float x, float y, float z, float Speed);
 	void				StopAttack();
 	void				CalculateDirectionalInput();

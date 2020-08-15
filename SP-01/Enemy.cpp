@@ -40,7 +40,7 @@ void Enemy::Init()
 	}
 	Hitboxes[ENEMY_HB_FEET] = { 0, 14.0f, 0, 5.0f, 15.0f, 5.0f };
 	Hitboxes[ENEMY_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
-	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 15.0f, 90.0f, 10.0f };
+	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 15.0f, 90.0f, 30.0f };
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
 	{
@@ -82,6 +82,11 @@ void Enemy::Update()
 		bAlternatePunchAnim ^= true;
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 		CameraRumbleControl(pPlayerAttack->Animation);
+	}
+	while (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_OBJECT_COL), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED)
+	{
+		Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
+		Player->Translate({ sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
 	}
 	switch (nState)
 	{
@@ -140,7 +145,6 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 	switch (nAttackAnim)
 	{
 	default:
-		//pCamera->SetShaking(1.5f, 7, 3);
 		pCamera->SetShaking(6.0f, 7, 2);
 		break;
 	}
