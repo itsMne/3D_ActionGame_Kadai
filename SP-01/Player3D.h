@@ -54,7 +54,7 @@ enum PLAYER_ANIMATIONS
 	AIR_PUNCHB,
 	AIR_PUNCHC,
 	ROULETTE,
-	KNEEKICK,
+	KNEEDASH,
 	BASIC_CHAIN_B_KICKA,
 	BASIC_CHAIN_B_KICKB,
 	BASIC_CHAIN_B_KICKC,
@@ -157,6 +157,7 @@ public:
 
 	void				Init();
 	void				Update();
+	void Jump();
 	void LockingControl();
 	bool				CheckHoldingBack();
 	bool				CheckHoldingForward();

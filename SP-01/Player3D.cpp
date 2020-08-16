@@ -23,7 +23,7 @@
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f*2
 #define SHOW_PLAYER_HITBOX true
-#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_OBJECT_COL
+#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_ATTACK
 #define JUMP_FORCE 20*1.34f
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
@@ -59,8 +59,8 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"A",	  AIR_PUNCHA,					false,	AIR_MOVE,	 AIR_PUNCHB,	 3100,	{ 3100, 3113}	,{15, 20, 10,  0},	1500},//A
 	{"n",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,	 3175,	{ 3167, 3191}	,{15, 20, 10,  0},	1600},//A
 	{"n",	  AIR_PUNCHC,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3272, 3290}	,{15, 20, 10,  0},	1700},//A
-	{"FFA",	  KNEEKICK,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{15, 20, 10,  0},	1800},//A
-	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3363, 3395}	,{15, 20, 10,  0},	1900},//A
+	{"FFA",	  KNEEDASH,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{15, 20, 10,  0},	1800},//A
+	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3337, 3395}	,{15, 20, 10,  0},	1900},//A
 	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4157, 4200}	,{15, 20, 10,  0},	1900},//K
 };
 
@@ -139,6 +139,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	bUppercutExecute = bPressedForwardMidAttack = bPressedBackwardMidAttack = false;
 	pCamera = new Camera3D(CAMERA_PLAYER);
 	pCamera->SetObjectToFollow(this);
+	pCamera->SetZoomOut(-75);
 	ResetInputs();
 	pGame = nullptr;
 }
@@ -195,15 +196,10 @@ void Player3D::Update()
 		if (!pGame)
 			return;
 	}
-	if (IsOnTheFloor())
+	if (IsOnTheFloor() && Model->GetCurrentAnimation()!=SLIDE_KICKUP)
 	{
 		if (GetInput(INPUT_JUMP)) {
-			pFloor = nullptr;
-			Position.y += Hitboxes[PLAYER_HB_FEET].SizeY;
-			fGravityForce = -JUMP_FORCE;
-			nCancellingGravityFrames = 0;
-			pCurrentAttackPlaying = nullptr;
-			nState = PLAYER_JUMPING_UP_STATE;
+			Jump();
 		}
 	}
 	if (pFloor) {
@@ -216,7 +212,7 @@ void Player3D::Update()
 
 	SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 10, 25.0f, -cosf(XM_PI + Model->GetRotation().y) * 10, PLAYER_HB_OBJECT_COL);
 	SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45,25.0f,-cosf(XM_PI + Model->GetRotation().y) * 45, PLAYER_HB_ATTACK);
-	Hitboxes[PLAYER_HB_ATTACK].SizeX = Hitboxes[PLAYER_HB_ATTACK].SizeY = Hitboxes[PLAYER_HB_ATTACK].SizeZ = 0;
+	ActivateAttackHitbox(0, 0, 0, 0);
 
 	bKick = GetInput(INPUT_PUNCH) && CheckHoldingBack();
 	bPunch = GetInput(INPUT_PUNCH) && !CheckHoldingBack();
@@ -265,7 +261,17 @@ void Player3D::Update()
 	}
 	InputResetControl();
 	TransitionToFloatingBunBun();
-	//printf("INPUTS: %s\n", szInputs);
+	printf("STATE: %d FRAME: %d\n", nState, Model->GetCurrentFrame());
+}
+
+void Player3D::Jump()
+{
+	pFloor = nullptr;
+	Position.y += Hitboxes[PLAYER_HB_FEET].SizeY;
+	fGravityForce = -JUMP_FORCE;
+	nCancellingGravityFrames = 0;
+	pCurrentAttackPlaying = nullptr;
+	nState = PLAYER_JUMPING_UP_STATE;
 }
 
 void Player3D::LockingControl()
@@ -439,12 +445,16 @@ void Player3D::FightingStanceStateControl()
 		else if(pPreviousAttack && pPreviousAttack->Animation == SLIDE)
 		{
 			SetAnimation(SLIDE_STANDUP_FIGHT, fAnimationSpeed[SLIDE_STANDUP_FIGHT]);
-			if (bKick || bPunch)
+			if (GetInput(INPUT_PUNCH)) {
 				SwitchAttack(SLIDE_KICKUP);
+				return;
+			}
 			if (Model->GetCurrentFrame()>=548)
 			{
 				pPreviousAttack = nullptr;
 				SetAnimation(FIGHT_STANCE, fAnimationSpeed[FIGHT_STANCE]);
+				nState = PLAYER_IDLE_STATE;
+				return;
 			}
 		}
 	}
@@ -455,8 +465,6 @@ void Player3D::FightingStanceStateControl()
 			return;
 		}
 	}
-	if(Model->GetCurrentAnimation()==SLIDE_STANDUP_FIGHT && Model->GetCurrentFrame()>=549)
-		SetAnimation(FIGHT_STANCE, fAnimationSpeed[FIGHT_STANCE]);
 	if (Model->GetLoops() > 1)
 		nState = PLAYER_IDLE_STATE;
 	if (GetAxis(MOVEMENT_AXIS_HORIZONTAL) || GetAxis(MOVEMENT_AXIS_VERTICAL))
@@ -504,7 +512,7 @@ void Player3D::FightingStanceStateControl()
 					SwitchAttack(AIR_PUNCHB);
 				}
 				break;
-			case KNEEKICK:
+			case KNEEDASH:
 				bPressedForwardMidAttack = bPressedBackwardMidAttack = false;
 				break;
 			default:
@@ -712,7 +720,7 @@ void Player3D::AttackStateControl()
 		Position.z -= cosf(XM_PI + rotCamera.y) * 15;
 		if (Model->GetCurrentFrame() >= 510 || PressedKick)
 		{
-			if (bKick || PressedKick) {
+			if (GetInput(INPUT_PUNCH)) {
 				SwitchAttack(SLIDE_KICKUP);
 				break;
 			}
@@ -908,7 +916,7 @@ void Player3D::AttackStateControl()
 			StopAttack();
 		}
 		break;
-	case KNEEKICK:
+	case KNEEDASH:
 		Position.x -= sinf(XM_PI + rotCamera.y) * 25;
 		Position.z -= cosf(XM_PI + rotCamera.y) * 25;
 		break;
@@ -1054,8 +1062,16 @@ void Player3D::MoveControl()
 {
 	static float RotTarget = 0;
 	//アニメーション
-	if (Model->GetCurrentAnimation() == SLIDE_STANDUP_FIGHT)
+	if (Model->GetCurrentAnimation() == SLIDE_STANDUP_FIGHT) {
+		if (Model->GetCurrentFrame() >= 548)
+		{
+			pPreviousAttack = nullptr;
+			SetAnimation(FIGHT_STANCE, fAnimationSpeed[FIGHT_STANCE]);
+			nState = PLAYER_IDLE_STATE;
+			return;
+		}
 		return;
+	}
 	if (nState != PLAYER_JUMPING_UP_STATE && nState != PLAYER_BUNBUN_FLOATING) {
 		if (IsOnTheFloor()) {
 			if (bLockingOn && !CheckHoldingForward() && (GetAxis(MOVEMENT_AXIS_HORIZONTAL)!=0 || GetAxis(MOVEMENT_AXIS_VERTICAL) !=0)) {

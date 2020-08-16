@@ -46,11 +46,13 @@ private:
 	int		nState;
 	bool bCanBeAttacked;
 	bool bAlternatePunchAnim;
+	int nCancellingGravityFrames;
 public:
 	Enemy();
 	~Enemy();
 	void Init();
 	void Update();
+	void InitialAttackedAnimation(int currentattack);
 	void DamagedStateControl();
 	void CameraRumbleControl(int nAttackAnim);
 	void GravityControl();

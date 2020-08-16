@@ -105,8 +105,16 @@ void Camera3D::Update()
 
 	float ZoomInOffsetX = -(sinf(XM_PI + Rotation.y)*fZoomIntensity);
 	float ZoomInOffsetZ = -(cosf(XM_PI + Rotation.y)*fZoomIntensity);
+	float ZoomOutX = 0;
+	float ZoomOutZ = 0;
+	if (fZoomOut != 0) {
+		ZoomOutX = -(sinf(XM_PI + Rotation.y)*fZoomOut);
+		ZoomOutZ = -(cosf(XM_PI + Rotation.y)*fZoomOut);
+	}
 	// ˆÚ“®‚ð”½‰f
-	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x + fShakeIntensity + ZoomInOffsetX, Position.y + ParentPos.y, Position.z + ParentPos.z + (fLockOnOffset*30) + fShakeIntensity + ZoomInOffsetZ);
+	mtxTranslate = XMMatrixTranslation(Position.x + ParentPos.x + fShakeIntensity + ZoomInOffsetX + ZoomOutX,
+		Position.y + ParentPos.y, 
+		Position.z + ParentPos.z + (fLockOnOffset*30) + fShakeIntensity + ZoomInOffsetZ + ZoomOutZ);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
 
 

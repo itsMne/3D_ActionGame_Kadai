@@ -16,6 +16,7 @@ private:
 	XMFLOAT3	x3TargetRotation;
 	float	    fLockOnOffset;
 	int			nCameraType;
+	float		fZoomOut;
 	//—h‚é‚®
 	float		fShakeIntensity;
 	int			nShakeFrames;
@@ -39,5 +40,6 @@ public:
 	XMFLOAT4X4* GetCameraWorld() { return &g_mtxWorld; };
 	void SetShaking(float intensity, int frames, int framespershake) { if (nShakeFrames > 0 && intensity == fShakeIntensity && framespershake == nFramesPerShake)return; fShakeIntensity = intensity;  nShakeFrames = frames; nFramesPerShake = framespershake; };
 	void SetZooming(float intensity, int frames, float speed, float accel) { if (nZoomFrames > 0 && intensity == fZoomTargetIntensity && fZoomSpeed == speed && fZoomAcceleration == accel)return; nZoomFrames = frames; fZoomTargetIntensity = intensity; fZoomSpeed = speed; fZoomAcceleration = accel;};
+	void SetZoomOut(float zoom) { fZoomOut = zoom; };
 };
 

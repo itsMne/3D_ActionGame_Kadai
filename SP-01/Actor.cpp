@@ -6,6 +6,7 @@ Actor::Actor(int Model, int Type):Object3D(GetMainLight(), Model, GO_ACTOR), pFl
 	nActorType = Type;
 	bUseGravity = false;
 	bGravityIsActive = false;
+	fGravityForce = 0;
 	pGame = GetCurrentGame();
 }
 
