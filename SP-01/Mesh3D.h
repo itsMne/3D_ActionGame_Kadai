@@ -66,6 +66,7 @@ protected:
 	int							g_nAlpha;			// アルファテストの閾値
 	bool bisUnlit;
 	bool bNoCull;
+	bool bUsingOutsideTexture;
 public:
 	Mesh3D();
 	~Mesh3D();

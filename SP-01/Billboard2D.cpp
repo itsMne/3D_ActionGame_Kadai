@@ -11,6 +11,12 @@
 #include "debugproc.h"
 #include "Light3D.h"
 
+char szBBTexturePath[MAX_BB_TEX][256] = {
+"data/texture/Hit.tga",
+};
+
+ID3D11ShaderResourceView* pBBTextures[MAX_BB_TEX] = { nullptr };
+
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
@@ -19,20 +25,33 @@
 //*****************************************************************************
 //コンストラクタ関数
 //*****************************************************************************
-Billboard2D::Billboard2D(const char* szpath): Mesh3D()
+Billboard::Billboard(int nPpath, XMFLOAT2 Size): Mesh3D()
 {
 	pTexture = nullptr;
-	Init(szpath);
+	nSlowness = 0;
+	bUsingOutsideTexture = true;
+	x2Size = Size;
+	if (nPpath < MAX_BB_TEX && !pBBTextures[nPpath]) {
+		ID3D11Device* pDevice = GetDevice();
+		printf("PATH: %s\n", szBBTexturePath[nPpath]);
+		CreateTextureFromFile(pDevice, szBBTexturePath[nPpath], &pBBTextures[nPpath]);
+		if (pBBTextures[nPpath])
+			printf("TEXTURE OK\n");
+	}
+
+	pTexture = pBBTextures[nPpath];
+	Init("");
+
 }
 
-Billboard2D::Billboard2D(ID3D11ShaderResourceView * texture): Mesh3D()
+Billboard::Billboard(ID3D11ShaderResourceView * texture): Mesh3D()
 {
 	pTexture = texture;
 	Init("");
 }
 
 
-Billboard2D::~Billboard2D()
+Billboard::~Billboard()
 {
 	End();
 }
@@ -43,7 +62,7 @@ Billboard2D::~Billboard2D()
 //引数：void
 //戻：HRESULT
 //*****************************************************************************
-HRESULT Billboard2D::Init(const char* szpath)
+HRESULT Billboard::Init(const char* szpath)
 {
 	ID3D11Device* pDevice = GetDevice();
 	Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -54,9 +73,14 @@ HRESULT Billboard2D::Init(const char* szpath)
 	
 	if (!pTexture) {
 		printf("%s\n", szpath);
-		CreateTextureFromFile(pDevice,					// デバイスへのポインタ
+		if (CreateTextureFromFile(pDevice,					// デバイスへのポインタ
 			szpath,		// ファイルの名前
-			&(pMesh->pTexture));
+			&(pMesh->pTexture))) {
+			printf(" TEXTURE LOADED\n");
+		}
+		else {
+			printf(" TEXTURE LOAD FAILED\n");
+		}
 	}
 	else
 	{
@@ -68,14 +92,14 @@ HRESULT Billboard2D::Init(const char* szpath)
 	g_nAlpha = 0;
 	fWidth = 10;
 	fHeight = 10;
-	bUse = false;
 
 	g_bAlphaTest = false;
 	g_nAlpha = 0x0;
 	g_bInTree = false;
 	uv = { 0,0 };
 	nAnimeCount = 3;
-	SetBillboard(XMFLOAT3(0.0f, 0.0f, -10.0f), 60.0f, 90.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	SetBillboard(XMFLOAT3(0.0f, 0.0f, 0.0f), 60.0f*x2Size.x, 60.0f*x2Size.y, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f));
+	Rotation = {0,0,0};
 	nFrameX = 1;
 	nFrameY = 1;
 	bUse = true;
@@ -88,11 +112,13 @@ HRESULT Billboard2D::Init(const char* szpath)
 //引数：void
 //戻：void
 //*****************************************************************************
-void Billboard2D::Update()
+void Billboard::Update()
 {
 	TechCamera* camera = GetMainCamera();
-	Rotation= camera->GetCameraAngle();
-	if (++nAnimeCount >= 3) {
+	//Rotation.y= camera->GetCameraAngle().y;
+	Rotation.y = XM_PI+ camera->GetCameraAngle().y;
+	//return;
+	if (++nAnimeCount >= nSlowness) {
 		++uv.U;
 		if (uv.U >= (float)nFrameX) {
 			//// 影削除
@@ -107,8 +133,8 @@ void Billboard2D::Update()
 			{
 				uv.V = 0;
 				if(bSetFalseAfterAnimation)
-				bUse = false;
-			}
+					bUse = false;
+			}	
 		}
 		nAnimeCount = 0;
 	}
@@ -120,7 +146,7 @@ void Billboard2D::Update()
 //引数：void
 //戻：void
 //*****************************************************************************
-void Billboard2D::Draw()
+void Billboard::Draw()
 {
 	if (!bUse)
 		return;
@@ -186,10 +212,11 @@ void Billboard2D::Draw()
 //引数：void
 //戻：void
 //*****************************************************************************
-void Billboard2D::End()
+void Billboard::End()
 {
 	// メッシュの開放
-	SAFE_RELEASE(pMesh->pTexture);
+	if(!bUsingOutsideTexture)
+		SAFE_RELEASE(pMesh->pTexture);
 	ReleaseMesh();
 }
 
@@ -199,7 +226,7 @@ void Billboard2D::End()
 //引数：XMFLOAT3, float, float, XMFLOAT4
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetBillboard(XMFLOAT3 pos, float fWidth, float fHeight, XMFLOAT4 color)
+void Billboard::SetBillboard(XMFLOAT3 pos, float fWidth, float fHeight, XMFLOAT4 color)
 {
 	pos = pos;
 	bUse = true;
@@ -215,7 +242,7 @@ void Billboard2D::SetBillboard(XMFLOAT3 pos, float fWidth, float fHeight, XMFLOA
 //引数：ID3D11Device*
 //戻：HRESULT
 //*****************************************************************************
-HRESULT Billboard2D::MakeVertex(ID3D11Device * pDevice)
+HRESULT Billboard::MakeVertex(ID3D11Device * pDevice)
 {
 	pMesh->nNumVertex = 4;
 	pMesh->nNumIndex = 4;
@@ -274,7 +301,7 @@ HRESULT Billboard2D::MakeVertex(ID3D11Device * pDevice)
 //引数：float, float
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetVertex(float fWidth, float fHeight)
+void Billboard::SetVertex(float fWidth, float fHeight)
 {
 	this->fWidth = fWidth;
 	this->fHeight = fHeight;
@@ -286,7 +313,7 @@ void Billboard2D::SetVertex(float fWidth, float fHeight)
 //引数：XMFLOAT4
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetColor(XMFLOAT4 col)
+void Billboard::SetColor(XMFLOAT4 col)
 {
 	this->Color = col;
 	if (Color.x < 0)
@@ -305,7 +332,7 @@ void Billboard2D::SetColor(XMFLOAT4 col)
 //引数：XMFLOAT3
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetPosition(XMFLOAT3 newPosition)
+void Billboard::SetPosition(XMFLOAT3 newPosition)
 {
 	Position = newPosition;
 }
@@ -316,7 +343,7 @@ void Billboard2D::SetPosition(XMFLOAT3 newPosition)
 //引数：float
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetWidth(float newWidth)
+void Billboard::SetWidth(float newWidth)
 {
 	fWidth = newWidth;
 }
@@ -327,7 +354,7 @@ void Billboard2D::SetWidth(float newWidth)
 //引数：float
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetHeight(float newHeight)
+void Billboard::SetHeight(float newHeight)
 {
 	fHeight = newHeight;
 }
@@ -338,11 +365,11 @@ void Billboard2D::SetHeight(float newHeight)
 //引数：int, int
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetUVFrames(int nX, int nY)
+void Billboard::SetUVFrames(int nX, int nY, int nSlow)
 {
 	nFrameX = nX;
 	nFrameY = nY;
-
+	nSlowness = nSlow;
 }
 
 //*****************************************************************************
@@ -351,7 +378,7 @@ void Billboard2D::SetUVFrames(int nX, int nY)
 //引数：float
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetScale(float nScale)
+void Billboard::SetScale(float nScale)
 {
 	fHeight = nScale;
 	fWidth = nScale;
@@ -363,7 +390,7 @@ void Billboard2D::SetScale(float nScale)
 //引数：float
 //戻：void
 //*****************************************************************************
-void Billboard2D::ScaleUp(float nS_Up)
+void Billboard::ScaleUp(float nS_Up)
 {
 	fHeight += nS_Up;
 	fWidth  += nS_Up;
@@ -375,7 +402,7 @@ void Billboard2D::ScaleUp(float nS_Up)
 //引数：void
 //戻：float
 //*****************************************************************************
-float Billboard2D::GetAlpha()
+float Billboard::GetAlpha()
 {
 	return Color.w;
 }
@@ -386,7 +413,7 @@ float Billboard2D::GetAlpha()
 //引数：void
 //戻：bool
 //*****************************************************************************
-bool Billboard2D::GetUse()
+bool Billboard::GetUse()
 {
 	return bUse;
 }
@@ -397,7 +424,7 @@ bool Billboard2D::GetUse()
 //引数：bool
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetUse(bool use)
+void Billboard::SetUse(bool use)
 {
 	bUse = use;
 }
@@ -408,7 +435,7 @@ void Billboard2D::SetUse(bool use)
 //引数：void
 //戻：void
 //*****************************************************************************
-void Billboard2D::ResetUV()
+void Billboard::ResetUV()
 {
 	uv = { 0,0 };
 }
@@ -419,7 +446,7 @@ void Billboard2D::ResetUV()
 //引数：bool
 //戻：void
 //*****************************************************************************
-void Billboard2D::SetUnusableAfterAnimation(bool inv)
+void Billboard::SetUnusableAfterAnimation(bool inv)
 {
 	bSetFalseAfterAnimation = inv;
 }

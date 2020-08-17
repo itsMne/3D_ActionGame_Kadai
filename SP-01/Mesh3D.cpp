@@ -65,7 +65,7 @@ void Mesh3D::Init()
 {
 	ID3D11Device* pDevice = GetDevice();
 	HRESULT hr;
-
+	bUsingOutsideTexture = false;
 	// シェーダ初期化
 	static const D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -153,6 +153,8 @@ void Mesh3D::Update()
 //*****************************************************************************
 void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 {
+	if (!bUse)
+		return;
 	if (bisUnlit || NO_LIGHT_DEFAULT)
 		GetMainLight()->SetLightEnable(false);
 	if (bNoCull)
@@ -295,7 +297,8 @@ void Mesh3D::ReleaseMesh()
 {
 	if (!pMesh) return;
 	// テクスチャ解放
-	SAFE_RELEASE(pMesh->pTexture);
+	if(!bUsingOutsideTexture)
+		SAFE_RELEASE(pMesh->pTexture);
 	// 頂点バッファ解放
 	SAFE_RELEASE(pMesh->pVertexBuffer);
 	// インデックス バッファ解放

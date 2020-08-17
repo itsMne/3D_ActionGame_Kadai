@@ -261,7 +261,7 @@ void Player3D::Update()
 	}
 	InputResetControl();
 	TransitionToFloatingBunBun();
-	printf("STATE: %d FRAME: %d\n", nState, Model->GetCurrentFrame());
+	//printf("STATE: %d FRAME: %d\n", nState, Model->GetCurrentFrame());
 }
 
 void Player3D::Jump()

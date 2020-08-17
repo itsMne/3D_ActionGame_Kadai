@@ -146,6 +146,12 @@ void Camera3D::PlayerCameraControl()
 	if (GetInput(INPUT_CAMERA) && !bLockOnActivated) {
 		x3TargetRotation = pPlayer->GetModel()->GetRotation();
 		bLockOnActivated = true;
+		if (x3TargetRotation.y > XM_2PI) {
+			x3TargetRotation.y -= XM_2PI;
+		}
+		if (x3TargetRotation.y < -XM_2PI) {
+			x3TargetRotation.y += XM_2PI;
+		}
 	}
 	if (!bLockOnActivated && pPlayer->GetLockedEnemy() && (!pPlayer->GetCurrentAttack() || (pPlayer->GetCurrentAttack() && pPlayer->GetCurrentAttack()->Animation!=ROULETTE)))
 	{
@@ -199,5 +205,7 @@ void Camera3D::End()
 //*****************************************************************************
 XMFLOAT3 Camera3D::GetRotation()
 {
-	return Rotation;
+	XMFLOAT3 CurRot = Rotation;
+	CurRot.y += fLockOnOffset;
+	return CurRot;
 }

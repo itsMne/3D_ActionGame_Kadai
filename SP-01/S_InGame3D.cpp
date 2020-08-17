@@ -108,18 +108,17 @@ void S_InGame3D::Draw()
 {
 	// Zバッファ有効
 	SetZBuffer(true);
+	SetCullMode(CULLMODE_CCW);
 
+	// 背面カリング (通常は表面のみ描画)
+	pSkybox->Draw();
 	SetCullMode(CULLMODE_NONE);
 	// モデル描画
 	Fields->Draw();
 	pPlayer->Draw();
 	Enemies->Draw();
+
 	SetCullMode(CULLMODE_CCW);
-	
-	// 背面カリング (通常は表面のみ描画)
-
-	pSkybox->Draw();
-
 	// Zバッファ無効
 	SetZBuffer(false);
 

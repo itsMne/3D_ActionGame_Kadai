@@ -31,7 +31,7 @@ protected:
 	XMFLOAT3						InitPosition;			// ポリゴンの移動量
 	XMFLOAT3						Rotation;			// ポリゴンの回転量
 	XMFLOAT3						Scale;			// ポリゴンのサイズ
-	XMFLOAT4						g_colPolygon;			// ポリゴンの頂点カラー
+	XMFLOAT4						Color;			// ポリゴンの頂点カラー
 	bool							g_bInvalidate;			// 頂点データ更新フラグ
 
 	

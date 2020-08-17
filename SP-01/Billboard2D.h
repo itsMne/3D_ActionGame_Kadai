@@ -6,10 +6,16 @@
 #include "Mesh3D.h"
 #include "UniversalStructures.h"
 
+enum BILLBOARD_TEXTURES
+{
+	BB_HIT,
+	MAX_BB_TEX
+};
+
 //*****************************************************************************
 // クラス
 //*****************************************************************************
-class Billboard2D: 
+class Billboard: 
 	public Mesh3D
 {
 private:
@@ -26,13 +32,14 @@ private:
 	int			nFrameX, nFrameY;
 	float fWidth;			// 幅
 	float fHeight;			// 高さ
-	bool bUse;				// 使用しているかどうか
 	bool bSetFalseAfterAnimation;
 	ID3D11ShaderResourceView* pTexture;
+	XMFLOAT2 x2Size;
+	int nSlowness;
 public:
-	Billboard2D(const char* szpath);
-	Billboard2D(ID3D11ShaderResourceView* texture);
-	~Billboard2D();
+	Billboard(int, XMFLOAT2 Size);
+	Billboard(ID3D11ShaderResourceView* texture);
+	~Billboard();
 	HRESULT Init(const char* szpath);
 	void Update();
 	void Draw();
@@ -44,7 +51,7 @@ public:
 	void SetPosition(XMFLOAT3 newPosition);
 	void SetWidth(float newWidth);
 	void SetHeight(float newHeight);
-	void SetUVFrames(int nX, int nY);
+	void SetUVFrames(int nX, int nY, int nSlowness);
 	void SetScale(float nScale);
 	void ScaleUp(float nS_Up);
 	float GetAlpha();

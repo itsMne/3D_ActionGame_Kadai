@@ -3,6 +3,7 @@
 enum UI_TYPE
 {
 	UI_PAUSE,
+	UI_HEALTH_FLOWER,
 	MAX_UI_TYPE
 };
 class cUI :

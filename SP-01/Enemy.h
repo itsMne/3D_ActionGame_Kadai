@@ -1,7 +1,9 @@
 #pragma once
 #include "Actor.h"
 #include "Cube3D.h"
+#include "Billboard2D.h"
 
+#define MAX_HIT_EFFECTS 5
 enum ENEMY_ANIMATIONS
 {
 	EN_IDLE,
@@ -42,6 +44,7 @@ private:
 	Cube3D* pVisualHitboxes[ENEMY_HB_MAX];
 	//プレイヤーのポインター
 	Actor*	pPlayer;
+	Billboard* pHit[MAX_HIT_EFFECTS];
 	//状態
 	int		nState;
 	bool bCanBeAttacked;
@@ -49,6 +52,7 @@ private:
 	int nCancellingGravityFrames;
 public:
 	Enemy();
+	void SetHitEffect();
 	~Enemy();
 	void Init();
 	void Update();

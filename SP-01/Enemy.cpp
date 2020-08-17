@@ -34,6 +34,20 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
 	nState = EN_STATE_IDLE;
 	nCancellingGravityFrames = 0;
+	for (int i = 0; i < MAX_HIT_EFFECTS; pHit[i] = nullptr, i++);
+}
+
+void Enemy::SetHitEffect()
+{
+	for (int i = 0; i < MAX_HIT_EFFECTS; i++)
+	{
+		if (pHit[i])
+			continue;
+		pHit[i] = new Billboard(BB_HIT, {3.2f, 3.2f});
+		pHit[i]->SetUVFrames(4, 5, 0);
+		pHit[i]->SetUnusableAfterAnimation(true);
+		return;;
+	}
 }
 
 Enemy::~Enemy()
@@ -93,6 +107,7 @@ void Enemy::Update()
 		InitialAttackedAnimation(pPlayerAttack->Animation);
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
+		SetHitEffect();
 	}
 	while (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_OBJECT_COL), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED)
 	{
@@ -114,7 +129,15 @@ void Enemy::Update()
 		Model->SetFrameOfAnimation(729);
 	else if(pFloor && Model->GetCurrentAnimation() == EN_SENDTOAIR_AIRIDLE && Model->GetCurrentFrame() < 773)
 		Model->SetFrameOfAnimation(779);
-
+	for (int i = 0; i < MAX_HIT_EFFECTS; i++)
+	{
+		if (pHit[i]) {
+			pHit[i]->Update();
+			pHit[i]->SetPosition(SumVector(Position, { -sinf(XM_PI + Model->GetRotation().y) * 10,-20,-cosf(XM_PI + Model->GetRotation().y) * 10 }));
+			if (!(pHit[i]->GetUse()))
+				SAFE_DELETE(pHit[i]);
+		}
+	}
 }
 
 void Enemy::InitialAttackedAnimation(int currentattack)
@@ -154,6 +177,7 @@ void Enemy::DamagedStateControl()
 		CameraRumbleControl(pPlayerAttack->Animation);
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
+		SetHitEffect();
 	}
 	if(!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)))
 		bCanBeAttacked = true;
@@ -256,6 +280,13 @@ void Enemy::GravityControl()
 
 void Enemy::Draw()
 {
+	SetCullMode(CULLMODE_NONE);
+	for (int i = 0; i < MAX_HIT_EFFECTS; i++)
+	{
+		if (pHit[i])
+			pHit[i]->Draw();
+	}
+	SetCullMode(CULLMODE_CW);
 	Actor::Draw();
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	GetMainLight()->SetLightEnable(false);

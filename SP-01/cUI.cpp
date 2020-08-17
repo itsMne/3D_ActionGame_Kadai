@@ -6,6 +6,7 @@
 enum UI_TEXTURES
 {
 	UI_PAUSE_TEX,
+	UI_FLOWER_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -34,6 +35,16 @@ void cUI::Init()
 		SetSpeedAnimationFrameChange(2);
 		SetSize(1280 * 35, 720 * 35);
 		SetAlpha(0.5f);
+		fPauseSizeOffset = 35;
+		break;
+	case UI_HEALTH_FLOWER:
+		if (!pTextures[UI_FLOWER_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/PauseScreen.tga", &pTextures[UI_FLOWER_TEX]);
+		SetTexture(pTextures[UI_FLOWER_TEX]);
+		SetUVSize(3.0f, 7.0f);
+		SetSpeedAnimationFrameChange(2);
+		SetSize(1280, 1280);
+		SetAlpha(1);
 		fPauseSizeOffset = 35;
 		break;
 	}
