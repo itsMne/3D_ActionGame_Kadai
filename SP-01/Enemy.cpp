@@ -6,7 +6,7 @@
 
 #define SHOW_ENEMY_HITBOX true
 #define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_BODY
-#define GRAVITY_FORCE 0.98f
+#define GRAVITY_FORCE 0.98f*2
 
 float fEnemyAnimations[ENEMY_MAX] =
 {
@@ -92,7 +92,7 @@ void Enemy::Update()
 	Player3D* Player = (Player3D*)pPlayer;
 #ifdef DEBUG_GRAVITY
 	if (GetKeyPress(VK_UP)) {
-		Position.y++; return;
+		Jump(10);
 	}
 #endif
 	GravityControl();
@@ -139,7 +139,12 @@ void Enemy::Update()
 		}
 	}
 }
-
+void Enemy::Jump(float fJumpForce)
+{
+	pFloor = nullptr;
+	Position.y += Hitboxes[ENEMY_HB_FEET].SizeY;
+	fGravityForce = -fJumpForce;
+}
 void Enemy::InitialAttackedAnimation(int currentattack)
 {
 	switch (currentattack)
@@ -179,9 +184,7 @@ void Enemy::DamagedStateControl()
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
 	}
-	if(!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)))
-		bCanBeAttacked = true;
-	if (!pPlayerAttack) {
+	if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) || !pPlayerAttack) {
 		bCanBeAttacked = true;
 		return;
 	}
@@ -218,6 +221,31 @@ void Enemy::DamagedStateControl()
 		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
 		Position.y -= 40;
 		pCamera->SetZooming(-150, 90, 2, 5);
+		break;
+	case BASIC_CHAIN_B_KICKA: case BASIC_CHAIN_B_KICKB:
+		if (!bAlternatePunchAnim)
+			SetAnimation(EN_KICKED_A, fEnemyAnimations[EN_KICKED_A]);
+		else
+			SetAnimation(EN_KICKED_B, fEnemyAnimations[EN_KICKED_B]);
+		if (!pFloor && IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)))
+			Player->Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 5, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 25 });
+		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+		pCamera->SetZooming(60, 15, 2, 4);
+		Position.y = PosY;
+		break;
+	case KICKDOWN: case BASIC_CHAIN_B_KICKB_FORWARD:
+		if (pFloor) {
+			if(pPlayerAttack->Animation == KICKDOWN || (pPlayerAttack->Animation == BASIC_CHAIN_B_KICKB_FORWARD && Player->GetModel()->GetCurrentFrame()>3837))
+				Jump(4.25f);
+			SetAnimation(EN_SENDTOAIR_AIRIDLE, fEnemyAnimations[EN_SENDTOAIR_AIRIDLE]);
+			nCancellingGravityFrames = 40;
+		}else if (fGravityForce >= 0) {
+			Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+			Position.y -= 30;
+			nCancellingGravityFrames = 0;
+		}
+		
+		pCamera->SetZooming(-120, 15, 2, 4);
 		break;
 	default:
 		if(!bAlternatePunchAnim)

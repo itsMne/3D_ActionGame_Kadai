@@ -56,6 +56,7 @@ public:
 	~Enemy();
 	void Init();
 	void Update();
+	void Jump(float fJumpForce);
 	void InitialAttackedAnimation(int currentattack);
 	void DamagedStateControl();
 	void CameraRumbleControl(int nAttackAnim);
