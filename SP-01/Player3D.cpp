@@ -141,6 +141,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pCamera->SetObjectToFollow(this);
 	pCamera->SetZoomOut(-75);
 	ResetInputs();
+	nHP = MAX_HEALTH;
 	pGame = nullptr;
 }
 
@@ -190,6 +191,7 @@ void Player3D::Init()
 void Player3D::Update()
 {
 	Actor::Update();
+
 	pCamera->Update();
 	if (!pGame) {
 		pGame = GetCurrentGame();
@@ -198,14 +200,15 @@ void Player3D::Update()
 	}
 	if (IsOnTheFloor() && Model->GetCurrentAnimation()!=SLIDE_KICKUP)
 	{
-		if (GetInput(INPUT_JUMP)) {
+		if (GetInput(INPUT_JUMP))
 			Jump();
-		}
 	}
-	if (pFloor) {
+	if (pFloor)
 		bRouletteExecuted = bUppercutExecute = false;
-	}
-
+	if (nHP < 0)
+		nHP = 0;
+	if (nHP > MAX_HEALTH)
+		nHP = MAX_HEALTH;
 	CalculateDirectionalInput();
 	if (nState != PLAYER_IDLE_FIGHT_STATE)
 		nFightStanceFrameCount = 0;

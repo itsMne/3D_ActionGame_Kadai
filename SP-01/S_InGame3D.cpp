@@ -10,7 +10,6 @@
 #include "Billboard2D.h"
 #include "Enemy.h"
 #include "Field.h"
-#include "cUI.h"
 #include "Sound.h"
 
 //*****************************************************************************
@@ -25,7 +24,7 @@ S_InGame3D* pCurrentGame = nullptr;
 int nScore;
 int nScoreToAdd;
 bool bGamePaused;
-cUI* PauseScreen;
+
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -49,8 +48,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	Enemies->AddEnemy({ 0, 100, 0 });
 	Fields->AddField({ 2.578626f, 100, -138.668900f }, { 1000,10,1000 }, TEX_FIELD_A);
 	bGamePaused = false;
-	PauseScreen = new cUI(UI_PAUSE);
-
+	PauseScreen = new cUI(UI_GAME_MANAGER);
 }
 
 

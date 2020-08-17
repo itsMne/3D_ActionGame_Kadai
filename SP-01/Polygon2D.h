@@ -52,8 +52,10 @@ protected:
 	XMFLOAT2					x2UVFrame;
 	bool						bAnimationHorizontal;
 	bool						bUsesAnimation;
+	bool						bMoveToNextV;
 	int							nAnimeFrameChange;
 	int							nFrameAnimCounter;
+	Polygon2D*					pParent;
 public:
 	ID3D11ShaderResourceView *	gpTexture;
 	XMFLOAT2					x2UV;			// UVç¿ïW
@@ -68,9 +70,10 @@ public:
 	void UpdatePolygon();
 	void DrawPolygon(ID3D11DeviceContext* pDeviceContext);
 	void SetTexture(ID3D11ShaderResourceView* pTexture);
-	void SetPolygonPos(float fX, float fY);
+	void SetPosition(float fX, float fY);
+	void SetRotation(float rX, float rY, float rZ) { Rotation = { rX, rY, rZ }; };
 	void SetPolygonPosY(float y);
-	void SetPolygonPos(float fX, float fY, bool IsInit);
+	void SetPosition(float fX, float fY, bool IsInit);
 	void SetSize(float fScaleX, float fScaleY);
 	void SetPolygonAngle(float fAngle);
 	void SetPolygonUV(float fU, float fV);
@@ -84,10 +87,11 @@ public:
 	HRESULT MakeVertexPolygon(ID3D11Device* pDevice);
 	void SetVertexPolygon(void);
 	void Translate(XMFLOAT2);
-	XMFLOAT2 GetPolygonSize();
-	XMFLOAT2 GetPolygonPos();
+	XMFLOAT2 GetSize();
+	XMFLOAT2 GetPosition();
 	XMFLOAT2 GetPolygonInitialPos();
 	void bScaleUp(float scal);
+	void SetMoveableOnUV(bool flag) { bMoveToNextV = flag; };
 	void SetSpeedAnimationFrameChange(int speed) { nFrameAnimCounter = nAnimeFrameChange = speed; bUsesAnimation = true; }
 };
 #endif

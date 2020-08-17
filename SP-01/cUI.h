@@ -2,9 +2,17 @@
 #include "Polygon2D.h"
 enum UI_TYPE
 {
-	UI_PAUSE,
+	UI_FLOWER_BASE,
+	UI_FLOWER_EYES,
+	UI_FLOWER_PETAL_A,
+	UI_FLOWER_PETAL_B,
+	UI_FLOWER_PETAL_C,
+	UI_FLOWER_PETAL_D,
+	UI_FLOWER_PETAL_E,
 	UI_HEALTH_FLOWER,
-	MAX_UI_TYPE
+	UI_PAUSE,
+	UI_GAME_MANAGER,
+	MAX_INGAME_UI
 };
 class cUI :
 	public Polygon2D
@@ -13,11 +21,15 @@ private:
 	int nType;
 	float fAcceleration;
 	float fPauseSizeOffset;
+	cUI* pHealthFlower[UI_HEALTH_FLOWER];
+	cUI* pUIs[MAX_INGAME_UI];
 public:
 	cUI(int Type);
+	cUI(int Type, cUI* Parent);
 	~cUI();
 	void Init();
 	void Update();
+	void FlowerHealthUIControl();
 	void Draw();
 	void End();
 };

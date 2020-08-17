@@ -7,6 +7,7 @@
 #include "Light3D.h"
 #include "Sphere3D.h"
 #include "Object3D.h"
+#include "cUI.h"
 
 //*****************************************************************************
 // ƒNƒ‰ƒX
@@ -21,6 +22,7 @@ private:
 	Light3D* pSceneLight;
 	Go_List* Enemies;
 	Go_List* Fields;
+	cUI* PauseScreen;
 public:
 	S_InGame3D();
 	~S_InGame3D();

@@ -84,7 +84,7 @@ void DrawDebugProc(void)
 			vPos.y -= FONT_HEIGHT;
 			continue;
 		}
-		DebugProcPolygon->SetPolygonPos(vPos.x, vPos.y);
+		DebugProcPolygon->SetPosition(vPos.x, vPos.y);
 		int nChr = (BYTE)*pChr;
 		if (g_bHiragana &&
 			(nChr >= 0xa6 && nChr <= 0xaf || nChr >= 0xb1 && nChr <= 0xdd))

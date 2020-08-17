@@ -58,6 +58,8 @@ HRESULT Polygon2D::InitPolygon(ID3D11Device* pDevice)
 	nAnimeFrameChange = 0;
 	bAnimationHorizontal = true;
 	bUsesAnimation = false;
+	bMoveToNextV = true;
+	pParent = nullptr;
 	// シェーダ初期化
 	static const D3D11_INPUT_ELEMENT_DESC layout[] = {
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,                            D3D11_INPUT_PER_VERTEX_DATA, 0},
@@ -151,7 +153,8 @@ void Polygon2D::UpdatePolygon(void)
 				if (x2UVFrame.x >= x2UVMaxFrameSize.x)
 				{
 					x2UVFrame.x = 0;
-					x2UVFrame.y++;
+					if(bMoveToNextV)
+						x2UVFrame.y++;
 					if (x2UVFrame.y >= x2UVMaxFrameSize.y)
 						x2UVFrame.y = 0;
 				}
@@ -169,11 +172,14 @@ void Polygon2D::DrawPolygon(ID3D11DeviceContext* pDeviceContext)
 {
 	// 拡縮
 	XMMATRIX mWorld = XMMatrixScaling(Scale.x, Scale.y, Scale.z);
+	XMFLOAT2 ParentPos = { 0,0 };
+	if (pParent)
+		ParentPos = pParent->GetPosition();
 	// 回転
 	mWorld *= XMMatrixRotationRollPitchYaw(XMConvertToRadians(Rotation.x),
 		XMConvertToRadians(Rotation.y), XMConvertToRadians(Rotation.z));
 	// 移動
-	mWorld *= XMMatrixTranslation(Position.x, Position.y, Position.z);
+	mWorld *= XMMatrixTranslation(Position.x + ParentPos.x, Position.y + ParentPos.y, Position.z);
 	// ワールド マトリックスに設定
 	XMStoreFloat4x4(&g_mWorld, mWorld);
 
@@ -295,12 +301,12 @@ void Polygon2D::Translate(XMFLOAT2 tr)
 	Position.y += tr.y;
 }
 
-XMFLOAT2 Polygon2D::GetPolygonSize()
+XMFLOAT2 Polygon2D::GetSize()
 {
 	return { Scale.x, Scale.y };
 }
 
-XMFLOAT2 Polygon2D::GetPolygonPos()
+XMFLOAT2 Polygon2D::GetPosition()
 {
 	return { Position.x,Position.y };
 }
@@ -328,7 +334,7 @@ void Polygon2D::SetTexture(ID3D11ShaderResourceView* pTexture)
 //=============================================================================
 // 表示座標の設定
 //=============================================================================
-void Polygon2D::SetPolygonPos(float fX, float fY)
+void Polygon2D::SetPosition(float fX, float fY)
 {
 	Position.x = fX;
 	Position.y = fY;
@@ -339,7 +345,7 @@ void Polygon2D::SetPolygonPosY(float fY)
 	Position.y = fY;
 }
 
-void Polygon2D::SetPolygonPos(float fX, float fY, bool IsInit)
+void Polygon2D::SetPosition(float fX, float fY, bool IsInit)
 {
 	Position.x = fX;
 	Position.y = fY;

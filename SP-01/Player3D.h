@@ -15,7 +15,7 @@
 #define MAX_BULLETS 40
 #define MAX_PLAYER_INPUT 8
 #define	MAX_FLOWERS	20
-
+#define MAX_HEALTH 5
 
 //*****************************************************************************
 // ƒGƒiƒ€
@@ -131,6 +131,7 @@ class Player3D :
 private:
 	float fPlayerSpeed;
 	int nState;
+	int nHP;
 	char szInputs[MAX_PLAYER_INPUT + 1];
 	PLAYER_ATTACK_MOVE* pCurrentAttackPlaying;
 	PLAYER_ATTACK_MOVE* pPreviousAttack;
@@ -193,6 +194,7 @@ public:
 	Camera3D*			GetCameraPlayer() { return pCamera; };
 	Actor*				GetLockedEnemy() { return pLockedEnemy; };
 	PLAYER_ATTACK_MOVE* GetCurrentAttack() { return pCurrentAttackPlaying; };
+	int					GetCurrentHP() { return nHP; };
 };
 
 Player3D* GetPlayer();
