@@ -212,10 +212,13 @@ void Enemy::DamagedStateControl()
 		nState = EN_STATE_IDLE;
 		SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
 	}
+
 	Player3D* Player = (Player3D*)pPlayer;
 	PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 	float PosY = Position.y;
 	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	if (!pPlayerAttack)
+		bFollowRoulette = false;
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && bCanBeAttacked) {
 		bAlternatePunchAnim ^= true;
 		FaceActor(pPlayer);
@@ -307,7 +310,9 @@ void Enemy::DamagedStateControl()
 		pCamera->SetZooming(-120, 15, 2, 4);
 		break;
 
-	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: 
+	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:
+		if (pPlayerAttack->Animation == BASIC_CHAIN_B_KICKC && Player->GetModel()->GetCurrentFrame() < 3740)
+			break;
 		Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.x*2;
 		Position.z += cosf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.z*2;
 		nState = EN_STATE_SENDOFF;
@@ -350,7 +355,7 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 	case SLIDE: case UPPERCUT:
 		pCamera->SetShaking(8.0f, 7, 2);
 		break;
-	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH:
+	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:
 		pCamera->SetShaking(10.0f, 7, 2);
 		break;
 	default:
