@@ -36,6 +36,7 @@ public:
 	void Draw();
 	void End();
 	XMFLOAT3 GetRotation();
+	XMFLOAT3 GetRotation(bool Offset);
 	void SetObjectToFollow(Object3D* pObj) { pFollowObj = pObj;};
 	XMFLOAT4X4* GetCameraWorld() { return &g_mtxWorld; };
 	void SetShaking(float intensity, int frames, int framespershake) { if (nShakeFrames > 0 && intensity == fShakeIntensity && framespershake == nFramesPerShake)return; fShakeIntensity = intensity;  nShakeFrames = frames; nFramesPerShake = framespershake; };

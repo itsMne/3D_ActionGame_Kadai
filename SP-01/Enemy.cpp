@@ -46,7 +46,7 @@ void Enemy::SetHitEffect()
 		pHit[i] = new Billboard(BB_HIT, {3.2f, 3.2f});
 		pHit[i]->SetUVFrames(4, 5, 0);
 		pHit[i]->SetUnusableAfterAnimation(true);
-		return;;
+		return;
 	}
 }
 
@@ -103,8 +103,10 @@ void Enemy::Update()
 		bCanBeAttacked = false;
 		bAlternatePunchAnim ^= true;
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
-		CameraRumbleControl(pPlayerAttack->Animation);
-		InitialAttackedAnimation(pPlayerAttack->Animation);
+		if (pPlayerAttack) {
+			CameraRumbleControl(pPlayerAttack->Animation);
+			InitialAttackedAnimation(pPlayerAttack->Animation);
+		}
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
@@ -260,6 +262,8 @@ void Enemy::DamagedStateControl()
 		else
 			Position.y -= 40;
 		pCamera->SetZooming(60, 15, 2, 4);
+		if(pPlayerAttack->nAttackID==599)
+			pCamera->SetZooming(-150, 35, 2, 4);
 		break;
 	}
 }
@@ -267,13 +271,19 @@ void Enemy::DamagedStateControl()
 void Enemy::CameraRumbleControl(int nAttackAnim)
 {
 	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	PLAYER_ATTACK_MOVE* pAttack = ((Player3D*)pPlayer)->GetCurrentAttack();
 	switch (nAttackAnim)
 	{
 	case SLIDE: case UPPERCUT:
 		pCamera->SetShaking(8.0f, 7, 2);
 		break;
+	case BASIC_CHAIN_C: case AIR_PUNCHC:
+		pCamera->SetShaking(10.0f, 14, 2);
+		break;
 	default:
 		pCamera->SetShaking(6.0f, 7, 2);
+		if (pAttack && pAttack->nAttackID == 599)
+			pCamera->SetShaking(10.0f, 14, 2);
 		break;
 	}
 }

@@ -209,3 +209,11 @@ XMFLOAT3 Camera3D::GetRotation()
 	CurRot.y += fLockOnOffset;
 	return CurRot;
 }
+
+XMFLOAT3 Camera3D::GetRotation(bool Offset)
+{
+	XMFLOAT3 CurRot = Rotation;
+	if(Offset)
+		CurRot.y += fLockOnOffset;
+	return CurRot;
+}

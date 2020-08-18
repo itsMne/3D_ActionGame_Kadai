@@ -29,8 +29,8 @@
 #define DEBUG_WAITFRAME false
 #define KICKDOWN_SPEED 10.98
 #define LOCK_ON_DISTANCE 550.0f
-#define BACKWARD_INPUT_OFFSET 2.5f
-#define FORWARD_INPUT_OFFSET 0.75f
+#define BACKWARD_INPUT_OFFSET 2.25f
+#define FORWARD_INPUT_OFFSET 0.95f
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -59,7 +59,7 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"A",	  AIR_PUNCHA,					false,	AIR_MOVE,	 AIR_PUNCHB,	 3100,	{ 3100, 3113}	,{15, 20, 10,  0},	1500},//A
 	{"n",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,	 3175,	{ 3167, 3191}	,{15, 20, 10,  0},	1600},//A
 	{"n",	  AIR_PUNCHC,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3272, 3290}	,{15, 20, 10,  0},	1700},//A
-	{"FFA",	  KNEEDASH,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{15, 20, 10,  0},	1800},//A
+	{"FFA",	  KNEEDASH,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{40, 30, 20,  0},	1800},//A
 	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3337, 3395}	,{15, 20, 10,  0},	1900},//A
 	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4157, 4200}	,{15, 20, 30,  0},	1900},//K
 };
@@ -143,6 +143,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	ResetInputs();
 	nHP = MAX_HEALTH;
 	pGame = nullptr;
+	bFirstSetOfPunches = false;
 }
 
 Player3D::~Player3D()
@@ -294,7 +295,6 @@ void Player3D::LockingControl()
 	if (!bLockingOn)
 		pLockedEnemy = nullptr;
 	else {
-		FaceActor(pLockedEnemy);
 		if (pLockedEnemy)
 		{
 			XMFLOAT3 EnemyPos = pLockedEnemy->GetPosition();
@@ -302,6 +302,10 @@ void Player3D::LockingControl()
 			PlayerPos.y = 0;
 			EnemyPos.y = 0;
 			float dis = GetDistance(PlayerPos, EnemyPos)/400;
+			printf("%f\n", dis);
+			if (dis<0.15f && pCurrentAttackPlaying && (pCurrentAttackPlaying->Animation == SLIDE || pCurrentAttackPlaying->Animation == KNEEDASH || pCurrentAttackPlaying->Animation == UPPERCUT))
+				return;
+			FaceActor(pLockedEnemy);
 			if (dis > 1.85f)
 				pLockedEnemy = nullptr;
 		}
@@ -319,7 +323,7 @@ bool Player3D::CheckHoldingBack()
 		return false;
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
+	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
 	if (DirInput >= BACKWARD_INPUT_OFFSET)
 		IsHoldingBack = true;
 	
@@ -337,7 +341,7 @@ bool Player3D::CheckHoldingForward()
 		return false;
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
+	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
 	if (DirInput <= FORWARD_INPUT_OFFSET)
 		IsHoldingFor = true;
 	return IsHoldingFor;
@@ -520,7 +524,6 @@ void Player3D::FightingStanceStateControl()
 				break;
 			default:
 				AttackInputsControl();
-				//FindMoveByAnimation(pPreviousAttack->nNextChain);
 				return;
 			}
 	}
@@ -539,7 +542,7 @@ void Player3D::FightingStanceStateControl()
 				}
 				break;
 			case AIR_PUNCHB:
-				if (bPunch) 
+				if (bPunch && !bFirstSetOfPunches)
 					SwitchAttack(ROULETTE);
 				break;
 			case AIR_PUNCHA:
@@ -603,7 +606,6 @@ PLAYER_ATTACK_MOVE* Player3D::GetAttack(int anim)
 
 void Player3D::AttackStateControl()
 {
-	static bool bFirstSetOfPunches = false;
 	static bool bMultiPunch = false;
 	if (bKick && !IsOnTheFloor())
 		SwitchAttack(KICKDOWN);
@@ -625,12 +627,16 @@ void Player3D::AttackStateControl()
 		bMultiPunch = false;
 		return;
 	}
-	if(pCurrentAttackPlaying->Animation != BASIC_CHAIN_A &&
+	if (pCurrentAttackPlaying->Animation != BASIC_CHAIN_A &&
 		pCurrentAttackPlaying->Animation != BASIC_CHAIN_B &&
-		pCurrentAttackPlaying->Animation != BASIC_CHAIN_C && 
 		pCurrentAttackPlaying->Animation != AIR_PUNCHA &&
-		pCurrentAttackPlaying->Animation != AIR_PUNCHB &&
-		pCurrentAttackPlaying->Animation != AIR_PUNCHC)
+		pCurrentAttackPlaying->Animation != AIR_PUNCHB)
+		bFirstSetOfPunches = false;
+	if (pPreviousAttack && 
+		pPreviousAttack->Animation != BASIC_CHAIN_A &&
+		pPreviousAttack->Animation != BASIC_CHAIN_B &&
+		pPreviousAttack->Animation != AIR_PUNCHA &&
+		pPreviousAttack->Animation != AIR_PUNCHB)
 		bFirstSetOfPunches = false;
 
 	SetAnimation(pCurrentAttackPlaying->Animation, fAnimationSpeed[pCurrentAttackPlaying->Animation]);
@@ -739,6 +745,7 @@ void Player3D::AttackStateControl()
 		SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45, 0.0f, -cosf(XM_PI + Model->GetRotation().y) * 25, PLAYER_HB_ATTACK);
 		break;
 	case BASIC_CHAIN_B_PAUSEA:
+		pCurrentAttackPlaying->nAttackID = 500;
 		if ((Model->GetCurrentFrame() > 1893 && Model->GetCurrentFrame() < 1913) ||
 			(Model->GetCurrentFrame() > 1919 && Model->GetCurrentFrame() < 1932) ||
 			(Model->GetCurrentFrame() > 1939 && Model->GetCurrentFrame() < 1952) ||
@@ -760,6 +767,8 @@ void Player3D::AttackStateControl()
 			else
 				bMultiPunch = false;
 		}
+		if(Model->GetCurrentFrame()>=2025)
+			pCurrentAttackPlaying->nAttackID = 599;
 		if (Model->GetCurrentFrame() >= 2086)
 		{
 			StopAttack();
@@ -1036,7 +1045,7 @@ void Player3D::CalculateDirectionalInput()
 
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput =abs((nModelRotation + Rotation.y + pCamera->GetRotation().y) - x3CurrentModelRot.y);
+	float DirInput =abs((nModelRotation + Rotation.y + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
 	if (DirInput >= BACKWARD_INPUT_OFFSET)
 	{
 		eDirection = DIR_BACKWARD;
@@ -1432,35 +1441,3 @@ float Player3D::GetGravityForce()
 {
 	return fGravityForce;
 }
-
-//*****************************************************************************
-//FaceLockedEnemy関数
-//プレイヤーの回転を変更して、敵を見る
-//引数：void
-//戻：void
-//*****************************************************************************
-/*void Player3D::FaceLockedEnemy()
-{
-	static int nFaceCooldown = 2;
-	if (--nFaceCooldown > 0)
-		return;
-	nFaceCooldown = 2;
-	//Player3D* pLockedEnemy = (Player3D*)pPlayerPointer;
-	if (!pLockedEnemy)
-		return;
-	XMFLOAT3 a;
-	XMFLOAT3 calc = GetVectorDifference(pLockedEnemy->GetPosition(), Position);
-	a.x = sin(GetRotation().y);
-	a.y = sin(GetRotation().x);
-	a.z = cos(GetRotation().y);
-	XMFLOAT3 b = NormalizeVector(calc);
-	XMVECTOR dot = XMVector3Dot(XMLoadFloat3(&a), XMLoadFloat3(&b));
-
-
-	float rotationAngle = (float)acos(XMVectorGetX(dot));
-	rotationAngle = ceilf(rotationAngle * 10) / 10;
-	if (pLockedEnemy->GetPosition().x < Position.x)
-		Model->SetRotationY(-rotationAngle);
-	else
-		Model->SetRotationY(rotationAngle);
-}*/

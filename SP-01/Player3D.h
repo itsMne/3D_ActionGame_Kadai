@@ -138,6 +138,7 @@ private:
 	int nInputTimer;
 	int nCancellingGravityFrames;
 	int nFightStanceFrameCount;
+	bool bFirstSetOfPunches;
 	//ヒットボックス
 	Box Hitboxes[PLAYER_HB_MAX];
 	Cube3D* pVisualHitboxes[PLAYER_HB_MAX];
