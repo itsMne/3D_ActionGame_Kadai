@@ -49,6 +49,7 @@ private:
 	int		nState;
 	bool bCanBeAttacked;
 	bool bAlternatePunchAnim;
+	bool bFollowRoulette;
 	int nCancellingGravityFrames;
 public:
 	Enemy();

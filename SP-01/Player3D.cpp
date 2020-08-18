@@ -192,7 +192,7 @@ void Player3D::Init()
 void Player3D::Update()
 {
 	Actor::Update();
-
+	bSoftLocking = false;
 	pCamera->Update();
 	if (!pGame) {
 		pGame = GetCurrentGame();
@@ -223,6 +223,8 @@ void Player3D::Update()
 	bLockingOn = GetInput(INPUT_LOCKON);
 	//ロックオン確認する
 	LockingControl();
+	if (nState != PLAYER_ATTACKING_STATE && nState != PLAYER_IDLE_FIGHT_STATE)
+		bFirstSetOfPunches = false;
 	//ステートマシン
 	switch (nState)
 	{
@@ -302,7 +304,6 @@ void Player3D::LockingControl()
 			PlayerPos.y = 0;
 			EnemyPos.y = 0;
 			float dis = GetDistance(PlayerPos, EnemyPos)/400;
-			printf("%f\n", dis);
 			if (dis<0.15f && pCurrentAttackPlaying && (pCurrentAttackPlaying->Animation == SLIDE || pCurrentAttackPlaying->Animation == KNEEDASH || pCurrentAttackPlaying->Animation == UPPERCUT))
 				return;
 			FaceActor(pLockedEnemy);

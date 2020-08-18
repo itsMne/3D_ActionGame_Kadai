@@ -2,6 +2,7 @@
 #include "input.h"
 #include "S_InGame3D.h"
 #include "TechnicalCamera.h"
+#include "InputManager.h"
 #include "Player3D.h"
 
 #define SHOW_ENEMY_HITBOX true
@@ -65,7 +66,7 @@ void Enemy::Init()
 	}
 	Hitboxes[ENEMY_HB_FEET] = { 0, 14.0f, 0, 5.0f, 15.0f, 5.0f };
 	Hitboxes[ENEMY_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
-	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 15.0f, 90.0f, 30.0f };
+	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 50.0f, 90.0f, 50.0f };
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
 	{
@@ -107,6 +108,10 @@ void Enemy::Update()
 			CameraRumbleControl(pPlayerAttack->Animation);
 			InitialAttackedAnimation(pPlayerAttack->Animation);
 		}
+		if (pPlayerAttack->Animation == ROULETTE)
+			bFollowRoulette = true;
+		else 
+			bFollowRoulette = false;
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
@@ -184,7 +189,20 @@ void Enemy::DamagedStateControl()
 		CameraRumbleControl(pPlayerAttack->Animation);
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
+		if (!GetInput(INPUT_LOCKON) && !Player->IsSoftLocked()) {
+			pPlayer->FaceActor(this);
+			Player->SoftLock();
+		}
+		if (pPlayerAttack->Animation == ROULETTE)
+			bFollowRoulette = true;
+		else
+			bFollowRoulette = false;
 		SetHitEffect();
+	}
+	if (bFollowRoulette)
+	{
+		Position.y = Player->GetHitboxPos(PLAYER_HB_ATTACK).y;
+		Position.y -= 40;
 	}
 	if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) || !pPlayerAttack) {
 		bCanBeAttacked = true;
@@ -194,16 +212,16 @@ void Enemy::DamagedStateControl()
 	{
 	case KNEEDASH:
 		SetAnimation(EN_KICKED_A, fEnemyAnimations[EN_KICKED_A]);
-		if (Player->GetModel()->GetCurrentFrame() < 3461)
-			Player->GetModel()->SetFrameOfAnimation(3461);
+		Player->StopAttack();
+		Player->Translate({ sinf(XM_PI + Player->GetModel()->GetRotation().y) * 25, 0, cosf(XM_PI + Player->GetModel()->GetRotation().y) * 25 });
 		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
 		Position.y = PosY;
 		pCamera->SetZooming(-150, 60, 2, 5);
 		break;
 	case SLIDE:
 		SetAnimation(EN_KICKED_A, fEnemyAnimations[EN_KICKED_A]);
-		if(Player->GetModel()->GetCurrentFrame()< 527)
-			Player->GetModel()->SetFrameOfAnimation(527);
+		Player->StopAttack();
+		Player->Translate({ sinf(XM_PI + Player->GetModel()->GetRotation().y) * 15, 0, cosf(XM_PI + Player->GetModel()->GetRotation().y) * 15 });
 		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
 		Position.y = PosY;
 		pCamera->SetZooming(-150, 60, 2, 5);
@@ -212,15 +230,20 @@ void Enemy::DamagedStateControl()
 		if (Player->GetModel()->GetCurrentFrame() < 630)
 			break;
 		SetAnimation(EN_SENDTOAIR_AIRIDLE, fEnemyAnimations[EN_SENDTOAIR_AIRIDLE]);
-		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+		Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
+		Position.z += cosf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
+		Position.y = Player->GetHitboxPos(PLAYER_HB_ATTACK).y;
 		pCamera->SetZooming(75, 15, 2, 5);
 		fGravityForce = 0;
+		nCancellingGravityFrames = 50;
 		break;
-	case UPPERCUT:
+	case UPPERCUT: case ROULETTE:
 		if (Player->GetModel()->GetCurrentFrame() < 1813)
 			break;
 		SetAnimation(EN_SENDTOAIR_AIRIDLE, fEnemyAnimations[EN_SENDTOAIR_AIRIDLE]);
-		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+		Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
+		Position.z += cosf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
+		Position.y = Player->GetHitboxPos(PLAYER_HB_ATTACK).y;
 		Position.y -= 40;
 		pCamera->SetZooming(-150, 90, 2, 5);
 		break;
@@ -254,16 +277,22 @@ void Enemy::DamagedStateControl()
 			SetAnimation(EN_PUNCHED_A, fEnemyAnimations[EN_PUNCHED_A]);
 		else
 			SetAnimation(EN_PUNCHED_B, fEnemyAnimations[EN_PUNCHED_B]);
-		if (!pFloor && IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)))
-			Player->Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 5, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 25 });
-		Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
-		if (pFloor)
-			Position.y = PosY;
-		else
+		if (!pFloor && IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY))) {
+			Player->Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 10, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 10 });
+			Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 10, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 10 });
+			nCancellingGravityFrames = 40;
+		}
+		//Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
+		if (pFloor) {
+			Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
+			Position.z += cosf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
+		}else{
+			Position.y = Player->GetHitboxPos(PLAYER_HB_ATTACK).y;
 			Position.y -= 40;
-		pCamera->SetZooming(60, 15, 2, 4);
+		}
+		pCamera->SetZooming(60, 25, 2, 4);
 		if(pPlayerAttack->nAttackID==599)
-			pCamera->SetZooming(-150, 35, 2, 4);
+			pCamera->SetZooming(-150, 40, 2, 4);
 		break;
 	}
 }

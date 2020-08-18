@@ -150,6 +150,7 @@ private:
 	bool bKick;
 	bool bPunch;
 	bool bLockingOn;
+	bool bSoftLocking;
 	//ÉçÉbÉNÉIÉì
 	Actor* pLockedEnemy;
 	Camera3D* pCamera;
@@ -196,6 +197,8 @@ public:
 	Actor*				GetLockedEnemy() { return pLockedEnemy; };
 	PLAYER_ATTACK_MOVE* GetCurrentAttack() { return pCurrentAttackPlaying; };
 	int					GetCurrentHP() { return nHP; };
+	bool				IsSoftLocked() { return bSoftLocking; };
+	void				SoftLock() { bSoftLocking = true; };
 };
 
 Player3D* GetPlayer();
