@@ -59,6 +59,7 @@ Enemy::~Enemy()
 
 void Enemy::Init()
 {
+	fSendOffAcceleration = nSendOffFrames = 0;
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
 	{
 		pVisualHitboxes[i] = nullptr;
@@ -116,6 +117,8 @@ void Enemy::Update()
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
 	}
+	if (nState != EN_STATE_SENDOFF)
+		fSendOffAcceleration = nSendOffFrames = 0;
 	while (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_OBJECT_COL), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED)
 	{
 		Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
@@ -128,6 +131,37 @@ void Enemy::Update()
 		break;
 	case EN_STATE_DAMAGED:
 		DamagedStateControl();
+		break;
+	case EN_STATE_SENDOFF:
+		nSendOffFrames++;
+		switch (nSendoffAttack)
+		{
+		case AIR_PUNCHC:
+			SetAnimation(EN_STRONG_HITFORWARD, fEnemyAnimations[EN_STRONG_HITFORWARD]);
+			if (Model->GetCurrentFrame() > 1147)
+				Model->SetFrameOfAnimation(1137);
+			fSendOffAcceleration+=4.25f;
+			Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5+ fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+			if (nSendOffFrames > 8)
+				nState = EN_IDLE;
+			break;
+		case HEADBUTT:
+			SetAnimation(EN_STRONG_HITFORWARD, fEnemyAnimations[EN_STRONG_HITFORWARD]);
+			fSendOffAcceleration += 0.25f;
+			if (Model->GetCurrentFrame() < 1195)
+				Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (1.25f + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (1.25f + fSendOffAcceleration) });
+			if(Model->GetLoops()>0)
+				nState = EN_IDLE;
+			break;
+		default:
+			SetAnimation(EN_LAUNCHED_FORWARD, fEnemyAnimations[EN_LAUNCHED_FORWARD]*2.75f);
+			fSendOffAcceleration+=0.3f;
+			Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5+ fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+			if (Model->GetLoops() > 0)
+				nState = EN_IDLE;
+			break;
+		}
+
 		break;
 	default:
 		break;
@@ -272,6 +306,14 @@ void Enemy::DamagedStateControl()
 		
 		pCamera->SetZooming(-120, 15, 2, 4);
 		break;
+
+	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: 
+		Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.x*2;
+		Position.z += cosf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.z*2;
+		nState = EN_STATE_SENDOFF;
+		nSendoffAttack = pPlayerAttack->Animation;
+		pCamera->SetZooming(-150, 40, 2, 4);
+		break;
 	default:
 		if(!bAlternatePunchAnim)
 			SetAnimation(EN_PUNCHED_A, fEnemyAnimations[EN_PUNCHED_A]);
@@ -282,7 +324,6 @@ void Enemy::DamagedStateControl()
 			Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 10, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 10 });
 			nCancellingGravityFrames = 40;
 		}
-		//Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
 		if (pFloor) {
 			Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
 			Position.z += cosf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.speed *0.75f;
@@ -291,8 +332,11 @@ void Enemy::DamagedStateControl()
 			Position.y -= 40;
 		}
 		pCamera->SetZooming(60, 25, 2, 4);
-		if(pPlayerAttack->nAttackID==599)
+		if (pPlayerAttack->nAttackID == 599) {
 			pCamera->SetZooming(-150, 40, 2, 4);
+			nState = EN_STATE_SENDOFF;
+			nSendoffAttack = HEADBUTT;
+		}
 		break;
 	}
 }
@@ -306,8 +350,8 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 	case SLIDE: case UPPERCUT:
 		pCamera->SetShaking(8.0f, 7, 2);
 		break;
-	case BASIC_CHAIN_C: case AIR_PUNCHC:
-		pCamera->SetShaking(10.0f, 14, 2);
+	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH:
+		pCamera->SetShaking(10.0f, 7, 2);
 		break;
 	default:
 		pCamera->SetShaking(6.0f, 7, 2);

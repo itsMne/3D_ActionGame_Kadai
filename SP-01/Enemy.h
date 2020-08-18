@@ -33,6 +33,8 @@ enum ENEMY_STATES
 {
 	EN_STATE_IDLE,
 	EN_STATE_DAMAGED,
+	EN_STATE_SENDOFF,
+	EN_STATE_MAX
 };
 
 class Enemy :
@@ -40,17 +42,21 @@ class Enemy :
 {
 private:
 	//ヒットボックス
-	Box		Hitboxes[ENEMY_HB_MAX];
-	Cube3D* pVisualHitboxes[ENEMY_HB_MAX];
+	Box			Hitboxes[ENEMY_HB_MAX];
+	Cube3D*		pVisualHitboxes[ENEMY_HB_MAX];
 	//プレイヤーのポインター
-	Actor*	pPlayer;
-	Billboard* pHit[MAX_HIT_EFFECTS];
+	Actor*		pPlayer;
+	Billboard*	pHit[MAX_HIT_EFFECTS];
 	//状態
-	int		nState;
-	bool bCanBeAttacked;
-	bool bAlternatePunchAnim;
-	bool bFollowRoulette;
-	int nCancellingGravityFrames;
+	int			nState;
+	int			nSendoffAttack;
+	int			nSendOffFrames;
+	float		fSendOffAcceleration;
+	bool		bCanBeAttacked;
+	bool		bAlternatePunchAnim;
+	bool		bFollowRoulette;
+	int			nCancellingGravityFrames;
+
 public:
 	Enemy();
 	void SetHitEffect();
