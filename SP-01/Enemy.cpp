@@ -97,7 +97,7 @@ void Enemy::Update()
 		Jump(10);
 	}
 #endif
-	GravityControl();
+	
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED) {
 		nState = EN_STATE_DAMAGED;
 		
@@ -133,35 +133,7 @@ void Enemy::Update()
 		DamagedStateControl();
 		break;
 	case EN_STATE_SENDOFF:
-		nSendOffFrames++;
-		switch (nSendoffAttack)
-		{
-		case AIR_PUNCHC:
-			SetAnimation(EN_STRONG_HITFORWARD, fEnemyAnimations[EN_STRONG_HITFORWARD]);
-			if (Model->GetCurrentFrame() > 1147)
-				Model->SetFrameOfAnimation(1137);
-			fSendOffAcceleration+=4.25f;
-			Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5+ fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
-			if (nSendOffFrames > 8)
-				nState = EN_IDLE;
-			break;
-		case HEADBUTT:
-			SetAnimation(EN_STRONG_HITFORWARD, fEnemyAnimations[EN_STRONG_HITFORWARD]);
-			fSendOffAcceleration += 0.25f;
-			if (Model->GetCurrentFrame() < 1195)
-				Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (1.25f + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (1.25f + fSendOffAcceleration) });
-			if(Model->GetLoops()>0)
-				nState = EN_IDLE;
-			break;
-		default:
-			SetAnimation(EN_LAUNCHED_FORWARD, fEnemyAnimations[EN_LAUNCHED_FORWARD]*2.75f);
-			fSendOffAcceleration+=0.3f;
-			Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5+ fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
-			if (Model->GetLoops() > 0)
-				nState = EN_IDLE;
-			break;
-		}
-
+		SendOffStateControl();
 		break;
 	default:
 		break;
@@ -178,6 +150,45 @@ void Enemy::Update()
 			if (!(pHit[i]->GetUse()))
 				SAFE_DELETE(pHit[i]);
 		}
+	}
+	GravityControl();
+}
+void Enemy::SendOffStateControl()
+{
+	nSendOffFrames++;
+	switch (nSendoffAttack)
+	{
+	case AIR_PUNCHC:
+		SetAnimation(EN_STRONG_HITFORWARD, fEnemyAnimations[EN_STRONG_HITFORWARD]);
+		if (Model->GetCurrentFrame() > 1147)
+			Model->SetFrameOfAnimation(1137);
+		fSendOffAcceleration += 4.25f;
+		Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+		if (nSendOffFrames > 8)
+			nState = EN_IDLE;
+		break;
+	case HEADBUTT:
+		SetAnimation(EN_STRONG_HITFORWARD, fEnemyAnimations[EN_STRONG_HITFORWARD]);
+		fSendOffAcceleration += 0.25f;
+		if (Model->GetCurrentFrame() < 1195)
+			Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (1.25f + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (1.25f + fSendOffAcceleration) });
+		if (Model->GetLoops() > 0)
+			nState = EN_IDLE;
+		break;
+	case KICKDOWN:
+		SetAnimation(EN_LAUNCHED_FORWARD, fEnemyAnimations[EN_LAUNCHED_FORWARD] * 2.95f);
+		fSendOffAcceleration += 0.2f;
+		Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+		if (Model->GetLoops() > 0)
+			nState = EN_IDLE;
+		break;
+	default:
+		SetAnimation(EN_LAUNCHED_FORWARD, fEnemyAnimations[EN_LAUNCHED_FORWARD] * 2.75f);
+		fSendOffAcceleration += 0.3f;
+		Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+		if (Model->GetLoops() > 0)
+			nState = EN_IDLE;
+		break;
 	}
 }
 void Enemy::Jump(float fJumpForce)
@@ -303,7 +314,7 @@ void Enemy::DamagedStateControl()
 			nCancellingGravityFrames = 40;
 		}else if (fGravityForce >= 0) {
 			Position = Player->GetHitboxPos(PLAYER_HB_ATTACK);
-			Position.y -= 30;
+			Position.y -= 50;
 			nCancellingGravityFrames = 0;
 		}
 		
@@ -390,6 +401,17 @@ void Enemy::GravityControl()
 			while (IsInCollision3D(pFloor->GetHitbox(), GetHitboxEnemy(ENEMY_HB_FEET)))
 				Position.y += 0.1f;
 			Position.y -= 0.1f;
+			Player3D* Player = (Player3D*)pPlayer;
+			PLAYER_ATTACK_MOVE* pAtk = Player->GetCurrentAttack();
+			if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && pAtk && pAtk->Animation == KICKDOWN)
+			{
+				Position.x += sinf(XM_PI + Model->GetRotation().y) * pAtk->ahsHitboxSize.x * 5;
+				Position.z += cosf(XM_PI + Model->GetRotation().y) * pAtk->ahsHitboxSize.z * 5;
+				nState = EN_STATE_SENDOFF;
+				nSendoffAttack = pAtk->Animation;
+				Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+				pCamera->SetZooming(-150, 40, 2, 4);
+			}
 		}
 	}
 }

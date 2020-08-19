@@ -63,6 +63,7 @@ public:
 	~Enemy();
 	void Init();
 	void Update();
+	void SendOffStateControl();
 	void Jump(float fJumpForce);
 	void InitialAttackedAnimation(int currentattack);
 	void DamagedStateControl();
