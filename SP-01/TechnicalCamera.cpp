@@ -19,7 +19,7 @@
 #define VIEW_ANGLE			(XMConvertToRadians(55.0f))//45
 #define VIEW_ASPECT			((float)SCREEN_WIDTH/(float)SCREEN_HEIGHT)
 #define VIEW_NEAR			(10.0f)
-#define VIEW_FAR			(2000.0f)//1000
+#define VIEW_FAR			(2500.0f)//1000
 #define VALUE_MOVE_CAMERA	(2.0f)	
 #define VALUE_ROTATE_CAMERA	(XM_PI*0.01f)	
 
