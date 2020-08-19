@@ -453,7 +453,7 @@ void Player3D::FightingStanceStateControl()
 		else if(pPreviousAttack && pPreviousAttack->Animation == SLIDE)
 		{
 			SetAnimation(SLIDE_STANDUP_FIGHT, fAnimationSpeed[SLIDE_STANDUP_FIGHT]);
-			if (GetInput(INPUT_PUNCH)) {
+			if (GetInput(INPUT_PUNCH) && CheckHoldingBack()) {
 				SwitchAttack(SLIDE_KICKUP);
 				return;
 			}
@@ -734,7 +734,7 @@ void Player3D::AttackStateControl()
 		Position.z -= cosf(XM_PI + rotCamera.y) * 15;
 		if (Model->GetCurrentFrame() >= 510 || PressedKick)
 		{
-			if (GetInput(INPUT_PUNCH)) {
+			if (GetInput(INPUT_PUNCH) && CheckHoldingBack()) {
 				SwitchAttack(SLIDE_KICKUP);
 				break;
 			}
@@ -1330,6 +1330,12 @@ void Player3D::AttackInputsControl()
 	}
 	if (bKick)
 	{
+		if (Model->GetCurrentAnimation() == SLIDE || Model->GetCurrentAnimation()==SLIDE_STANDUP_FIGHT)
+		{
+			SwitchAttack(SLIDE_KICKUP);
+			ResetInputs();
+			return;
+		}
 		if (!strcmp("FB", szInputs) && IsOnTheFloor()) {
 			SwitchAttack(HEADBUTT);
 			ResetInputs();
