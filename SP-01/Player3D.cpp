@@ -29,8 +29,8 @@
 #define DEBUG_WAITFRAME false
 #define KICKDOWN_SPEED 10.98
 #define LOCK_ON_DISTANCE 550.0f
-#define BACKWARD_INPUT_OFFSET 2.25f
-#define FORWARD_INPUT_OFFSET 0.95f
+#define BACKWARD_INPUT_OFFSET 1.95f
+#define FORWARD_INPUT_OFFSET 1.35f
 //*****************************************************************************
 // ƒOƒ[ƒoƒ‹•Ï”
 //*****************************************************************************
@@ -324,7 +324,11 @@ bool Player3D::CheckHoldingBack()
 		return false;
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
+	float DirInput = abs((nModelRotation + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
+	if (DirInput > XM_PI) {
+		DirInput -= XM_2PI;
+		DirInput = abs(DirInput);
+	}
 	if (DirInput >= BACKWARD_INPUT_OFFSET)
 		IsHoldingBack = true;
 	
@@ -342,7 +346,11 @@ bool Player3D::CheckHoldingForward()
 		return false;
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput = abs((nModelRotation + Rotation.y + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
+	float DirInput = abs((nModelRotation + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
+	if (DirInput > XM_PI) {
+		DirInput -= XM_2PI;
+		DirInput =abs(DirInput);
+	}
 	if (DirInput <= FORWARD_INPUT_OFFSET)
 		IsHoldingFor = true;
 	return IsHoldingFor;
@@ -1046,7 +1054,11 @@ void Player3D::CalculateDirectionalInput()
 
 	float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 	XMFLOAT3 x3CurrentModelRot = Model->GetRotation();
-	float DirInput =abs((nModelRotation + Rotation.y + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
+	float DirInput =abs((nModelRotation + pCamera->GetRotation(false).y) - x3CurrentModelRot.y);
+	if (DirInput > XM_PI) {
+		DirInput -= XM_2PI;
+		DirInput = abs(DirInput);
+	}
 	if (DirInput >= BACKWARD_INPUT_OFFSET)
 	{
 		eDirection = DIR_BACKWARD;
