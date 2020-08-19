@@ -34,6 +34,7 @@ enum ENEMY_STATES
 	EN_STATE_IDLE,
 	EN_STATE_DAMAGED,
 	EN_STATE_SENDOFF,
+	EN_STATE_REDHOTKICKED,
 	EN_STATE_MAX
 };
 
@@ -63,6 +64,7 @@ public:
 	~Enemy();
 	void Init();
 	void Update();
+	void RedHotKickedStateControl();
 	void SendOffStateControl();
 	void Jump(float fJumpForce);
 	void InitialAttackedAnimation(int currentattack);

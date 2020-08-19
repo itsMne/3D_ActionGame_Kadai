@@ -60,13 +60,13 @@ void UpdateInputManager()
 	bInputs[INPUT_MENU_LEFT] = GetKeyTrigger(VK_A) || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
 	bInputs[INPUT_MENU_RIGHT] = GetKeyTrigger(VK_D) || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
 
-	bInputs[INPUT_JUMP] = GetKeyTrigger(VK_K) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A && !bHoldingXinput[INPUT_JUMP]);
+	bInputs[INPUT_JUMP] = GetKeyTrigger(VK_K) || GetMouseTrigger(MOUSEBUTTON_R) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A && !bHoldingXinput[INPUT_JUMP]);
 
-	bInputs[INPUT_JUMP_HOLD] = GetKeyPress(VK_K) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A);
+	bInputs[INPUT_JUMP_HOLD] = GetKeyPress(VK_K) || GetMouseButton(MOUSEBUTTON_R) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A);
 	
 	bInputs[INPUT_PAUSE] = GetKeyTrigger(VK_RETURN) || GetKeyTrigger(VK_P) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START && !bHoldingXinput[INPUT_PAUSE]);
 
-	bInputs[INPUT_PUNCH] = GetMouseTrigger(MOUSEBUTTON_L) || GetKeyTrigger(VK_I) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y && !bHoldingXinput[INPUT_PUNCH]);
+	bInputs[INPUT_ATTACK] = GetMouseTrigger(MOUSEBUTTON_L) || GetKeyTrigger(VK_I) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y && !bHoldingXinput[INPUT_ATTACK]);
 	bInputs[INPUT_LOCKON] = GetKeyPress(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
 	bInputs[INPUT_CAMERA] = GetKeyTrigger(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER
 		&& !bHoldingXinput[INPUT_CAMERA]);
@@ -200,7 +200,7 @@ void VibrateXinput(float vivbrationL, float VibrationR)
 void XinputTriggerControl(bool BeforeInputs)
 {
 	if (BeforeInputs) {
-		if (bHoldingXinput[INPUT_PUNCH] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y)) bHoldingXinput[INPUT_PUNCH] = false;
+		if (bHoldingXinput[INPUT_ATTACK] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y)) bHoldingXinput[INPUT_ATTACK] = false;
 		//if (bHoldingXinput[INPUT_KICK] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B)) bHoldingXinput[INPUT_KICK] = false;
 		if (bHoldingXinput[INPUT_JUMP] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A)) bHoldingXinput[INPUT_JUMP] = false;
 		if (bHoldingXinput[INPUT_PAUSE] && !(Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START)) bHoldingXinput[INPUT_PAUSE] = false;
@@ -210,7 +210,7 @@ void XinputTriggerControl(bool BeforeInputs)
 
 	}
 	else {
-		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y) bHoldingXinput[INPUT_PUNCH] = true;
+		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y) bHoldingXinput[INPUT_ATTACK] = true;
 		//if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B) bHoldingXinput[INPUT_KICK] = true;
 		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A) bHoldingXinput[INPUT_JUMP] = true;
 		if (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START) bHoldingXinput[INPUT_PAUSE] = true;

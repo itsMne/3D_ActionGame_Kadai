@@ -124,6 +124,8 @@ public:
 	XMFLOAT3 GetForward();
 	XMFLOAT3 GetModelForward();
 	bool MoveTowardPos(XMFLOAT3 Destination, float Speed);
+	bool MoveTowardPosXY(XMFLOAT2 Destination, float Speed);
+	bool MoveTowardPosXZ(XMFLOAT2 Destination, float Speed);
 	void PauseObject(int pauseFrames);
 	float GetMoveSpeed();
 	int GetDelayFrames();

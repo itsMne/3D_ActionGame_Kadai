@@ -156,6 +156,8 @@ private:
 	//ロックオン
 	Actor* pLockedEnemy;
 	Camera3D* pCamera;
+	//レッドホットキック
+	bool bRHK_Hit;
 public:
 	Player3D();
 	~Player3D();
@@ -201,6 +203,7 @@ public:
 	int					GetCurrentHP() { return nHP; };
 	bool				IsSoftLocked() { return bSoftLocking; };
 	void				SoftLock() { bSoftLocking = true; };
+	void				RedHotKicked() { bRHK_Hit = true; };
 };
 
 Player3D* GetPlayer();

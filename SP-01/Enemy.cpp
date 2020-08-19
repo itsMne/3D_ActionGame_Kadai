@@ -98,7 +98,7 @@ void Enemy::Update()
 	}
 #endif
 	
-	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED) {
+	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED && nState != EN_STATE_REDHOTKICKED) {
 		nState = EN_STATE_DAMAGED;
 		
 		FaceActor(pPlayer);
@@ -113,6 +113,8 @@ void Enemy::Update()
 			bFollowRoulette = true;
 		else 
 			bFollowRoulette = false;
+		if (pPlayerAttack->Animation == RED_HOT_KICK)
+			Player->RedHotKicked();
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
@@ -135,6 +137,9 @@ void Enemy::Update()
 	case EN_STATE_SENDOFF:
 		SendOffStateControl();
 		break;
+	case EN_STATE_REDHOTKICKED:
+		RedHotKickedStateControl();
+		break;
 	default:
 		break;
 	}
@@ -151,8 +156,26 @@ void Enemy::Update()
 				SAFE_DELETE(pHit[i]);
 		}
 	}
+
 	GravityControl();
 }
+
+void Enemy::RedHotKickedStateControl()
+{
+	Player3D* Player = (Player3D*)pPlayer;
+	FaceActor(Player);
+	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	if (Player->GetModel()->GetCurrentFrame() > 4356 && Player->GetModel()->GetCurrentFrame() < 4388)
+	{
+		pCamera->SetZooming(150, 40, 2, 4);
+	}
+	else if(Player->GetModel()->GetCurrentFrame() > 4388) {
+		pCamera->SetZooming(-150, 40, 2, 4);
+		nState = EN_STATE_SENDOFF;
+		nSendoffAttack = RED_HOT_KICK;
+	}
+}
+
 void Enemy::SendOffStateControl()
 {
 	nSendOffFrames++;
@@ -245,6 +268,8 @@ void Enemy::DamagedStateControl()
 			bFollowRoulette = true;
 		else
 			bFollowRoulette = false;
+		if (pPlayerAttack->Animation == RED_HOT_KICK)
+			Player->RedHotKicked();
 		SetHitEffect();
 	}
 	if (bFollowRoulette)
@@ -330,6 +355,11 @@ void Enemy::DamagedStateControl()
 		nSendoffAttack = pPlayerAttack->Animation;
 		pCamera->SetZooming(-150, 40, 2, 4);
 		break;
+	case RED_HOT_KICK:
+		nState = EN_STATE_REDHOTKICKED;
+		SetAnimation(EN_PUNCHED_A, 0);
+		Player->RedHotKicked();
+		return;
 	default:
 		if(!bAlternatePunchAnim)
 			SetAnimation(EN_PUNCHED_A, fEnemyAnimations[EN_PUNCHED_A]);

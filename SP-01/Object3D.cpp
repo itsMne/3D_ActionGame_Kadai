@@ -756,6 +756,71 @@ bool Object3D::MoveTowardPos(XMFLOAT3 Destination, float Speed)
 	return Position.z == Destination.z && Position.y == Destination.y && Position.x == Destination.x;
 }
 
+bool Object3D::MoveTowardPosXY(XMFLOAT2 Destination, float Speed)
+{
+	if (Position.x < Destination.x)
+	{
+		Position.x += Speed;
+		if (Position.x > Destination.x)
+			Position.x = Destination.x;
+	}
+
+	if (Position.x > Destination.x)
+	{
+		Position.x -= Speed;
+		if (Position.x < Destination.x)
+			Position.x = Destination.x;
+	}
+
+	if (Position.y < Destination.y)
+	{
+		Position.y += Speed;
+		if (Position.y > Destination.y)
+			Position.y = Destination.y;
+	}
+
+	if (Position.y > Destination.y)
+	{
+		Position.y -= Speed;
+		if (Position.y < Destination.y)
+			Position.y = Destination.y;
+	}
+
+	return Position.y == Destination.y && Position.x == Destination.x;
+}
+
+bool Object3D::MoveTowardPosXZ(XMFLOAT2 Destination, float Speed)
+{
+	if (Position.x < Destination.x)
+	{
+		Position.x += Speed;
+		if (Position.x > Destination.x)
+			Position.x = Destination.x;
+	}
+
+	if (Position.x > Destination.x)
+	{
+		Position.x -= Speed;
+		if (Position.x < Destination.x)
+			Position.x = Destination.x;
+	}
+
+	if (Position.z < Destination.y)
+	{
+		Position.z += Speed;
+		if (Position.z > Destination.y)
+			Position.z = Destination.y;
+	}
+
+	if (Position.z > Destination.y)
+	{
+		Position.z -= Speed;
+		if (Position.z < Destination.y)
+			Position.z = Destination.y;
+	}
+	return Position.z == Destination.y && Position.x == Destination.x;
+}
+
 //*****************************************************************************
 //PauseObject関数
 //オブジェクトをポースする
