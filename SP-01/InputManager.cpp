@@ -64,11 +64,11 @@ void UpdateInputManager()
 
 	bInputs[INPUT_JUMP_HOLD] = GetKeyPress(VK_K) || GetMouseButton(MOUSEBUTTON_R) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_A);
 	
-	bInputs[INPUT_PAUSE] = GetKeyTrigger(VK_RETURN) || GetKeyTrigger(VK_P) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START && !bHoldingXinput[INPUT_PAUSE]);
+	bInputs[INPUT_PAUSE] = GetKeyTrigger(VK_SPACE) || GetKeyTrigger(VK_P) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_START && !bHoldingXinput[INPUT_PAUSE]);
 
 	bInputs[INPUT_ATTACK] = GetMouseTrigger(MOUSEBUTTON_L) || GetKeyTrigger(VK_I) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_Y && !bHoldingXinput[INPUT_ATTACK]);
-	bInputs[INPUT_LOCKON] = GetKeyPress(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
-	bInputs[INPUT_CAMERA] = GetKeyTrigger(VK_SPACE) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER
+	bInputs[INPUT_LOCKON] = GetKeyPress(VK_L) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER);
+	bInputs[INPUT_CAMERA] = GetKeyTrigger(VK_L) || (Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_B || Player1->GetState().Gamepad.wButtons & XINPUT_GAMEPAD_RIGHT_SHOULDER
 		&& !bHoldingXinput[INPUT_CAMERA]);
 
 	bInputs[INPUT_DEBUG_AIM_ON] = GetKeyTrigger(VK_1);
