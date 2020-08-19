@@ -255,7 +255,8 @@ void Enemy::DamagedStateControl()
 		bFollowRoulette = false;
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && bCanBeAttacked) {
 		bAlternatePunchAnim ^= true;
-		FaceActor(pPlayer);
+		if (pPlayerAttack->Animation != RED_HOT_KICK)
+			FaceActor(pPlayer);
 		bCanBeAttacked = false;
 		CameraRumbleControl(pPlayerAttack->Animation);
 		fGravityForce = 0;
@@ -268,8 +269,10 @@ void Enemy::DamagedStateControl()
 			bFollowRoulette = true;
 		else
 			bFollowRoulette = false;
-		if (pPlayerAttack->Animation == RED_HOT_KICK)
+		if (pPlayerAttack->Animation == RED_HOT_KICK) {
+			pPlayer->FaceActor(this);
 			Player->RedHotKicked();
+		}
 		SetHitEffect();
 	}
 	if (bFollowRoulette)

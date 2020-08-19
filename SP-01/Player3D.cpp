@@ -1025,13 +1025,15 @@ void Player3D::AttackStateControl()
 			if (Model->GetCurrentFrame() > 4387) {
 				Position.x += sinf(XM_PI + rotCamera.y) * 5;
 				Position.z += cosf(XM_PI + rotCamera.y) * 5;
-				if (Model->GetCurrentFrame() < 4404)
+				if (Model->GetCurrentFrame() < 4404) {
 					Position.y += 5;
+					fGravityForce = 0;
+				}
 				if (Model->GetCurrentFrame() > 4418)
 				{
 					if (!pFloor) {
 						fGravityForce += GRAVITY_FORCE;
-						Position.y -= fGravityForce;
+						Position.y -= fGravityForce * 0.5f;
 						AttackInputsControl();
 						if (GetInput(INPUT_JUMP_HOLD))
 						{
