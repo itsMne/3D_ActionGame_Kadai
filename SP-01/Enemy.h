@@ -5,6 +5,7 @@
 
 #define MAX_HIT_EFFECTS 4
 #define MAX_ENEMY_HEART 8
+#define MAX_ENEMY_HP 150
 enum ENEMY_ANIMATIONS
 {
 	EN_IDLE,
@@ -61,6 +62,7 @@ private:
 	int			nCancellingGravityFrames;
 	float		fHeartPosHealth[MAX_ENEMY_HEART];
 	float		fHeartPosLockOn;
+	int			nHP;
 public:
 	Enemy();
 	void SetHitEffect();

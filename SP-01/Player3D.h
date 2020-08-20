@@ -123,6 +123,7 @@ typedef struct PLAYER_ATTACK_MOVE
 	int						nMinFrameForInputDetection;
 	HITBOX_ACTIVATION_FRAME fpHitBoxActivation;
 	ATTACK_HITBOX_SIZE		ahsHitboxSize;
+	int						nDamage;
 	int						nAttackID;
 };
 

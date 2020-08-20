@@ -45,6 +45,7 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	{
 		fHeartPosHealth[i] = 0;
 	}
+	nHP = MAX_ENEMY_HP;
 }
 
 void Enemy::SetHitEffect()
@@ -127,6 +128,7 @@ void Enemy::Update()
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
+		nHP -= pPlayerAttack->nDamage;
 	}
 	if (nState != EN_STATE_SENDOFF)
 		fSendOffAcceleration = nSendOffFrames = 0;
@@ -165,7 +167,6 @@ void Enemy::Update()
 				SAFE_DELETE(pHit[i]);
 		}
 	}
-
 	HeartsControl();
 	GravityControl();
 }
@@ -175,6 +176,20 @@ void Enemy::HeartsControl()
 	pHearts->Update();
 	static float fAccel = 0;
 	Player3D* Player = (Player3D*)pPlayer;
+	float MaxHealthHeart = (nHP / (float)MAX_ENEMY_HP)*(40 * (float)MAX_ENEMY_HEART);
+	MaxHealthHeart -= MAX_ENEMY_HEART*40;
+	MaxHealthHeart = abs(MaxHealthHeart);
+	for (int i = MAX_ENEMY_HEART-1; i >= 0; i--)
+	{
+		fHeartPosHealth[i] = 0;
+		while (fHeartPosHealth[i] < 40 && MaxHealthHeart>0) {
+			fHeartPosHealth[i]++;
+			MaxHealthHeart--;
+			if (MaxHealthHeart == 0)
+				break;
+		}
+		
+	}
 	if (Player->GetLockedEnemy() == this)
 	{
 		if (fHeartPosLockOn < 40)
@@ -312,6 +327,7 @@ void Enemy::DamagedStateControl()
 			Player->RedHotKicked();
 		}
 		SetHitEffect();
+		nHP -= pPlayerAttack->nDamage;
 	}
 	if (bFollowRoulette)
 	{
@@ -520,18 +536,19 @@ void Enemy::DrawHearts()
 	if (fHeartPosLockOn == 0)
 		return;
 	XMFLOAT3 RotateAround = Model->GetRotation();
-	//RotateAround = ((Camera3D*)(GetMainCamera()->GetFocalPoint()))->GetRotation();
+	RotateAround = ((Camera3D*)(GetMainCamera()->GetFocalPoint()))->GetRotation();
 	for (int i = 0; i < MAX_ENEMY_HEART; i++)
 	{
+		if (fHeartPosLockOn - fHeartPosHealth[i] == 0)
+			continue;
 		float theta = ((float)i*(360.0f / (float)MAX_ENEMY_HEART)) * 3.142f / 180;
 		float c1 = 1.0f*cos(theta) - 1.0*sin(theta);
 		float c2 = 1.0f*cos(theta) + 1.0*sin(theta);
 
-		XMFLOAT3 PositionA = SumVector(Position, { -sinf(XM_PI + RotateAround.y) * 50,0,-cosf(XM_PI + RotateAround.y) * 50 });
+		XMFLOAT3 PositionA = SumVector(Position, { +sinf(XM_PI + RotateAround.y) * 50,0,+cosf(XM_PI + RotateAround.y) * 50 });
 		XMFLOAT3 Pos =
 			SumVector(PositionA,
 				{ -sinf(XM_PI + RotateAround.y + XM_PI * 0.5f) *(c1*(fHeartPosLockOn - fHeartPosHealth[i]) - (c1*0.175f)),(c2*(fHeartPosLockOn - fHeartPosHealth[i])) + 60,-cosf(XM_PI + RotateAround.y + XM_PI * 0.5f) * (c1*(fHeartPosLockOn - fHeartPosHealth[i]) - (c1*0.175f)) });
-
 		pHearts->SetPosition(Pos);
 		pHearts->Draw();
 	}
