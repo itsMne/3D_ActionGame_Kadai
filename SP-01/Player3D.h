@@ -74,6 +74,7 @@ enum EPLAYER_STATE
 	PLAYER_ATTACKING_STATE,
 	PLAYER_JUMPING_UP_STATE,
 	PLAYER_BUNBUN_FLOATING,
+	PLAYER_BUNBUN_FALLING,
 	PLAYER_STATE_MAX
 };
 enum EPLAYER_HITBOXES
@@ -82,6 +83,7 @@ enum EPLAYER_HITBOXES
 	PLAYER_HB_ATTACK,
 	PLAYER_HB_LOCKON,
 	PLAYER_HB_OBJECT_COL,
+	PLAYER_HB_BODY,
 	PLAYER_HB_MAX
 };
 enum AirMove
@@ -164,8 +166,8 @@ public:
 
 	void				Init();
 	void				Update();
-	void Jump();
-	void LockingControl();
+	void				Jump();
+	void				LockingControl();
 	bool				CheckHoldingBack();
 	bool				CheckHoldingForward();
 	void				TransitionToFloatingBunBun();

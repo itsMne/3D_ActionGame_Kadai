@@ -5,7 +5,7 @@
 #include "InputManager.h"
 #include "Player3D.h"
 
-#define SHOW_ENEMY_HITBOX true
+#define SHOW_ENEMY_HITBOX false
 #define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_BODY
 #define GRAVITY_FORCE 0.98f*2
 
@@ -36,6 +36,15 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	nState = EN_STATE_IDLE;
 	nCancellingGravityFrames = 0;
 	for (int i = 0; i < MAX_HIT_EFFECTS; pHit[i] = nullptr, i++);
+	pHearts = new Billboard(BB_HEART, { 0.5f,0.5f });
+	pHearts->SetUVFrames(3, 1, 15);
+	pHearts->SetPosition({ 0, 0, 0 });
+	pHearts->SetUnusableAfterAnimation(false);
+	fHeartPosLockOn = 0;
+	for (int i = 0; i < MAX_ENEMY_HEART; i++)
+	{
+		fHeartPosHealth[i] = 0;
+	}
 }
 
 void Enemy::SetHitEffect()
@@ -109,11 +118,11 @@ void Enemy::Update()
 			CameraRumbleControl(pPlayerAttack->Animation);
 			InitialAttackedAnimation(pPlayerAttack->Animation);
 		}
-		if (pPlayerAttack->Animation == ROULETTE)
+		if (pPlayerAttack && pPlayerAttack->Animation == ROULETTE)
 			bFollowRoulette = true;
 		else 
 			bFollowRoulette = false;
-		if (pPlayerAttack->Animation == RED_HOT_KICK)
+		if (pPlayerAttack && pPlayerAttack->Animation == RED_HOT_KICK)
 			Player->RedHotKicked();
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
@@ -157,7 +166,36 @@ void Enemy::Update()
 		}
 	}
 
+	HeartsControl();
 	GravityControl();
+}
+
+void Enemy::HeartsControl()
+{
+	pHearts->Update();
+	static float fAccel = 0;
+	Player3D* Player = (Player3D*)pPlayer;
+	if (Player->GetLockedEnemy() == this)
+	{
+		if (fHeartPosLockOn < 40)
+			fHeartPosLockOn += fAccel;
+		else
+		{
+			fHeartPosLockOn = 40;
+			fAccel = 0;
+		}
+		fAccel += 0.5f;
+	}
+	else {
+		if (fHeartPosLockOn > 0)
+			fHeartPosLockOn -= fAccel;
+		else
+		{
+			fHeartPosLockOn = 0;
+			fAccel = 0;
+		}
+		fAccel += 0.5f;
+	}
 }
 
 void Enemy::RedHotKickedStateControl()
@@ -349,7 +387,7 @@ void Enemy::DamagedStateControl()
 		pCamera->SetZooming(-120, 15, 2, 4);
 		break;
 
-	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:
+	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C: case BUNBUN_FALL_ATK:
 		if (pPlayerAttack->Animation == BASIC_CHAIN_B_KICKC && Player->GetModel()->GetCurrentFrame() < 3740)
 			break;
 		Position.x += sinf(XM_PI + Model->GetRotation().y) * pPlayerAttack->ahsHitboxSize.x*2;
@@ -459,6 +497,9 @@ void Enemy::Draw()
 	}
 	SetCullMode(CULLMODE_CW);
 	Actor::Draw();
+	SetCullMode(CULLMODE_NONE);
+	DrawHearts();
+	SetCullMode(CULLMODE_CW);
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	GetMainLight()->SetLightEnable(false);
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
@@ -474,8 +515,34 @@ void Enemy::Draw()
 
 }
 
+void Enemy::DrawHearts()
+{
+	if (fHeartPosLockOn == 0)
+		return;
+	XMFLOAT3 RotateAround = Model->GetRotation();
+	//RotateAround = ((Camera3D*)(GetMainCamera()->GetFocalPoint()))->GetRotation();
+	for (int i = 0; i < MAX_ENEMY_HEART; i++)
+	{
+		float theta = ((float)i*(360.0f / (float)MAX_ENEMY_HEART)) * 3.142f / 180;
+		float c1 = 1.0f*cos(theta) - 1.0*sin(theta);
+		float c2 = 1.0f*cos(theta) + 1.0*sin(theta);
+
+		XMFLOAT3 PositionA = SumVector(Position, { -sinf(XM_PI + RotateAround.y) * 50,0,-cosf(XM_PI + RotateAround.y) * 50 });
+		XMFLOAT3 Pos =
+			SumVector(PositionA,
+				{ -sinf(XM_PI + RotateAround.y + XM_PI * 0.5f) *(c1*(fHeartPosLockOn - fHeartPosHealth[i]) - (c1*0.175f)),(c2*(fHeartPosLockOn - fHeartPosHealth[i])) + 60,-cosf(XM_PI + RotateAround.y + XM_PI * 0.5f) * (c1*(fHeartPosLockOn - fHeartPosHealth[i]) - (c1*0.175f)) });
+
+		pHearts->SetPosition(Pos);
+		pHearts->Draw();
+	}
+}
+
 void Enemy::End()
 {
+	for (int i = 0; i < MAX_HIT_EFFECTS; i++)
+		SAFE_DELETE(pHit[i]);
+	SAFE_DELETE(pHearts);
+
 }
 
 Box Enemy::GetHitboxEnemy(int hb)

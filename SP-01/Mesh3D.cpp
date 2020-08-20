@@ -44,7 +44,7 @@ struct SHADER_GLOBAL2 {
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
-Mesh3D::Mesh3D() : Object3D()
+Mesh3D::Mesh3D() //: Object3D()
 {
 	pMesh = new MESH();
 	Init();
@@ -76,6 +76,7 @@ void Mesh3D::Init()
 	hr = LoadShader("Vertex", "Pixel",
 		&g_pVertexShader, &g_pInputLayout, &g_pPixelShader, layout, _countof(layout));
 	if (FAILED(hr)) {
+		printf("failed\n");
 		return;
 	}
 	// 定数バッファ生成
@@ -100,6 +101,7 @@ void Mesh3D::Init()
 	sd.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	hr = pDevice->CreateSamplerState(&sd, &g_pSamplerState);
 	if (FAILED(hr)) {
+		printf("failed\n");
 		return;
 	}
 
@@ -123,7 +125,8 @@ void Mesh3D::Update()
 {
 	XMMATRIX xWorld, mtxRot, mtxTranslate, mtxScale;
 
-	if (!pMesh) return;
+	if (!pMesh) 
+		return;
 
 	// ワールドマトリックスの初期化
 	xWorld = XMMatrixIdentity();
@@ -153,8 +156,6 @@ void Mesh3D::Update()
 //*****************************************************************************
 void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 {
-	if (!bUse)
-		return;
 	if (bisUnlit || NO_LIGHT_DEFAULT)
 		GetMainLight()->SetLightEnable(false);
 	if (bNoCull)

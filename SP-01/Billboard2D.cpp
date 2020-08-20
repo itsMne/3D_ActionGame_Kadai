@@ -13,6 +13,7 @@
 
 char szBBTexturePath[MAX_BB_TEX][256] = {
 "data/texture/Hit.tga",
+"data/texture/Heart.tga",
 };
 
 ID3D11ShaderResourceView* pBBTextures[MAX_BB_TEX] = { nullptr };
@@ -41,6 +42,8 @@ Billboard::Billboard(int nPpath, XMFLOAT2 Size): Mesh3D()
 
 	pTexture = pBBTextures[nPpath];
 	Init("");
+	pMesh->pTexture = pBBTextures[nPpath];
+	bUse = true;
 
 }
 
@@ -66,26 +69,15 @@ HRESULT Billboard::Init(const char* szpath)
 {
 	ID3D11Device* pDevice = GetDevice();
 	Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	Scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	Rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	MakeVertex(pDevice);
 
 	// テクスチャの読み込み
 	
-	if (!pTexture) {
-		printf("%s\n", szpath);
-		if (CreateTextureFromFile(pDevice,					// デバイスへのポインタ
-			szpath,		// ファイルの名前
-			&(pMesh->pTexture))) {
-			printf(" TEXTURE LOADED\n");
-		}
-		else {
-			printf(" TEXTURE LOAD FAILED\n");
-		}
-	}
-	else
-	{
-		pMesh->pTexture = pTexture;
-	}
+
+	pMesh->pTexture = pTexture;
 	XMStoreFloat4x4(&pMesh->mtxTexture, XMMatrixIdentity());
 
 	// マテリアルの設定
@@ -114,6 +106,7 @@ HRESULT Billboard::Init(const char* szpath)
 //*****************************************************************************
 void Billboard::Update()
 {
+	Mesh3D::Update();
 	TechCamera* camera = GetMainCamera();
 	//Rotation.y= camera->GetCameraAngle().y;
 	Rotation.y = XM_PI+ camera->GetCameraAngle().y;
@@ -121,12 +114,6 @@ void Billboard::Update()
 	if (++nAnimeCount >= nSlowness) {
 		++uv.U;
 		if (uv.U >= (float)nFrameX) {
-			//// 影削除
-			//nIdxShadow = -1;
-			// 弾削除
-			//bUse = false;
-			//continue;
-			//nAnimeIdx = 0;
 			uv.U = 0;
 			uv.V++;
 			if (uv.V >= (float)nFrameY)
@@ -156,8 +143,9 @@ void Billboard::Draw()
 
 
 
-	if (!GetMainCamera())
+	if (!GetMainCamera()) {
 		return;
+	}
 	XMFLOAT4X4& mtxView = GetMainCamera()->GetViewMatrix();
 
 	g_bInTree = true;

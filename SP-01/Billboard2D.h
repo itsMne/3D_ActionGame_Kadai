@@ -9,6 +9,7 @@
 enum BILLBOARD_TEXTURES
 {
 	BB_HIT,
+	BB_HEART,
 	MAX_BB_TEX
 };
 
@@ -24,18 +25,17 @@ private:
 	bool							g_bInTree;			// 木処理中
 	XMFLOAT4 Color;			// 色
 	XMFLOAT4X4 mtxWorld;	// ワールドマトリックス
-	XMFLOAT3 Position;			// 位置
-	XMFLOAT3 Rotation;			// 位置
 
 	UV			uv;	// フレームNo.
 	int			nAnimeCount;	// カウンタ
 	int			nFrameX, nFrameY;
-	float fWidth;			// 幅
-	float fHeight;			// 高さ
+	float		fWidth;			// 幅
+	float		fHeight;			// 高さ
 	bool bSetFalseAfterAnimation;
 	ID3D11ShaderResourceView* pTexture;
 	XMFLOAT2 x2Size;
 	int nSlowness;
+
 public:
 	Billboard(int, XMFLOAT2 Size);
 	Billboard(ID3D11ShaderResourceView* texture);

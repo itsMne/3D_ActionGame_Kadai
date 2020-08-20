@@ -51,7 +51,7 @@ typedef struct {
 //*****************************************************************************
 // ƒNƒ‰ƒX
 //*****************************************************************************
-class Mesh3D: public Object3D
+class Mesh3D//: public Object3D
 {
 protected:
 
@@ -67,6 +67,12 @@ protected:
 	bool bisUnlit;
 	bool bNoCull;
 	bool bUsingOutsideTexture;
+
+
+	bool bUse;
+	XMFLOAT3 Rotation;
+	XMFLOAT3 Scale;
+	XMFLOAT3 Position;
 public:
 	Mesh3D();
 	~Mesh3D();
@@ -80,6 +86,7 @@ public:
 	void ReleaseMesh();
 	void SetNoCull(bool);
 	void SetUnlit(bool);
+	
 };
 
 

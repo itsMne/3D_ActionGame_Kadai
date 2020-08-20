@@ -14,7 +14,7 @@
 // ƒ}ƒNƒ’è‹`
 //*****************************************************************************
 #define PLAYER_MODEL_PATH "data/model/Hana.fbx"
-#define MAX_ATTACKS 24
+#define MAX_ATTACKS 25
 #define MAX_INPUT_TIMER 27
 #define MAX_WAIT_TIMER 13
 #define DEBUG_FOUND_ATTACKS false
@@ -22,8 +22,8 @@
 #define DEBUG_ADD_INPUTS false
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f*2
-#define SHOW_PLAYER_HITBOX true
-#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_ATTACK
+#define SHOW_PLAYER_HITBOX false
+#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_BODY
 #define JUMP_FORCE 20*1.34f
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
@@ -62,6 +62,7 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3337, 3395}	,{15, 20, 10,  0},	1900},//A
 	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4157, 4200}	,{15, 20, 30,  0},	1900},//K
 	{"n",	  RED_HOT_KICK,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4283, 4338}	,{15, 20, 30,  0},	2000},//K
+	{"n",	  BUNBUN_FALL_ATK,				true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4564, 4638}	,{120, 30, 120,  0},	2000},//K
 };
 
 float fAnimationSpeed[] =
@@ -107,7 +108,7 @@ float fAnimationSpeed[] =
 	0.5f,//BUNBUN_FLOAT,
 	1.5f,//KICKDOWN,
 	1.0f,//RED HOT KICK,
-	1.0f,//BUNBUN_FALL_ATK,
+	0.75f,//BUNBUN_FALL_ATK,
 };
 
 Player3D* pCurrentPlayer = nullptr;
@@ -169,6 +170,7 @@ void Player3D::Init()
 		Hitboxes[i] = { 0 };
 	}
 	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 5.0f, 15.0f, 5.0f };
+	Hitboxes[PLAYER_HB_BODY] = { 0, 25.0f, 0, 20.0f, 40.0f, 20.0f };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
@@ -260,8 +262,36 @@ void Player3D::Update()
 		AttackInputsControl();
 		if (pFloor)
 			nState = PLAYER_IDLE_STATE;
-		if(!GetInput(INPUT_JUMP_HOLD))
-			nState = PLAYER_IDLE_STATE;
+		if (!GetInput(INPUT_JUMP_HOLD)) {
+			//if(Model->GetCurrentFrame() <= 4052)
+			//	nState = PLAYER_BUNBUN_FALLING;
+			//else
+				nState = PLAYER_IDLE_STATE;
+		}
+		break;
+	case PLAYER_BUNBUN_FALLING:
+		SetAnimation(BUNBUN_FALL_ATK, fAnimationSpeed[BUNBUN_FALL_ATK]);
+		GravityControl();
+		if (!pFloor)
+		{
+			if (Model->GetCurrentFrame() > 4620)
+				Model->SetFrameOfAnimation(4580);
+		}
+		else {
+			if (Model->GetCurrentFrame() < 4620)
+				Model->SetFrameOfAnimation(4621);
+		}
+		pCurrentAttackPlaying = &stAllMoves[MAX_ATTACKS - 1];
+		SetHitboxPosition(0, 25.0f, 0, PLAYER_HB_ATTACK);
+		if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame)
+			ActivateAttackHitbox(abs(-sinf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.x), abs(pCurrentAttackPlaying->ahsHitboxSize.y), abs(-cosf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.z), pCurrentAttackPlaying->ahsHitboxSize.speed);
+		if (Model->GetCurrentFrame() > 4717)
+		{
+			pPreviousAttack = &stAllMoves[MAX_ATTACKS - 1];
+			pCurrentAttackPlaying = nullptr;
+			nState = PLAYER_IDLE_FIGHT_STATE;
+			SetAnimation(FIGHT_STANCE, fAnimationSpeed[FIGHT_STANCE]);
+		}
 		break;
 	default:
 		if (!Model->GetLoops())
@@ -375,6 +405,7 @@ void Player3D::JumpingStateControl()
 		GravityControl();
 		MoveControl();
 	}
+
 	if (Model->GetCurrentFrame() < 888 && Model->GetCurrentAnimation() == JUMP_UP)
 		Model->SetFrameOfAnimation(888);
 	AttackInputsControl();

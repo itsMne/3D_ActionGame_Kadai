@@ -3,7 +3,8 @@
 #include "Cube3D.h"
 #include "Billboard2D.h"
 
-#define MAX_HIT_EFFECTS 5
+#define MAX_HIT_EFFECTS 4
+#define MAX_ENEMY_HEART 8
 enum ENEMY_ANIMATIONS
 {
 	EN_IDLE,
@@ -48,6 +49,7 @@ private:
 	//プレイヤーのポインター
 	Actor*		pPlayer;
 	Billboard*	pHit[MAX_HIT_EFFECTS];
+	Billboard*	pHearts;
 	//状態
 	int			nState;
 	int			nSendoffAttack;
@@ -57,13 +59,15 @@ private:
 	bool		bAlternatePunchAnim;
 	bool		bFollowRoulette;
 	int			nCancellingGravityFrames;
-
+	float		fHeartPosHealth[MAX_ENEMY_HEART];
+	float		fHeartPosLockOn;
 public:
 	Enemy();
 	void SetHitEffect();
 	~Enemy();
 	void Init();
 	void Update();
+	void HeartsControl();
 	void RedHotKickedStateControl();
 	void SendOffStateControl();
 	void Jump(float fJumpForce);
@@ -72,6 +76,7 @@ public:
 	void CameraRumbleControl(int nAttackAnim);
 	void GravityControl();
 	void Draw();
+	void DrawHearts();
 	void End();
 	Box GetHitboxEnemy(int i);
 };
