@@ -118,6 +118,7 @@ void Enemy::Update()
 		if (pPlayerAttack) {
 			CameraRumbleControl(pPlayerAttack->Animation);
 			InitialAttackedAnimation(pPlayerAttack->Animation);
+			Player->AddStamina(pPlayerAttack->nStaminaToAdd);
 		}
 		if (pPlayerAttack && pPlayerAttack->Animation == ROULETTE)
 			bFollowRoulette = true;
@@ -327,6 +328,7 @@ void Enemy::DamagedStateControl()
 			Player->RedHotKicked();
 		}
 		SetHitEffect();
+		Player->AddStamina(pPlayerAttack->nStaminaToAdd);
 		nHP -= pPlayerAttack->nDamage;
 	}
 	if (bFollowRoulette)
@@ -533,7 +535,7 @@ void Enemy::Draw()
 
 void Enemy::DrawHearts()
 {
-	if (fHeartPosLockOn == 0)
+	if (fHeartPosLockOn == 0 || nHP <=0)
 		return;
 	XMFLOAT3 RotateAround = Model->GetRotation();
 	RotateAround = ((Camera3D*)(GetMainCamera()->GetFocalPoint()))->GetRotation();

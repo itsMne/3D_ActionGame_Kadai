@@ -113,9 +113,8 @@ void S_InGame3D::Draw()
 	SetCullMode(CULLMODE_NONE);
 	// モデル描画
 	Fields->Draw();
-	pPlayer->Draw();
 	Enemies->Draw();
-
+	pPlayer->Draw();
 	SetCullMode(CULLMODE_CCW);
 	// Zバッファ無効
 	SetZBuffer(false);

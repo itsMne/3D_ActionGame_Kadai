@@ -124,6 +124,7 @@ typedef struct PLAYER_ATTACK_MOVE
 	HITBOX_ACTIVATION_FRAME fpHitBoxActivation;
 	ATTACK_HITBOX_SIZE		ahsHitboxSize;
 	int						nDamage;
+	int						nStaminaToAdd;
 	int						nAttackID;
 };
 
@@ -161,12 +162,19 @@ private:
 	Camera3D* pCamera;
 	//レッドホットキック
 	bool bRHK_Hit;
+	//スタミナ
+	Billboard* pBattery;
+	Billboard* pBatteryWasted;
+	Billboard* pBatteryEnergy;
+	int nStamina;
+	bool bAllStaminaUsed;
 public:
 	Player3D();
 	~Player3D();
 
 	void				Init();
 	void				Update();
+	void				StaminaControl();
 	void				Jump();
 	void				LockingControl();
 	bool				CheckHoldingBack();
@@ -206,6 +214,7 @@ public:
 	bool				IsSoftLocked() { return bSoftLocking; };
 	void				SoftLock() { bSoftLocking = true; };
 	void				RedHotKicked() { bRHK_Hit = true; };
+	void				AddStamina(int Stamina);
 };
 
 Player3D* GetPlayer();

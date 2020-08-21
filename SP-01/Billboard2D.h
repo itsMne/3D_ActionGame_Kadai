@@ -10,6 +10,8 @@ enum BILLBOARD_TEXTURES
 {
 	BB_HIT,
 	BB_HEART,
+	BB_BATTERY,
+	BB_BATTERY_ENERGY,
 	MAX_BB_TEX
 };
 
@@ -38,6 +40,7 @@ private:
 
 public:
 	Billboard(int, XMFLOAT2 Size);
+	Billboard(int, XMFLOAT2 Size, XMFLOAT4 Colors);
 	Billboard(ID3D11ShaderResourceView* texture);
 	~Billboard();
 	HRESULT Init(const char* szpath);
@@ -53,11 +56,15 @@ public:
 	void SetHeight(float newHeight);
 	void SetUVFrames(int nX, int nY, int nSlowness);
 	void SetScale(float nScale);
+	void SetScale(float Height, float Width);
+	float GetScaleWidth() { return fHeight; };
+	float GetScaleHeight() { return fWidth; };
 	void ScaleUp(float nS_Up);
 	float GetAlpha();
 	bool GetUse();
 	void SetUse(bool);
 	void ResetUV();
+	XMFLOAT4 GetColor() { return Color; };
 	void SetUnusableAfterAnimation(bool inv);
 };
 

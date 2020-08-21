@@ -14,6 +14,8 @@
 char szBBTexturePath[MAX_BB_TEX][256] = {
 "data/texture/Hit.tga",
 "data/texture/Heart.tga",
+"data/texture/battery.tga",
+"data/texture/batteryenergy.tga",
 };
 
 ID3D11ShaderResourceView* pBBTextures[MAX_BB_TEX] = { nullptr };
@@ -28,6 +30,7 @@ ID3D11ShaderResourceView* pBBTextures[MAX_BB_TEX] = { nullptr };
 //*****************************************************************************
 Billboard::Billboard(int nPpath, XMFLOAT2 Size): Mesh3D()
 {
+	Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	pTexture = nullptr;
 	nSlowness = 0;
 	bUsingOutsideTexture = true;
@@ -44,7 +47,28 @@ Billboard::Billboard(int nPpath, XMFLOAT2 Size): Mesh3D()
 	Init("");
 	pMesh->pTexture = pBBTextures[nPpath];
 	bUse = true;
+}
 
+Billboard::Billboard(int nPpath, XMFLOAT2 Size, XMFLOAT4 Colors)
+{
+	Color = Colors;
+	pTexture = nullptr;
+	nSlowness = 0;
+	bUsingOutsideTexture = true;
+	x2Size = Size;
+	if (nPpath < MAX_BB_TEX && !pBBTextures[nPpath]) {
+		ID3D11Device* pDevice = GetDevice();
+		printf("PATH: %s\n", szBBTexturePath[nPpath]);
+		CreateTextureFromFile(pDevice, szBBTexturePath[nPpath], &pBBTextures[nPpath]);
+		if (pBBTextures[nPpath])
+			printf("TEXTURE OK\n");
+	}
+
+	pTexture = pBBTextures[nPpath];
+	Init("");
+	pMesh->pTexture = pBBTextures[nPpath];
+	bUse = true;
+	
 }
 
 Billboard::Billboard(ID3D11ShaderResourceView * texture): Mesh3D()
@@ -71,7 +95,6 @@ HRESULT Billboard::Init(const char* szpath)
 	Position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	Scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	Rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	Color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	MakeVertex(pDevice);
 
 	// テクスチャの読み込み
@@ -304,14 +327,14 @@ void Billboard::SetVertex(float fWidth, float fHeight)
 void Billboard::SetColor(XMFLOAT4 col)
 {
 	this->Color = col;
-	if (Color.x < 0)
-		Color.x = 0;
-	if (Color.y < 0)
-		Color.y = 0;
-	if (Color.z < 0)
-		Color.z = 0;
-	if (Color.w < 0)
-		Color.w = 0;
+	if (this->Color.x < 0)
+		this->Color.x = 0;
+	if (this->Color.y < 0)
+		this->Color.y = 0;
+	if (this->Color.z < 0)
+		this->Color.z = 0;
+	if (this->Color.w < 0)
+		this->Color.w = 0;
 }
 
 //*****************************************************************************
@@ -370,6 +393,12 @@ void Billboard::SetScale(float nScale)
 {
 	fHeight = nScale;
 	fWidth = nScale;
+}
+
+void Billboard::SetScale(float Height, float Width)
+{
+	fHeight = Height;
+	fWidth = Width;
 }
 
 //*****************************************************************************
