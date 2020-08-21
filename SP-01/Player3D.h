@@ -16,6 +16,7 @@
 #define MAX_PLAYER_INPUT 8
 #define	MAX_FLOWERS	20
 #define MAX_HEALTH 5
+#define MAX_PLAYER_STAMINA	125
 
 //*****************************************************************************
 // ƒGƒiƒ€
@@ -216,6 +217,9 @@ public:
 	void				RedHotKicked() { bRHK_Hit = true; };
 	void				AddStamina(int Stamina);
 	void				SetLockedEnemy(Actor* pActor) { pLockedEnemy = pActor; };
+	int					GetStamina() { return nStamina; };
+	bool				IsStaminaOverused() { return bAllStaminaUsed; };
+	int					GetState() { return nState; };
 };
 
 Player3D* GetPlayer();

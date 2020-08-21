@@ -107,6 +107,7 @@
       <Filter>CPPファイル\エンジンCPP</Filter>
     </ClCompile>
     <ClCompile Include="cUI.cpp" />
+    <ClCompile Include="Explosion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -198,6 +199,7 @@
       <Filter>Hファイル\エンジンH</Filter>
     </ClInclude>
     <ClInclude Include="cUI.h" />
+    <ClInclude Include="Explosion.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPPファイル">

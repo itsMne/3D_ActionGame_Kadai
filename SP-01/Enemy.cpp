@@ -115,7 +115,6 @@ void Enemy::Update()
 		}
 		Model->SetLoop(false);
 		Hitbox = { 0,0,0,0,0,0 };
-		printf("%d\n", Model->GetCurrentFrame());
 		Actor::Update();
 		return;
 	}
@@ -483,7 +482,7 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 	case SLIDE: case UPPERCUT:
 		pCamera->SetShaking(8.0f, 7, 2);
 		break;
-	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:
+	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:case BUNBUN_FALL_ATK:
 		pCamera->SetShaking(10.0f, 7, 2);
 		break;
 	default:

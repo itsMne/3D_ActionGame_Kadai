@@ -31,7 +31,7 @@
 #define LOCK_ON_DISTANCE 550.0f
 #define BACKWARD_INPUT_OFFSET 1.95f
 #define FORWARD_INPUT_OFFSET 1.35f
-#define MAX_PLAYER_STAMINA	125
+
 //*****************************************************************************
 // ƒOƒ[ƒoƒ‹•Ï”
 //*****************************************************************************
@@ -275,16 +275,13 @@ void Player3D::Update()
 		AttackInputsControl();
 		if (pFloor)
 			nState = PLAYER_IDLE_STATE;
-		if (!GetInput(INPUT_JUMP_HOLD)) {
-			//if(Model->GetCurrentFrame() <= 4052)
-			//	nState = PLAYER_BUNBUN_FALLING;
-			//else
-				nState = PLAYER_IDLE_STATE;
-		}
+		if (!GetInput(INPUT_JUMP_HOLD)) 
+			nState = PLAYER_IDLE_STATE;
 		if(nStamina<=0)
 			nState = PLAYER_BUNBUN_FALLING;
 		break;
 	case PLAYER_BUNBUN_FALLING:
+		BunBun->Update();
 		SetAnimation(BUNBUN_FALL_ATK, fAnimationSpeed[BUNBUN_FALL_ATK]);
 		GravityControl();
 		if (!pFloor)
@@ -1360,7 +1357,7 @@ void Player3D::Draw()
 	GetMainLight()->SetLightEnable(true);
 #endif
 	Actor::Draw();
-	if(nState == PLAYER_BUNBUN_FLOATING)
+	if(nState == PLAYER_BUNBUN_FLOATING || nState == PLAYER_BUNBUN_FALLING)
 		BunBun->Draw();
 	SetCullMode(CULLMODE_NONE);
 	if (nStamina != MAX_PLAYER_STAMINA) {

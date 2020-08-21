@@ -44,6 +44,7 @@ Billboard::Billboard(int nPpath, XMFLOAT2 Size): Mesh3D()
 	}
 
 	pTexture = pBBTextures[nPpath];
+	pMesh->pTexture = pBBTextures[nPpath];
 	Init("");
 	pMesh->pTexture = pBBTextures[nPpath];
 	bUse = true;
@@ -65,6 +66,7 @@ Billboard::Billboard(int nPpath, XMFLOAT2 Size, XMFLOAT4 Colors)
 	}
 
 	pTexture = pBBTextures[nPpath];
+	pMesh->pTexture = pBBTextures[nPpath];
 	Init("");
 	pMesh->pTexture = pBBTextures[nPpath];
 	bUse = true;
@@ -100,7 +102,7 @@ HRESULT Billboard::Init(const char* szpath)
 	// テクスチャの読み込み
 	
 
-	pMesh->pTexture = pTexture;
+	//pMesh->pTexture = pTexture;
 	XMStoreFloat4x4(&pMesh->mtxTexture, XMMatrixIdentity());
 
 	// マテリアルの設定

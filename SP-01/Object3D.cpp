@@ -162,11 +162,21 @@ void Object3D::Update()
 void Object3D::BunBunControl()
 {
 	Model->SetRotation(p_goParent->GetModel()->GetRotation());
+	Player3D* Player = (Player3D*)p_goParent;
+
 	switch (Model->GetCurrentAnimation())
 	{
 	case BUN_BUN_APPEARS:
-		if (Model->GetCurrentFrame() >= 4057)
+		if (Model->GetCurrentFrame() >= 4057) {
 			SetAnimation(BUN_BUN_IDLE, 0.5f);
+			Model->SetLoop(true);
+		}
+		break;
+	case BUN_BUN_IDLE:
+		if (Player->GetState() == PLAYER_BUNBUN_FALLING) {
+			SetAnimation(BUN_BUN_DISAPPEARS, 0.5f);
+			Model->SetLoop(false);
+		}
 		break;
 	default:
 		break;
