@@ -115,6 +115,7 @@ void Object3D::Init()
 	fAcceleration = 0;
 	p_goParent = nullptr;
 	Model = nullptr;
+	pExp = nullptr;
 	pVisualHitbox = nullptr;
 	pLight = nullptr;
 	Hitbox = { 0,0,0,0,0,0 };
@@ -224,6 +225,7 @@ void Object3D::Draw()
 void Object3D::End()
 {
 	SAFE_DELETE(Model);
+	SAFE_DELETE(pExp);
 #if PRINT_HITBOX
 	SAFE_DELETE(pVisualHitbox);
 #endif

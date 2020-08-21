@@ -104,6 +104,9 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>DirectXTex\$(Configuration);C:\Program Files\Autodesk\FBX\FBX SDK\2019.5\lib\vs2017\x86\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <FxCompile>
+      <ShaderModel>4.0_level_9_3</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -119,6 +122,9 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>DirectXTex\$(Platform)\$(Configuration);C:\Program Files\Autodesk\FBX\FBX SDK\2019.5\lib\vs2017\x64\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <FxCompile>
+      <ShaderModel>4.0_level_9_3</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -138,6 +144,9 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>DirectXTex\$(Configuration);C:\Program Files\Autodesk\FBX\FBX SDK\2019.5\lib\vs2017\x86\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <FxCompile>
+      <ShaderModel>4.0_level_9_3</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -157,6 +166,9 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>DirectXTex\$(Platform)\$(Configuration);C:\Program Files\Autodesk\FBX\FBX SDK\2019.5\lib\vs2017\x64\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <FxCompile>
+      <ShaderModel>4.0_level_9_3</ShaderModel>
+    </FxCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />

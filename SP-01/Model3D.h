@@ -80,6 +80,7 @@ public:
 	int GetLoops();
 	void SetFrameOfAnimation(float Frame);
 	void SetLoop(bool loopable);
+	CFbxModel* GetFbxModel() { return g_pModel; };
 };
 
 //*****************************************************************************

@@ -3,6 +3,7 @@
 //*****************************************************************************
 #pragma once
 #include "UniversalStructures.h"
+#include "Explosion.h"
 #include "Model3D.h"
 #include "Light3D.h"
 
@@ -67,6 +68,7 @@ protected:
 	Light3D* pLight;
 	bool ScaleUp;
 	float fAcceleration;
+	CExplosion* pExp;
 public:
 	Object3D();
 	Object3D(int nType);

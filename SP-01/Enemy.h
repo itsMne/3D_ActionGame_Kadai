@@ -64,6 +64,7 @@ private:
 	float		fHeartPosHealth[MAX_ENEMY_HEART];
 	float		fHeartPosLockOn;
 	int			nHP;
+	int			nDeathFrameCount;
 public:
 	Enemy();
 	void SetHitEffect();
@@ -82,5 +83,6 @@ public:
 	void DrawHearts();
 	void End();
 	Box GetHitboxEnemy(int i);
+	bool IsEnemyDead();
 };
 

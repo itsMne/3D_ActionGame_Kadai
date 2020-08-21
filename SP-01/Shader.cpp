@@ -44,11 +44,12 @@ HRESULT LoadVertexShader(LPCWSTR pwszVSFName, ID3D11VertexShader** ppVertexShade
 		}
 		if (!pbData) {
 			WCHAR wszMsg[_MAX_PATH * 2];
-			//swprintf_s(wszMsg, _countof(wszMsg), L"頂点シェーダ(ID=%d) 読込エラー", (int)(ULONG_PTR)pwszVSFName);
+			swprintf_s(wszMsg, _countof(wszMsg), L"頂点シェーダ(ID=%d) 読込エラー", (int)(ULONG_PTR)pwszVSFName);
 			MessageBoxW(hWnd, wszMsg, L"error", MB_OK);
 			return E_FAIL;
 		}
-	} else {
+	}
+	else {
 		_wsplitpath_s(pwszVSFName, wszDrive, _countof(wszDrive),
 			wszDir, _countof(wszDir), wszFName, _countof(wszFName), nullptr, 0);
 		wcscpy_s(wszCSODir, _countof(wszCSODir), wszDir);
@@ -63,7 +64,8 @@ HRESULT LoadVertexShader(LPCWSTR pwszVSFName, ID3D11VertexShader** ppVertexShade
 			pbData = new BYTE[lSize];
 			fread(pbData, lSize, 1, fp);
 			fclose(fp);
-		} else {
+		}
+		else {
 #ifdef D3DCOMPILER
 			// hlslファイル読み込み、ブロブ作成
 			_wmakepath_s(wszPath, _countof(wszPath), wszDrive, wszDir, wszFName, L".hlsl");
@@ -79,7 +81,7 @@ HRESULT LoadVertexShader(LPCWSTR pwszVSFName, ID3D11VertexShader** ppVertexShade
 			lSize = (LONG)pCompiledShader->GetBufferSize();
 #else
 			WCHAR wszMsg[_MAX_PATH * 2];
-			//swprintf(wszMsg, _countof(wszMsg), L"頂点シェーダ(%s) 読み込みエラー", pwszVSFName);
+			swprintf(wszMsg, _countof(wszMsg), L"頂点シェーダ(%s) 読み込みエラー", pwszVSFName);
 			MessageBoxW(hWnd, wszMsg, L"error", MB_OK);
 			return E_FAIL;
 #endif
@@ -118,7 +120,7 @@ HRESULT LoadVertexShader(LPCWSTR pwszVSFName, ID3D11VertexShader** ppVertexShade
 		else
 			delete[] pbData;
 		WCHAR wszMsg[_MAX_PATH * 2];
-		//swprintf_s(wszMsg, _countof(wszMsg), L"頂点フォーマット生成失敗(%s)", pwszVSFName);
+		swprintf_s(wszMsg, _countof(wszMsg), L"頂点フォーマット生成失敗(%s)", pwszVSFName);
 		MessageBoxW(hWnd, wszMsg, L"error", MB_OK);
 		return hr;
 	}
@@ -157,11 +159,12 @@ HRESULT LoadPixelShader(LPCWSTR pwszPSFName, ID3D11PixelShader** ppPixelShader)
 		}
 		if (!pbData) {
 			WCHAR wszMsg[_MAX_PATH * 2];
-			//swprintf_s(wszMsg, _countof(wszMsg), L"ピクセルシェーダ(ID=%d) 読込エラー", (int)(ULONG_PTR)pwszPSFName);
+			swprintf_s(wszMsg, _countof(wszMsg), L"ピクセルシェーダ(ID=%d) 読込エラー", (int)(ULONG_PTR)pwszPSFName);
 			MessageBoxW(hWnd, wszMsg, L"error", MB_OK);
 			return E_FAIL;
 		}
-	} else {
+	}
+	else {
 		_wsplitpath_s(pwszPSFName, wszDrive, _countof(wszDrive),
 			wszDir, _countof(wszDir), wszFName, _countof(wszFName), nullptr, 0);
 		wcscpy_s(wszCSODir, _countof(wszCSODir), wszDir);
@@ -176,7 +179,8 @@ HRESULT LoadPixelShader(LPCWSTR pwszPSFName, ID3D11PixelShader** ppPixelShader)
 			pbData = new BYTE[lSize];
 			fread(pbData, lSize, 1, fp);
 			fclose(fp);
-		} else {
+		}
+		else {
 #ifdef D3DCOMPILER
 			// ブロブからピクセルシェーダ作成
 			_wmakepath_s(wszPath, _countof(wszPath), wszDrive, wszDir, wszFName, L".hlsl");
@@ -192,7 +196,7 @@ HRESULT LoadPixelShader(LPCWSTR pwszPSFName, ID3D11PixelShader** ppPixelShader)
 			lSize = (LONG)pCompiledShader->GetBufferSize();
 #else
 			WCHAR wszMsg[_MAX_PATH * 2];
-			//swprintf_s(wszMsg, _countof(wszMsg), L"ピクセルシェーダ(%s) 読み込みエラー", pwszPSFName);
+			swprintf_s(wszMsg, _countof(wszMsg), L"ピクセルシェーダ(%s) 読み込みエラー", pwszPSFName);
 			MessageBoxW(hWnd, wszMsg, L"error", MB_OK);
 			return E_FAIL;
 #endif

@@ -8,7 +8,7 @@
 #define SHOW_ENEMY_HITBOX false
 #define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_BODY
 #define GRAVITY_FORCE 0.98f*2
-
+#define DEAD_FRAME_COUNT 250
 float fEnemyAnimations[ENEMY_MAX] =
 {
 	1,//EN_IDLE,
@@ -46,6 +46,7 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 		fHeartPosHealth[i] = 0;
 	}
 	nHP = MAX_ENEMY_HP;
+	nDeathFrameCount = 0;
 }
 
 void Enemy::SetHitEffect()
@@ -94,7 +95,8 @@ void Enemy::Init()
 
 void Enemy::Update()
 {
-	
+	if (nDeathFrameCount >= DEAD_FRAME_COUNT)
+		return;
 	if (nState == EN_DEAD)
 	{
 		for (int i = 0; i < MAX_HIT_EFFECTS; i++)
@@ -116,6 +118,16 @@ void Enemy::Update()
 		Model->SetLoop(false);
 		Hitbox = { 0,0,0,0,0,0 };
 		Actor::Update();
+		if (Model->GetCurrentFrame() >= Model->GetEndFrameOfCurrentAnimation())
+		{
+			if (!pExp) {
+				pExp = new CExplosion();
+				pExp->Init();
+				pExp->Start(Model->GetFbxModel(), GetModelWorld());
+			}
+			pExp->Update();
+			nDeathFrameCount++;
+		}
 		return;
 	}
 	Actor::Update();
@@ -336,7 +348,7 @@ void Enemy::DamagedStateControl()
 		bFollowRoulette = false;
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && bCanBeAttacked) {
 		bAlternatePunchAnim ^= true;
-		if (pPlayerAttack->Animation != RED_HOT_KICK)
+		if (pPlayerAttack && pPlayerAttack->Animation != RED_HOT_KICK)
 			FaceActor(pPlayer);
 		bCanBeAttacked = false;
 		CameraRumbleControl(pPlayerAttack->Animation);
@@ -534,6 +546,13 @@ void Enemy::GravityControl()
 
 void Enemy::Draw()
 {
+	if (nDeathFrameCount >= DEAD_FRAME_COUNT)
+		return;
+	if (pExp)
+	{
+		pExp->Draw();
+		return;
+	}
 	SetCullMode(CULLMODE_NONE);
 	for (int i = 0; i < MAX_HIT_EFFECTS; i++)
 	{
@@ -594,4 +613,9 @@ void Enemy::End()
 Box Enemy::GetHitboxEnemy(int hb)
 {
 	return { Hitboxes[hb].PositionX + Position.x, Hitboxes[hb].PositionY + Position.y,Hitboxes[hb].PositionZ + Position.z, Hitboxes[hb].SizeX,Hitboxes[hb].SizeY,Hitboxes[hb].SizeZ };
+}
+
+bool Enemy::IsEnemyDead()
+{
+	return nDeathFrameCount>= DEAD_FRAME_COUNT;
 }
