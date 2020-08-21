@@ -94,6 +94,31 @@ void Enemy::Init()
 
 void Enemy::Update()
 {
+	
+	if (nState == EN_DEAD)
+	{
+		for (int i = 0; i < MAX_HIT_EFFECTS; i++)
+		{
+			if (pHit[i]) {
+				pHit[i]->Update();
+				pHit[i]->SetPosition(SumVector(Position, { -sinf(XM_PI + Model->GetRotation().y) * 10,-20,-cosf(XM_PI + Model->GetRotation().y) * 10 }));
+				if (!(pHit[i]->GetUse()))
+					SAFE_DELETE(pHit[i]);
+			}
+		}
+		if(Model->GetCurrentAnimation()!= EN_DEATH)
+			SetAnimation(EN_DEATH, fEnemyAnimations[EN_DEATH]);
+		Player3D* Player = (Player3D*)pPlayer;
+		if (Player && Player->GetLockedEnemy()==this)
+		{
+			Player->SetLockedEnemy(false);
+		}
+		Model->SetLoop(false);
+		Hitbox = { 0,0,0,0,0,0 };
+		printf("%d\n", Model->GetCurrentFrame());
+		Actor::Update();
+		return;
+	}
 	Actor::Update();
 	if (!pPlayer)
 	{
@@ -170,6 +195,9 @@ void Enemy::Update()
 	}
 	HeartsControl();
 	GravityControl();
+
+	if (nHP <= 0)
+		nState = EN_DEAD;
 }
 
 void Enemy::HeartsControl()

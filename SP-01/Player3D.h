@@ -215,6 +215,7 @@ public:
 	void				SoftLock() { bSoftLocking = true; };
 	void				RedHotKicked() { bRHK_Hit = true; };
 	void				AddStamina(int Stamina);
+	void				SetLockedEnemy(Actor* pActor) { pLockedEnemy = pActor; };
 };
 
 Player3D* GetPlayer();
