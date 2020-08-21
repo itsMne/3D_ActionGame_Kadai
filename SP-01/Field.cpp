@@ -216,6 +216,10 @@ void Field3D::Update(void)
 			while (!IsInCollision3D(pPlayer->GetHitboxPlayer(PLAYER_HB_FEET), GetHitbox())) //{
 				pPlayer->TranslateY(-0.01f);
 			pPlayer->SetFloor(this);
+			if (pPlayer->GetState() == PLAYER_BUNBUN_FALLING) {
+				Camera3D* pPlayerCamera = pPlayer->GetCameraPlayer();
+				pPlayerCamera->SetShaking(10.0f, 7, 2);
+			}
 		}
 	}
 	SetTextureSubdivisions(10.0f / Scale.x);

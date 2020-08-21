@@ -1059,8 +1059,10 @@ void Player3D::AttackStateControl()
 		{
 			Model->SetFrameOfAnimation(pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame);
 		}
-		if(pFloor && Model->GetCurrentFrame() <= 4200)
+		if (pFloor && Model->GetCurrentFrame() <= 4200) {
 			Model->SetFrameOfAnimation(4201);
+			pCamera->SetShaking(10.0f, 7, 2);
+		}
 		break;
 	case RED_HOT_KICK:
 		if(Model->GetCurrentFrame()<=4264)
