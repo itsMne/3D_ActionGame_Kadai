@@ -38,6 +38,8 @@ enum ENEMY_STATES
 	EN_STATE_SENDOFF,
 	EN_STATE_REDHOTKICKED,
 	EN_DEAD,
+	EN_ATTACKING,
+	EN_MOVING,
 	EN_STATE_MAX
 };
 
@@ -65,6 +67,10 @@ private:
 	float		fHeartPosLockOn;
 	int			nHP;
 	int			nDeathFrameCount;
+	int			nPlayerTouchFramesCount;
+	int			nIdleWaitFramesCount;
+	int			nMaxIdleWaitFrames;
+	float		fSpeed;
 public:
 	Enemy();
 	void SetHitEffect();

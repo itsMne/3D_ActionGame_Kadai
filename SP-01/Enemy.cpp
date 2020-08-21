@@ -5,10 +5,12 @@
 #include "InputManager.h"
 #include "Player3D.h"
 
-#define SHOW_ENEMY_HITBOX false
-#define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_BODY
+#define SHOW_ENEMY_HITBOX true
+#define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_ATTACK
 #define GRAVITY_FORCE 0.98f*2
 #define DEAD_FRAME_COUNT 250
+#define IDLE_WAIT_FRAMES 120
+#define ENEMY_SPEED 8
 float fEnemyAnimations[ENEMY_MAX] =
 {
 	1,//EN_IDLE,
@@ -20,7 +22,7 @@ float fEnemyAnimations[ENEMY_MAX] =
 	1,//EN_JUMPED_ABOVE,
 	1,//EN_LAUNCHED_FORWARD,
 	1,//EN_STRONG_HITFORWARD,
-	1,//EN_ATTACK_1,
+	0.75f,//EN_ATTACK_1,
 	1,//EN_ATTACK_2,
 	1,//EN_DEATH,
 	1,//EN_WALKING,
@@ -47,6 +49,10 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	}
 	nHP = MAX_ENEMY_HP;
 	nDeathFrameCount = 0;
+	nPlayerTouchFramesCount = 0;
+	nIdleWaitFramesCount = 0;
+	nMaxIdleWaitFrames = IDLE_WAIT_FRAMES;
+	fSpeed = ENEMY_SPEED;
 }
 
 void Enemy::SetHitEffect()
@@ -77,7 +83,7 @@ void Enemy::Init()
 		Hitboxes[i] = { 0 };
 	}
 	Hitboxes[ENEMY_HB_FEET] = { 0, 14.0f, 0, 5.0f, 15.0f, 5.0f };
-	Hitboxes[ENEMY_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
+	Hitboxes[ENEMY_HB_ATTACK] = { 0, 80.0f, 0, 30.0f, 40.0f, 40.0f };
 	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 50.0f, 90.0f, 50.0f };
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
@@ -153,7 +159,10 @@ void Enemy::Update()
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 		if (pPlayerAttack) {
 			CameraRumbleControl(pPlayerAttack->Animation);
-			InitialAttackedAnimation(pPlayerAttack->Animation);
+			if (Model->GetCurrentAnimation() == EN_ATTACK_1 && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B))
+				nState = EN_ATTACKING;
+			else
+				InitialAttackedAnimation(pPlayerAttack->Animation);
 			Player->AddStamina(pPlayerAttack->nStaminaToAdd);
 		}
 		if (pPlayerAttack && pPlayerAttack->Animation == ROULETTE)
@@ -166,18 +175,62 @@ void Enemy::Update()
 		nCancellingGravityFrames = 70;
 		SetHitEffect();
 		nHP -= pPlayerAttack->nDamage;
+
 	}
 	if (nState != EN_STATE_SENDOFF)
 		fSendOffAcceleration = nSendOffFrames = 0;
+
 	while (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_OBJECT_COL), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED)
 	{
+		nIdleWaitFramesCount++;
+		if (++nPlayerTouchFramesCount >= nMaxIdleWaitFrames*0.5f && pFloor) {
+			nState = EN_ATTACKING;
+			FaceActor(Player);
+			nPlayerTouchFramesCount = 0;
+		}
 		Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
 		Player->Translate({ sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
 	}
+
+	Hitboxes[ENEMY_HB_ATTACK] = { 0,0,0,0,0,0 };
 	switch (nState)
 	{
 	case EN_STATE_IDLE:
 		SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
+		if (++nIdleWaitFramesCount >= nMaxIdleWaitFrames)
+			nState = EN_MOVING;//
+		break;
+	case EN_MOVING:
+		SetAnimation(EN_WALKING, fEnemyAnimations[EN_WALKING]);
+		if (Model->GetCurrentFrame()>=1778)
+			Model->SetFrameOfAnimation(1660);
+		FaceActor(Player);
+		nPlayerTouchFramesCount = nMaxIdleWaitFrames;
+		Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed });
+		if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
+		{
+			nState = EN_ATTACKING;
+			FaceActor(Player);
+		}
+		break;
+	case EN_ATTACKING:
+		nIdleWaitFramesCount=nPlayerTouchFramesCount = 0;
+		SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]);
+		if (Model->GetCurrentFrame() >= 1353)
+			nState = EN_STATE_IDLE;
+		if (Model->GetCurrentFrame() >= 1299 && Model->GetCurrentFrame() <= 1322)
+		{
+			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
+				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2 });
+			Hitboxes[ENEMY_HB_ATTACK] = { -sinf(XM_PI + Model->GetRotation().y) * 80, 100.0f, -cosf(XM_PI + Model->GetRotation().y) * 100, 30.0f, 40.0f, 40.0f };
+			if (IsInCollision3D(Player->GetHitboxPlayer(ENEMY_HB_BODY), GetHitboxEnemy(ENEMY_HB_ATTACK)))
+				printf("OUCH(MISSING SET HIT ON PLAYER, WITH LOVE, THE ENEMY)\n");
+		}
+		else if(Model->GetCurrentFrame() <= 1264){
+			FaceActor(Player);
+			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
+				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*0.5f, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*0.5f });
+		}
 		break;
 	case EN_STATE_DAMAGED:
 		DamagedStateControl();
