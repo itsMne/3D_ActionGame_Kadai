@@ -11,6 +11,7 @@ enum UI_TYPE
 	UI_FLOWER_PETAL_E,
 	UI_HEALTH_FLOWER,
 	UI_PAUSE,
+	UI_ZOOM,
 	UI_LOCKON,
 	UI_GAME_MANAGER,
 	MAX_INGAME_UI
@@ -30,6 +31,7 @@ public:
 	~cUI();
 	void Init();
 	void Update();
+	void AtkZoomControl();
 	void FlowerHealthUIControl();
 	void Draw();
 	void End();

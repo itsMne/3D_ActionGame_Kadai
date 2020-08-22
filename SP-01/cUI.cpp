@@ -9,6 +9,7 @@ enum UI_TEXTURES
 	UI_PAUSE_TEX,
 	UI_FLOWER_TEX,
 	UI_LOCKON_TEX,
+	UI_ZOOM_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -66,12 +67,19 @@ void cUI::Init()
 		nAnimeFrameChange = 10;
 		x2UVFrame.y = nType;
 		break;
+	case UI_ZOOM:
+		if (!pTextures[UI_ZOOM_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/ZoomAtk.tga", &pTextures[UI_ZOOM_TEX]);
+		SetTexture(pTextures[UI_ZOOM_TEX]);
+		SetSize(1280, 1280);
+		SetAlpha(0.0f);
+		break;
 	case UI_LOCKON:
 		if (!pTextures[UI_LOCKON_TEX])
 			CreateTextureFromFile(GetDevice(), "data/texture/Zoom.tga", &pTextures[UI_LOCKON_TEX]);
 		SetTexture(pTextures[UI_LOCKON_TEX]);
 		SetSize(1280, 50);
-		SetAlpha(0.5f);
+		SetAlpha(0.75f);
 		break;
 	case UI_GAME_MANAGER:
 		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUIs[i] = new cUI(i), i++);
@@ -118,12 +126,34 @@ void cUI::Update()
 			SetPolygonUV(x2UVFrame.x / 1.0f, x2UVFrame.y / 1.0f);
 		}
 		break;
+	case UI_ZOOM:
+		AtkZoomControl();
+		break;
 	case UI_GAME_MANAGER:
 		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUIs[i]->Update(), i++);
 		break;
 	default:
 		Polygon2D::UpdatePolygon();
 		break;
+	}
+}
+
+void cUI::AtkZoomControl()
+{
+	RotateAroundZ(45.0f);
+	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	if (!pCamera)
+		return;
+	float zoom = pCamera->GetTempZoomIntensity();
+	if (abs(zoom) >=150)
+	{
+		SetAlpha(0.5f);
+	}
+	else {
+		if (Color.w > 0)
+			SetAlpha(Color.w - 0.05f);
+		if (Color.w < 0)
+			SetAlpha(0);
 	}
 }
 
@@ -160,6 +190,7 @@ void cUI::Draw()
 		pHealthFlower[1]->Draw();
 		break;
 	case UI_GAME_MANAGER:
+		pUIs[UI_ZOOM]->Draw();
 		if (GetPlayer() && GetPlayer()->GetLockedEnemy()) {
 			pUIs[UI_LOCKON]->SetTexture(nullptr);
 			pUIs[UI_LOCKON]->SetAlpha(0.5f);
@@ -175,7 +206,7 @@ void cUI::Draw()
 			pUIs[UI_LOCKON]->Draw();
 		}
 		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; i++){
-			if (i == UI_LOCKON)
+			if (i == UI_LOCKON || i == UI_ZOOM)
 				continue;
 			pUIs[i]->Draw();
 	}
