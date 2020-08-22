@@ -39,8 +39,8 @@
 Player3D* pMainPlayer3D = nullptr;
 PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 {
-	{"A",	  BASIC_CHAIN_A,				false,	GROUND_MOVE, BASIC_CHAIN_B,	 1123,	{ 1122, 1133}	,{15, 20, 10, 5},		2,	2,	100},
-	{"n",	  BASIC_CHAIN_B,				false,	GROUND_MOVE, BASIC_CHAIN_C,	 1204,	{ 1200, 1220}	,{15, 20, 10, 5},		2,	2,	200},//AA
+	{"A",	  BASIC_CHAIN_A,				false,	GROUND_MOVE, BASIC_CHAIN_B,	 1123,	{ 1122, 1133}	,{15, 20, 10, 5},		1,	2,	100},
+	{"n",	  BASIC_CHAIN_B,				false,	GROUND_MOVE, BASIC_CHAIN_C,	 1204,	{ 1200, 1220}	,{15, 20, 10, 5},		1,	2,	200},//AA
 	{"n",	  BASIC_CHAIN_C,				true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 1300, 1320}	,{15, 20, 10, 7},		10,	5,	300},//AAA
 	{"BBK",	  UPPERCUT,						true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 1813, 1837}	,{15, 30, 30,  5},		7,	4,	400},//BFA
 	{"FFA",	  HEADBUTT,						true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 2866, 2914}	,{15, 20, 60,  8},		7,	4,	400},//BFA
@@ -56,8 +56,8 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"n",     BASIC_CHAIN_B_KICKC,			true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 3740, 3765}	,{15, 20, 10,  4},		8,	4,	1200},//AAKK
 	{"n",     BASIC_CHAIN_B_KICKB_PUNCH,	true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 3934, 3973}	,{15, 20, 10,  9},		10,	5,	1300},//AAKFK
 	{"n",	  BASIC_CHAIN_B_KICKB_FORWARD,	true,	GROUND_MOVE, MAX_ANIMATIONS, -1,	{ 3835, 3843}	,{15, 20, 10,  2},		10,	5,	1400},//AAKA
-	{"A",	  AIR_PUNCHA,					false,	AIR_MOVE,	 AIR_PUNCHB,	 3100,	{ 3100, 3113}	,{15, 20, 10,  0},		2,	2,	1500},//A
-	{"n",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,	 3175,	{ 3167, 3191}	,{15, 20, 10,  0},		2,	2,	1600},//A
+	{"A",	  AIR_PUNCHA,					false,	AIR_MOVE,	 AIR_PUNCHB,	 3100,	{ 3100, 3113}	,{15, 20, 10,  0},		1,	2,	1500},//A
+	{"n",	  AIR_PUNCHB,					false,	AIR_MOVE,	 AIR_PUNCHC,	 3175,	{ 3167, 3191}	,{15, 20, 10,  0},		1,	2,	1600},//A
 	{"n",	  AIR_PUNCHC,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3272, 3290}	,{15, 20, 10,  0},		10,	5,	1700},//A
 	{"FFA",	  KNEEDASH,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3423, 3461}	,{40, 30, 20,  0},		7,	4,	1800},//A
 	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3337, 3395}	,{15, 20, 10,  0},		4,	3,	1900},//A
@@ -79,8 +79,8 @@ float fAnimationSpeed[] =
 	2,//JUMP_UP
 	1.5f,//JUMP_UP_TO_FALLDOWN
 	1,//FIGHT_STANCE
-	1.35f,//BASIC_CHAIN_A
-	1.35f,//BASIC_CHAIN_B
+	1.4f,//BASIC_CHAIN_A
+	1.4f,//BASIC_CHAIN_B
 	0.75f,//BASIC_CHAIN_C
 	1.75f,//RUN_TO_IDLE
 	1.0f,//	DOWN_DODGE,
@@ -96,8 +96,8 @@ float fAnimationSpeed[] =
 	1.0f,//BACKDROP_KICK,
 	1.25f,//HEADBUTT,
 	1.25f,//KICK_CHAIN_C,
-	1.35f,//AIR_PUNCHA,
-	1.35f,//AIR_PUNCHB,
+	1.4f,//AIR_PUNCHA,
+	1.4f,//AIR_PUNCHB,
 	1.0f,//AIR_PUNCHC,
 	1.0f,//ROULETTE,
 	1.5f,//KNEEKICK,
@@ -186,6 +186,8 @@ void Player3D::Init()
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
+	for (int i = 0; i < MAX_ENEMIES_FOLLOWING_PLAYER; pEnemiesFollowingPlayer[i] = nullptr, i++);
+
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
 	{
@@ -581,8 +583,15 @@ void Player3D::FightingStanceStateControl()
 					SwitchAttack(KICK_CHAIN_B);
 				break;
 			case BASIC_CHAIN_B:
-				if (bPunch)
-					SwitchAttack(BASIC_CHAIN_C);
+				if (bPunch) {
+					if(bFirstSetOfPunches)
+						SwitchAttack(BASIC_CHAIN_C);
+					else
+					{
+						bFirstSetOfPunches = true;
+						SwitchAttack(BASIC_CHAIN_A);
+					}
+				}
 				else if (bKick)
 					SwitchAttack(BASIC_CHAIN_B_KICKA);
 				break;
@@ -600,7 +609,14 @@ void Player3D::FightingStanceStateControl()
 				break;
 			case AIR_PUNCHB:
 				if (bPunch) {
-					SwitchAttack(AIR_PUNCHC);
+					if (bFirstSetOfPunches)
+						SwitchAttack(AIR_PUNCHC);
+					else
+					{
+						bFirstSetOfPunches = true;
+						SwitchAttack(AIR_PUNCHA);
+					}
+					
 				}
 				break;
 			case AIR_PUNCHA:
@@ -769,7 +785,7 @@ void Player3D::AttackStateControl()
 				{
 					bFirstSetOfPunches = true;
 					SwitchAttack(BASIC_CHAIN_A);
-					break;
+					return;
 				}
 				SwitchAttack(BASIC_CHAIN_C);
 				break;
@@ -986,7 +1002,7 @@ void Player3D::AttackStateControl()
 				{
 					bFirstSetOfPunches = true;
 					SwitchAttack(AIR_PUNCHA);
-					break;
+					return;
 				}
 				SwitchAttack(AIR_PUNCHC);
 				break;
@@ -1256,6 +1272,9 @@ void Player3D::SwitchAttack(int nNextAttack)
 			SetAnimation(stAllMoves[i].Animation, fAnimationSpeed[stAllMoves[i].Animation]);
 			if(IsOnTheFloor())
 				bPressedForwardMidAttack = bPressedBackwardMidAttack = false;
+			if (pCurrentAttackPlaying->Animation != BASIC_CHAIN_A && pCurrentAttackPlaying->Animation != BASIC_CHAIN_B
+				&& pCurrentAttackPlaying->Animation != AIR_PUNCHA && pCurrentAttackPlaying->Animation != AIR_PUNCHB)
+				bFirstSetOfPunches = false;
 			return;
 		}
 	}
@@ -1383,6 +1402,7 @@ void Player3D::End()
 	SAFE_DELETE(BunBun);
 	SAFE_DELETE(pBattery);
 	SAFE_DELETE(pBatteryEnergy);
+	SAFE_DELETE(pBatteryWasted);
 }
 
 //*****************************************************************************

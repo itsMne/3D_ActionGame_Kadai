@@ -17,7 +17,7 @@
 #define	MAX_FLOWERS	20
 #define MAX_HEALTH 5
 #define MAX_PLAYER_STAMINA	125
-
+#define MAX_ENEMIES_FOLLOWING_PLAYER 3
 //*****************************************************************************
 // ƒGƒiƒ€
 //*****************************************************************************
@@ -169,6 +169,7 @@ private:
 	Billboard* pBatteryEnergy;
 	int nStamina;
 	bool bAllStaminaUsed;
+	Actor* pEnemiesFollowingPlayer[MAX_ENEMIES_FOLLOWING_PLAYER];
 public:
 	Player3D();
 	~Player3D();

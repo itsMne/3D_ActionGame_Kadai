@@ -201,6 +201,11 @@ void Enemy::Update()
 			nState = EN_MOVING;//
 		break;
 	case EN_MOVING:
+		if (!pFloor)
+		{
+			nState = EN_IDLE;
+			break;
+		}
 		SetAnimation(EN_WALKING, fEnemyAnimations[EN_WALKING]);
 		if (Model->GetCurrentFrame()>=1778)
 			Model->SetFrameOfAnimation(1660);
