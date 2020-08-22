@@ -43,10 +43,8 @@ Billboard::Billboard(int nPpath, XMFLOAT2 Size): Mesh3D()
 			printf("TEXTURE OK\n");
 	}
 
-	pTexture = pBBTextures[nPpath];
-	pMesh->pTexture = pBBTextures[nPpath];
 	Init("");
-	pMesh->pTexture = pBBTextures[nPpath];
+	pTexture = pBBTextures[nPpath];
 	bUse = true;
 }
 
@@ -65,10 +63,8 @@ Billboard::Billboard(int nPpath, XMFLOAT2 Size, XMFLOAT4 Colors)
 			printf("TEXTURE OK\n");
 	}
 
-	pTexture = pBBTextures[nPpath];
-	pMesh->pTexture = pBBTextures[nPpath];
 	Init("");
-	pMesh->pTexture = pBBTextures[nPpath];
+	pTexture = pBBTextures[nPpath];
 	bUse = true;
 	
 }
@@ -103,7 +99,7 @@ HRESULT Billboard::Init(const char* szpath)
 	
 
 	//pMesh->pTexture = pTexture;
-	XMStoreFloat4x4(&pMesh->mtxTexture, XMMatrixIdentity());
+	//XMStoreFloat4x4(&pMesh->mtxTexture, XMMatrixIdentity());
 
 	// マテリアルの設定
 	g_nAlpha = 0;
@@ -164,10 +160,7 @@ void Billboard::Draw()
 		return;
 	GetMainLight()->SetLightEnable(false);
 	ID3D11DeviceContext* pDeviceContext = GetDeviceContext();
-	XMMATRIX mtxWorld, mtxScale, mtxRotate, mtxTranslate;
-
-
-
+	XMMATRIX mtx_World, mtxScale, mtxRotate, mtxTranslate;
 	if (!GetMainCamera()) {
 		return;
 	}
@@ -176,8 +169,8 @@ void Billboard::Draw()
 	g_bInTree = true;
 
 	// ワールドマトリックスの初期化
-	mtxWorld = XMMatrixIdentity();
-	XMStoreFloat4x4(&this->mtxWorld, mtxWorld);
+	mtx_World = XMMatrixIdentity();
+	XMStoreFloat4x4(&mtxWorld, mtx_World);
 
 	// ポリゴンを正面に向ける
 	this->mtxWorld._11 = mtxView._11;
@@ -193,25 +186,24 @@ void Billboard::Draw()
 	// スケールを反映
 	mtxScale = XMMatrixScaling(fWidth,
 		fHeight, 1.0f);
-	mtxWorld = XMMatrixMultiply(mtxScale, mtxWorld);
+	mtx_World = XMMatrixMultiply(mtxScale, mtx_World);
 	mtxRotate = XMMatrixRotationRollPitchYaw(Rotation.x, Rotation.y, Rotation.z);
-	mtxWorld = XMMatrixMultiply(mtxWorld, mtxRotate);
+	mtx_World = XMMatrixMultiply(mtx_World, mtxRotate);
 
 	
 	// 移動を反映
 	mtxTranslate = XMMatrixTranslation(Position.x,
 		Position.y,
 		Position.z);
-	mtxWorld = XMMatrixMultiply(mtxWorld, mtxTranslate);
+	mtx_World = XMMatrixMultiply(mtx_World, mtxTranslate);
 
 	// ワールドマトリックスの設定
-	XMStoreFloat4x4(&this->mtxWorld, mtxWorld);
-	pMesh->mtxWorld = this->mtxWorld;
+	XMStoreFloat4x4(&this->mtxWorld, mtx_World);
 
 	// メッシュの描画
 	XMMATRIX mtxTex = XMMatrixScaling(1.0f / (float)nFrameX, 1.0f / (float)nFrameY, 0.0f);
 	mtxTex *= XMMatrixTranslation((float)uv.U / (float)nFrameX, (float)uv.V / (float)nFrameY, 0.0f);
-	XMStoreFloat4x4(&pMesh->mtxTexture, mtxTex);
+	XMStoreFloat4x4(&mtxTexture, mtxTex);
 
 
 	Mesh3D::Draw(pDeviceContext);
@@ -229,7 +221,7 @@ void Billboard::End()
 {
 	// メッシュの開放
 	if(!bUsingOutsideTexture)
-		SAFE_RELEASE(pMesh->pTexture);
+		SAFE_RELEASE(pTexture);
 	ReleaseMesh();
 }
 
@@ -257,11 +249,11 @@ void Billboard::SetBillboard(XMFLOAT3 pos, float fWidth, float fHeight, XMFLOAT4
 //*****************************************************************************
 HRESULT Billboard::MakeVertex(ID3D11Device * pDevice)
 {
-	pMesh->nNumVertex = 4;
-	pMesh->nNumIndex = 4;
+	nNumVertex = 4;
+	nNumIndex = 4;
 
 	// オブジェクトの頂点配列を生成
-	VERTEX_3D* pVertexWk = new VERTEX_3D[pMesh->nNumVertex];
+	VERTEX_3D* pVertexWk = new VERTEX_3D[nNumVertex];
 
 	// 頂点配列の中身を埋める
 	VERTEX_3D* pVtx = pVertexWk;
@@ -291,7 +283,7 @@ HRESULT Billboard::MakeVertex(ID3D11Device * pDevice)
 	pVtx[3].tex = XMFLOAT2(1.0f, 0.0f);
 
 	// インデックス配列を生成
-	int* pIndexWk = new int[pMesh->nNumIndex];
+	int* pIndexWk = new int[nNumIndex];
 
 	// インデックス配列の中身を埋める
 	pIndexWk[0] = 0;
@@ -300,7 +292,7 @@ HRESULT Billboard::MakeVertex(ID3D11Device * pDevice)
 	pIndexWk[3] = 3;
 
 	// 頂点バッファ生成
-	HRESULT hr = MakeMeshVertex(pDevice, pMesh, pVertexWk, pIndexWk);
+	HRESULT hr = MakeMeshVertex(pDevice, pVertexWk, pIndexWk);
 	// 一時配列の解放
 	delete[] pIndexWk;
 	delete[] pVertexWk;
@@ -468,4 +460,10 @@ void Billboard::ResetUV()
 void Billboard::SetUnusableAfterAnimation(bool inv)
 {
 	bSetFalseAfterAnimation = inv;
+}
+
+void ReleaseAllBillboardTextures()
+{
+	for (int i = 0; i < MAX_BB_TEX; i++)
+		SAFE_RELEASE(pBBTextures[i]);
 }

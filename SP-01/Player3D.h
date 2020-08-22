@@ -170,6 +170,8 @@ private:
 	int nStamina;
 	bool bAllStaminaUsed;
 	Actor* pEnemiesFollowingPlayer[MAX_ENEMIES_FOLLOWING_PLAYER];
+	//É_ÉÅÅ[ÉW
+	bool bHitDamage;
 public:
 	Player3D();
 	~Player3D();
@@ -221,6 +223,7 @@ public:
 	int					GetStamina() { return nStamina; };
 	bool				IsStaminaOverused() { return bAllStaminaUsed; };
 	int					GetState() { return nState; };
+	void				Damage() { if (fGravityForce < 0) { return; }; bHitDamage = true; };
 };
 
 Player3D* GetPlayer();

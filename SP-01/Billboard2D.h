@@ -26,7 +26,6 @@ private:
 	bool							g_bAlphaTest;		// アルファテストON/OFF
 	bool							g_bInTree;			// 木処理中
 	XMFLOAT4 Color;			// 色
-	XMFLOAT4X4 mtxWorld;	// ワールドマトリックス
 
 	UV			uv;	// フレームNo.
 	int			nAnimeCount;	// カウンタ
@@ -34,7 +33,6 @@ private:
 	float		fWidth;			// 幅
 	float		fHeight;			// 高さ
 	bool bSetFalseAfterAnimation;
-	ID3D11ShaderResourceView* pTexture;
 	XMFLOAT2 x2Size;
 	int nSlowness;
 
@@ -68,3 +66,4 @@ public:
 	void SetUnusableAfterAnimation(bool inv);
 };
 
+void ReleaseAllBillboardTextures();

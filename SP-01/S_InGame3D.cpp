@@ -56,6 +56,7 @@ S_InGame3D::~S_InGame3D()
 {
 	printf("ENDING INGAME SCENE\n");
 	UninitPreloadedModels();
+	ReleaseAllBillboardTextures();
 	End();
 	pCurrentGame = nullptr;
 }

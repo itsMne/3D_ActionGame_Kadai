@@ -54,31 +54,31 @@ HRESULT Sphere3D::Init(XMFLOAT3 pos, XMFLOAT3 rot, int nSlice, int nStack, float
 	HRESULT hr;
 
 	// テクスチャ マトリックス初期化
-	XMStoreFloat4x4(&pMesh->mtxTexture, XMMatrixIdentity());
+	XMStoreFloat4x4(&mtxTexture, XMMatrixIdentity());
 
 	// 位置、向きの初期設定
-	pMesh->Position = pos;
-	pMesh->Rotation = rot;
+	Position = pos;
+	Rotation = rot;
 
 	// テクスチャの読み込み
 	hr = CreateTextureFromFile(pDevice,					// デバイスへのポインタ
 		szPath,		// ファイルの名前
-		&pMesh->pTexture);	// 読み込むメモリー
+		&pTexture);	// 読み込むメモリー
 	if (FAILED(hr))
 		return hr;
 
 	// 頂点数の設定
-	pMesh->nNumVertex = (nSlice + 1) * (nSlice + 1);
+	nNumVertex = (nSlice + 1) * (nSlice + 1);
 
 	// インデックス数の設定
-	pMesh->nNumIndex = (nSlice + 1) * 2 * nStack + (nStack - 1) * 2;
+	nNumIndex = (nSlice + 1) * 2 * nStack + (nStack - 1) * 2;
 
 
 	// オブジェクトの頂点バッファを生成
-	VERTEX_3D* pVertexWk = new VERTEX_3D[pMesh->nNumVertex];
+	VERTEX_3D* pVertexWk = new VERTEX_3D[nNumVertex];
 
 	// オブジェクトのインデックスバッファを生成
-	int* pIndexWk = new int[pMesh->nNumIndex];
+	int* pIndexWk = new int[nNumIndex];
 
 	// 頂点バッファの中身を埋める
 	VERTEX_3D* pVtx = pVertexWk;
@@ -132,7 +132,7 @@ HRESULT Sphere3D::Init(XMFLOAT3 pos, XMFLOAT3 rot, int nSlice, int nStack, float
 	}
 
 	// 頂点バッファ/インデックス バッファ生成
-	hr = MakeMeshVertex(pDevice, pMesh, pVertexWk, pIndexWk);
+	hr = MakeMeshVertex(pDevice, pVertexWk, pIndexWk);
 
 	// 一時配列解放
 	delete[] pIndexWk;
@@ -161,20 +161,18 @@ void Sphere3D::Uninit(void)
 void Sphere3D::Update(void)
 {
 	Mesh3D::Update();
-	if (!pMesh)
-		return;
 	if (!bIsSkybox)
 		return;
-	pMesh->Rotation.x += fRotSpeed.x;
-	pMesh->Rotation.y += fRotSpeed.y;
-	pMesh->Rotation.z += fRotSpeed.z;
+	Rotation.x += fRotSpeed.x;
+	Rotation.y += fRotSpeed.y;
+	Rotation.z += fRotSpeed.z;
 	TechCamera* pCam = GetMainCamera();
 	//printf("a");
 	if (!pCam)
 		return;
 
-	pMesh->Position = pCam->GetCameraPos();
-	pMesh->Position.y -= 150;
+	Position = pCam->GetCameraPos();
+	Position.y -= 150;
 	Scale = { 2.5f, 2.5f, 2.5f };
 }
 

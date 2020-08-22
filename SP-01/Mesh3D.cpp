@@ -46,7 +46,6 @@ struct SHADER_GLOBAL2 {
 //*****************************************************************************
 Mesh3D::Mesh3D() //: Object3D()
 {
-	pMesh = new MESH();
 	Init();
 }
 
@@ -111,7 +110,7 @@ void Mesh3D::Init()
 	g_material.Specular = M_SPECULAR;
 	g_material.Power = 0.0f;
 	g_material.Emissive = M_EMISSIVE;
-
+	
 	//return hr;
 }
 
@@ -125,8 +124,6 @@ void Mesh3D::Update()
 {
 	XMMATRIX xWorld, mtxRot, mtxTranslate, mtxScale;
 
-	if (!pMesh) 
-		return;
 
 	// ワールドマトリックスの初期化
 	xWorld = XMMatrixIdentity();
@@ -136,16 +133,16 @@ void Mesh3D::Update()
 	xWorld = XMMatrixMultiply(xWorld, mtxScale);
 
 	// 回転を反映
-	mtxRot = XMMatrixRotationRollPitchYaw(pMesh->Rotation.x, pMesh->Rotation.y, pMesh->Rotation.z);
+	mtxRot = XMMatrixRotationRollPitchYaw(Rotation.x, Rotation.y, Rotation.z);
 	xWorld = XMMatrixMultiply(xWorld, mtxRot);
 
 	// 移動を反映
-	mtxTranslate = XMMatrixTranslation(pMesh->Position.x, pMesh->Position.y, pMesh->Position.z);
+	mtxTranslate = XMMatrixTranslation(Position.x, Position.y, Position.z);
 	xWorld = XMMatrixMultiply(xWorld, mtxTranslate);
 
 
 	// ワールドマトリックスの設定
-	XMStoreFloat4x4(&pMesh->mtxWorld, xWorld);
+	XMStoreFloat4x4(&mtxWorld, xWorld);
 }
 
 //*****************************************************************************
@@ -168,21 +165,21 @@ void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 	// 頂点バッファをセット
 	UINT stride = sizeof(VERTEX_3D);
 	UINT offset = 0;
-	pDeviceContext->IASetVertexBuffers(0, 1, &pMesh->pVertexBuffer, &stride, &offset);
+	pDeviceContext->IASetVertexBuffers(0, 1, &pVertexBuffer, &stride, &offset);
 	// インデックスバッファをセット
-	pDeviceContext->IASetIndexBuffer(pMesh->pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
+	pDeviceContext->IASetIndexBuffer(pIndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 
 	pDeviceContext->PSSetSamplers(0, 1, &g_pSamplerState);
 
-	pDeviceContext->PSSetShaderResources(0, 1, &pMesh->pTexture);
+	pDeviceContext->PSSetShaderResources(0, 1, &pTexture);
 
 	SHADER_GLOBAL cb;
-	XMMATRIX mtxWorld = XMLoadFloat4x4(&pMesh->mtxWorld);
+	XMMATRIX mtx_World = XMLoadFloat4x4(&mtxWorld);
 	TechCamera* camera = GetMainCamera();
-	cb.mWVP = XMMatrixTranspose(mtxWorld *
+	cb.mWVP = XMMatrixTranspose(mtx_World *
 		XMLoadFloat4x4(&camera->GetViewMatrix()) * XMLoadFloat4x4(&camera->GetProjMatrix()));
-	cb.mW = XMMatrixTranspose(mtxWorld);
-	cb.mTex = XMMatrixTranspose(XMLoadFloat4x4(&pMesh->mtxTexture));
+	cb.mW = XMMatrixTranspose(mtx_World);
+	cb.mTex = XMMatrixTranspose(XMLoadFloat4x4(&mtxTexture));
 	pDeviceContext->UpdateSubresource(g_pConstantBuffer[0], 0, nullptr, &cb, 0, 0);
 	pDeviceContext->VSSetConstantBuffers(0, 1, &g_pConstantBuffer[0]);
 	SHADER_GLOBAL2 cb2;
@@ -192,11 +189,11 @@ void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 	cb2.vLa = XMLoadFloat4(&light.m_ambient);
 	cb2.vLd = XMLoadFloat4(&light.m_diffuse);
 	cb2.vLs = XMLoadFloat4(&light.m_specular);
-	MATERIAL* pMaterial = pMesh->pMaterial;
+	//MATERIAL* pMaterial = pMaterial;
 	if (!pMaterial) pMaterial = &g_material;
 	cb2.vDiffuse = XMLoadFloat4(&pMaterial->Diffuse);
 	cb2.vAmbient = XMVectorSet(pMaterial->Ambient.x, pMaterial->Ambient.y, pMaterial->Ambient.z,
-		(pMesh->pTexture != nullptr) ? 1.f : 0.f);
+		(pTexture != nullptr) ? 1.f : 0.f);
 	cb2.vSpecular = XMVectorSet(pMaterial->Specular.x, pMaterial->Specular.y, pMaterial->Specular.z, pMaterial->Power);
 	cb2.vEmissive = XMVectorSet(pMaterial->Emissive.x, pMaterial->Emissive.y, pMaterial->Emissive.z, GetAlphaTestValue());
 	pDeviceContext->UpdateSubresource(g_pConstantBuffer[1], 0, nullptr, &cb2, 0, 0);
@@ -211,10 +208,11 @@ void Mesh3D::Draw(ID3D11DeviceContext* pDeviceContext)
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
 		D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP,
 	};
-	pDeviceContext->IASetPrimitiveTopology(pt[pMesh->primitiveType]);
+	primitiveType = PT_TRIANGLESTRIP;
+	pDeviceContext->IASetPrimitiveTopology(pt[primitiveType]);
 
 	// ポリゴンの描画
-	pDeviceContext->DrawIndexed(pMesh->nNumIndex, 0, 0);
+	pDeviceContext->DrawIndexed(nNumIndex, 0, 0);
 	if (bisUnlit)
 		GetMainLight()->SetLightEnable(true);
 	if (bNoCull)
@@ -263,27 +261,27 @@ float Mesh3D::GetAlphaTestValue(void)
 //引数：ID3D11Device*, MESH*, VERTEX_3D, int
 //戻：HRESULT
 //*****************************************************************************
-HRESULT Mesh3D::MakeMeshVertex(ID3D11Device * pDevice, MESH * pMesh, VERTEX_3D vertexWk[], int indexWk[])
+HRESULT Mesh3D::MakeMeshVertex(ID3D11Device * pDevice, VERTEX_3D vertexWk[], int indexWk[])
 {
 	D3D11_BUFFER_DESC vbd;
 	ZeroMemory(&vbd, sizeof(vbd));
 	vbd.Usage = D3D11_USAGE_DYNAMIC;
-	vbd.ByteWidth = sizeof(VERTEX_3D) * pMesh->nNumVertex;
+	vbd.ByteWidth = sizeof(VERTEX_3D) * nNumVertex;
 	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	vbd.MiscFlags = 0;
 	D3D11_SUBRESOURCE_DATA initData;
 	ZeroMemory(&initData, sizeof(initData));
 	initData.pSysMem = vertexWk;
-	HRESULT hr = pDevice->CreateBuffer(&vbd, &initData, &pMesh->pVertexBuffer);
+	HRESULT hr = pDevice->CreateBuffer(&vbd, &initData, &pVertexBuffer);
 	if (FAILED(hr)) {
 		return hr;
 	}
 
-	CD3D11_BUFFER_DESC ibd(pMesh->nNumIndex * sizeof(int), D3D11_BIND_INDEX_BUFFER);
+	CD3D11_BUFFER_DESC ibd(nNumIndex * sizeof(int), D3D11_BIND_INDEX_BUFFER);
 	ZeroMemory(&initData, sizeof(initData));
 	initData.pSysMem = indexWk;
-	hr = pDevice->CreateBuffer(&ibd, &initData, &pMesh->pIndexBuffer);
+	hr = pDevice->CreateBuffer(&ibd, &initData, &pIndexBuffer);
 
 	return hr;
 }
@@ -296,14 +294,13 @@ HRESULT Mesh3D::MakeMeshVertex(ID3D11Device * pDevice, MESH * pMesh, VERTEX_3D v
 //*****************************************************************************
 void Mesh3D::ReleaseMesh()
 {
-	if (!pMesh) return;
 	// テクスチャ解放
 	if(!bUsingOutsideTexture)
-		SAFE_RELEASE(pMesh->pTexture);
+		SAFE_RELEASE(pTexture);
 	// 頂点バッファ解放
-	SAFE_RELEASE(pMesh->pVertexBuffer);
+	SAFE_RELEASE(pVertexBuffer);
 	// インデックス バッファ解放
-	SAFE_RELEASE(pMesh->pIndexBuffer);
+	SAFE_RELEASE(pIndexBuffer);
 }
 
 //*****************************************************************************

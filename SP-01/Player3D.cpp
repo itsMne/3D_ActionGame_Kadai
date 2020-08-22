@@ -187,7 +187,7 @@ void Player3D::Init()
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
 	for (int i = 0; i < MAX_ENEMIES_FOLLOWING_PLAYER; pEnemiesFollowingPlayer[i] = nullptr, i++);
-
+	bHitDamage = false;
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
 	{
