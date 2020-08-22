@@ -85,7 +85,7 @@ float fAnimationSpeed[] =
 	1.75f,//RUN_TO_IDLE
 	1.0f,//	DOWN_DODGE,
 	1.0f,//	DOWN_DODGE_TO_SLIDE,
-	1.0f,//	DOWN_DODGE_TO_IDLE,
+	0.65f,//DOWN_DODGE_TO_IDLE,
 	1.0f,//	DODGE_ROLL,
 	1.0f,//	UPPERCUT,
 	1.0f,//	BASIC_CHAIN_B_PAUSEA,
@@ -218,7 +218,7 @@ void Player3D::Update()
 		if (!pGame)
 			return;
 	}
-	if (IsOnTheFloor() && Model->GetCurrentAnimation()!=SLIDE_KICKUP)
+	if (IsOnTheFloor() && Model->GetCurrentAnimation()!=SLIDE_KICKUP && nState != PLAYER_DODGING_STATE && nState != PLAYER_DODGING_RECOVERY_STATE)
 	{
 		if (GetInput(INPUT_JUMP))
 			Jump();
@@ -244,6 +244,16 @@ void Player3D::Update()
 	LockingControl();
 	if (nState != PLAYER_ATTACKING_STATE && nState != PLAYER_IDLE_FIGHT_STATE)
 		bFirstSetOfPunches = false;
+	//避ける
+	if (GetInput(INPUT_DODGE) && IsOnTheFloor() && (abs(GetAxis(MOVEMENT_AXIS_HORIZONTAL)) > 0.35f || abs(GetAxis(MOVEMENT_AXIS_VERTICAL)) > 0.35f) 
+		&& Model->GetCurrentAnimation()!=DODGE_ROLL && !bAllStaminaUsed)
+	{
+		nState = PLAYER_DODGING_STATE;
+		float fHorizontalAxis = GetAxis(MOVEMENT_AXIS_HORIZONTAL);
+		float fVerticalAxis = GetAxis(MOVEMENT_AXIS_VERTICAL);
+		float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
+		Model->SetRotationY(nModelRotation + Rotation.y + pCamera->GetRotation().y);
+	}
 	//ステートマシン
 	switch (nState)
 	{
@@ -281,6 +291,29 @@ void Player3D::Update()
 			nState = PLAYER_IDLE_STATE;
 		if(nStamina<=0)
 			nState = PLAYER_BUNBUN_FALLING;
+		break;
+	case PLAYER_DODGING_STATE:
+		pCurrentAttackPlaying = pPreviousAttack = nullptr;
+		SetAnimation(DODGE_ROLL, fAnimationSpeed[DODGE_ROLL]);
+		nStamina--;
+		if (Model->GetCurrentFrame() >= 1730 && nStamina > 0)
+		{
+			nState = PLAYER_IDLE_STATE;
+		}
+		if (Model->GetCurrentFrame() <= 1721)
+		{
+			Position.x -= sinf(XM_PI + Model->GetRotation().y) * 10;
+			Position.z -= cosf(XM_PI + Model->GetRotation().y) * 10;
+		}
+		if (Model->GetCurrentFrame() >= 1758)
+			nState = PLAYER_DODGING_RECOVERY_STATE;
+		break;
+	case PLAYER_DODGING_RECOVERY_STATE:
+		SetAnimation(DOWN_DODGE_TO_IDLE, fAnimationSpeed[DOWN_DODGE_TO_IDLE]);
+		if (Model->GetCurrentFrame() >= 1658)
+		{
+			nState = PLAYER_IDLE_STATE;
+		}
 		break;
 	case PLAYER_BUNBUN_FALLING:
 		BunBun->Update();
@@ -376,7 +409,7 @@ void Player3D::LockingControl()
 	if (!bLockingOn)
 		pLockedEnemy = nullptr;
 	else {
-		if (pLockedEnemy)
+		if (pLockedEnemy && nState != PLAYER_DODGING_STATE && nState != PLAYER_DODGING_RECOVERY_STATE)
 		{
 			XMFLOAT3 EnemyPos = pLockedEnemy->GetPosition();
 			XMFLOAT3 PlayerPos = GetPosition();

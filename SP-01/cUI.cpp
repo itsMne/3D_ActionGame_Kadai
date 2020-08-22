@@ -97,6 +97,8 @@ void cUI::Update()
 		if (!IsGamePaused())
 		{
 			if (fPauseSizeOffset < 35) {
+				if (fAcceleration < 1.5f)
+					fAcceleration = 1.5f;
 				fPauseSizeOffset += fAcceleration;
 				if (fPauseSizeOffset > 35)
 					fPauseSizeOffset = 35;
@@ -107,6 +109,8 @@ void cUI::Update()
 		else
 		{
 			if (fPauseSizeOffset > 1) {
+				if (fAcceleration < 1.5f)
+					fAcceleration = 1.5f;
 				fPauseSizeOffset -= fAcceleration;
 				if (fPauseSizeOffset < 1) 
 					fPauseSizeOffset = 1;
@@ -114,7 +118,7 @@ void cUI::Update()
 			if (fPauseSizeOffset == 1)
 				fAcceleration = 0;
 		}
-		SetSize(1280 * fPauseSizeOffset, 720 * fPauseSizeOffset);
+		SetSize(1285 * fPauseSizeOffset, 725 * fPauseSizeOffset);
 		Polygon2D::UpdatePolygon();
 		break;
 	case UI_HEALTH_FLOWER:
