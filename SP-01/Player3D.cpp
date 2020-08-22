@@ -29,8 +29,8 @@
 #define DEBUG_WAITFRAME false
 #define KICKDOWN_SPEED 10.98
 #define LOCK_ON_DISTANCE 550.0f
-#define BACKWARD_INPUT_OFFSET 1.95f
-#define FORWARD_INPUT_OFFSET 1.35f
+#define BACKWARD_INPUT_OFFSET 1.75f
+#define FORWARD_INPUT_OFFSET 1.45f
 
 //*****************************************************************************
 // ÉOÉçÅ[ÉoÉãïœêî
