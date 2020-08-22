@@ -254,6 +254,7 @@ void Player3D::Update()
 		float nModelRotation = -(atan2(fVerticalAxis, fHorizontalAxis) - 1.570796f);
 		Model->SetRotationY(nModelRotation + Rotation.y + pCamera->GetRotation().y);
 	}
+
 	//ステートマシン
 	switch (nState)
 	{
@@ -761,7 +762,6 @@ void Player3D::AttackStateControl()
 		nState = PLAYER_IDLE_FIGHT_STATE;
 		nFightStanceFrameCount = 0;
 		PressedKick = PressedPunch = false;
-		bFirstSetOfPunches = false;
 		bMultiPunch = false;
 		return;
 	}
