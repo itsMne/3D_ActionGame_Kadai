@@ -20,6 +20,7 @@ enum eGameObjectTypes
 	GO_WALL,
 	GO_ENEMY,
 	GO_BUNBUN,
+	GO_CHU,
 	GO_CAMERA,
 	GO_MAX
 };

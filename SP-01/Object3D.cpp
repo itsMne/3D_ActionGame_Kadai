@@ -47,6 +47,12 @@ Object3D::Object3D(int Type)
 		Model = new Model3D(this, BUNBUN_MODEL);
 		Model->SwitchAnimation(1, 0, 0.25f);
 		break;
+	case GO_CHU:
+		Model = new Model3D(this, CHU_MODEL);
+		Model->SwitchAnimation(1, 0, 4.05f);
+		Model->SetLoop(false);
+		Model->SetFrameOfAnimation(250);
+		break;
 	default:
 		break;
 	}
@@ -169,13 +175,13 @@ void Object3D::BunBunControl()
 	{
 	case BUN_BUN_APPEARS:
 		if (Model->GetCurrentFrame() >= 4057) {
-			SetAnimation(BUN_BUN_IDLE, 0.5f);
+			SetAnimation(BUN_BUN_IDLE, 1.0f);
 			Model->SetLoop(true);
 		}
 		break;
 	case BUN_BUN_IDLE:
 		if (Player->GetState() == PLAYER_BUNBUN_FALLING) {
-			SetAnimation(BUN_BUN_DISAPPEARS, 0.5f);
+			SetAnimation(BUN_BUN_DISAPPEARS, 1.0f);
 			Model->SetLoop(false);
 		}
 		break;
@@ -204,6 +210,8 @@ void Object3D::Draw()
 #endif
 	GetDeviceContext()->RSSetState(GetMainWindow()->GetRasterizerState(1));
 	if (!bUse)
+		return;
+	if (nObjType == GO_CHU && Model && Model->GetCurrentFrame() >= 249)
 		return;
 	if (bIsUnlit || NO_LIGHT_DEFAULT)
 		GetMainLight()->SetLightEnable(false);

@@ -14,19 +14,19 @@
 #define ENEMY_SPEED 0
 float fEnemyAnimations[ENEMY_MAX] =
 {
-	1,//EN_IDLE,
-	2,//EN_PUNCHED_A,
-	2,//EN_PUNCHED_B,
-	1.5f,//EN_KICKED_A,
-	1.5f,//EN_KICKED_B,
-	1,//EN_SENDTOAIR_AIRIDLE,
-	1,//EN_JUMPED_ABOVE,
-	1,//EN_LAUNCHED_FORWARD,
-	1,//EN_STRONG_HITFORWARD,
-	0.75f,//EN_ATTACK_1,
-	1,//EN_ATTACK_2,
-	1,//EN_DEATH,
-	1,//EN_WALKING,
+	2*1,//EN_IDLE,
+	2*2,//EN_PUNCHED_A,
+	2*2,//EN_PUNCHED_B,
+	2*1.5f,//EN_KICKED_A,
+	2*1.5f,//EN_KICKED_B,
+	2*1,//EN_SENDTOAIR_AIRIDLE,
+	2*1,//EN_JUMPED_ABOVE,
+	2*1,//EN_LAUNCHED_FORWARD,
+	2*1,//EN_STRONG_HITFORWARD,
+	2*0.75f,//EN_ATTACK_1,
+	2*1,//EN_ATTACK_2,
+	2*1,//EN_DEATH,
+	2*1,//EN_WALKING,
 };
 
 Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(true)
@@ -84,7 +84,7 @@ void Enemy::Init()
 		Hitboxes[i] = { 0 };
 	}
 	Hitboxes[ENEMY_HB_FEET] = { 0, 14.0f, 0, 5.0f, 15.0f, 5.0f };
-	Hitboxes[ENEMY_HB_ATTACK] = { 0, 80.0f, 0, 30.0f, 40.0f, 40.0f };
+	Hitboxes[ENEMY_HB_ATTACK] = { 0, 80.0f, 0, 40.0f, 40.0f, 60.0f };
 	Hitbox = Hitboxes[ENEMY_HB_BODY] = { 0, 80.0f, 0, 50.0f, 90.0f, 50.0f };
 #if SHOW_HITBOX && SHOW_ENEMY_HITBOX
 	for (int i = 0; i < ENEMY_HB_MAX; i++)
@@ -230,8 +230,14 @@ void Enemy::Update()
 			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
 				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2 });
 			Hitboxes[ENEMY_HB_ATTACK] = { -sinf(XM_PI + Model->GetRotation().y) * 80, 100.0f, -cosf(XM_PI + Model->GetRotation().y) * 100, 30.0f, 40.0f, 40.0f };
-			if (IsInCollision3D(Player->GetHitboxPlayer(ENEMY_HB_BODY), GetHitboxEnemy(ENEMY_HB_ATTACK)))
-				printf("OUCH(MISSING SET HIT ON PLAYER, WITH LOVE, THE ENEMY)\n");
+			if (IsInCollision3D(Player->GetHitboxPlayer(ENEMY_HB_BODY), GetHitboxEnemy(ENEMY_HB_ATTACK)) && Player->GetState()!=PLAYER_DAMAGED_STATE) {
+				if (Player->GetState() != PLAYER_DODGING_STATE) {
+					Player->FaceActor(this);
+					Player->GetCameraPlayer()->SetShaking(17.0f, 7, 2);
+				}
+				Player->Damage();
+				
+			}
 		}
 		else if(Model->GetCurrentFrame() <= 1264){
 			FaceActor(Player);

@@ -65,6 +65,9 @@ enum PLAYER_ANIMATIONS
 	KICKDOWN,
 	RED_HOT_KICK,
 	BUNBUN_FALL_ATK,
+	TAUNT_A,
+	PLAYER_DAMAGE,
+	PLAYER_DEATH,
 	MAX_ANIMATIONS
 };
 enum EPLAYER_STATE
@@ -78,6 +81,8 @@ enum EPLAYER_STATE
 	PLAYER_BUNBUN_FALLING,
 	PLAYER_DODGING_STATE,
 	PLAYER_DODGING_RECOVERY_STATE,
+	PLAYER_TAUNTING_STATE,
+	PLAYER_DAMAGED_STATE,
 	PLAYER_STATE_MAX
 };
 enum EPLAYER_HITBOXES
@@ -155,6 +160,7 @@ private:
 	bool bPressedForwardMidAttack, bPressedBackwardMidAttack;
 	bool bUppercutExecute, bRouletteExecuted;
 	Object3D* BunBun;
+	Object3D* ChuSign;
 	//インプット
 	bool bKick;
 	bool bPunch;
@@ -172,8 +178,7 @@ private:
 	int nStamina;
 	bool bAllStaminaUsed;
 	Actor* pEnemiesFollowingPlayer[MAX_ENEMIES_FOLLOWING_PLAYER];
-	//ダメージ
-	bool bHitDamage;
+	//避ける
 	bool bDodged;
 public:
 	Player3D();
@@ -181,6 +186,7 @@ public:
 
 	void				Init();
 	void				Update();
+	bool				DamagedStateControl();
 	void				StaminaControl();
 	void				Jump();
 	void				LockingControl();
@@ -226,7 +232,7 @@ public:
 	int					GetStamina() { return nStamina; };
 	bool				IsStaminaOverused() { return bAllStaminaUsed; };
 	int					GetState() { return nState; };
-	void				Damage() { if (fGravityForce < 0) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } bHitDamage = true; };
+	void				Damage() { if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } nState = PLAYER_DAMAGED_STATE; nHP--; };
 };
 
 Player3D*				GetPlayer();

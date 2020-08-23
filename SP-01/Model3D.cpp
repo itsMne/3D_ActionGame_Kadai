@@ -28,6 +28,7 @@ char ModelPaths[MAX_PRELOADED_MODELS][256] =
 	"data/model/Hana.fbx",
 	"data/model/BunBun.fbx",
 	"data/model/Enemy.fbx",
+	"data/model/Chu.fbx",
 };
 CFbxModel* Models[MAX_PRELOADED_MODELS] = { nullptr };
 
@@ -250,7 +251,7 @@ void Model3D::DrawModel(void)
 	XMStoreFloat4x4(&g_mtxWorld, mtxWorld);
 
 	g_pModel->SetAnimStack(nCurrentAnimation);
-	AnimationControl();
+	//AnimationControl();
 	SetZWrite(true);
 	g_pModel->Render(g_mtxWorld, pMainCamera->GetViewMatrix(), pMainCamera->GetProjMatrix(), eOpacityOnly);
 	SetZWrite(false);
