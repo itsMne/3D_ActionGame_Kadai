@@ -229,4 +229,5 @@ public:
 };
 
 Player3D* GetPlayer();
+bool GetIsSoftLockOn();
 #endif

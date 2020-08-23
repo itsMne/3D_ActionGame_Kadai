@@ -129,7 +129,7 @@ void Camera3D::PlayerCameraControl()
 	static bool bLockOnActivated = false;
 	static float fAcceleration = 0;
 	Player3D* pPlayer = GetPlayer();
-	if (GetInput(INPUT_LOCKON) && pPlayer->GetLockedEnemy())
+	if (pPlayer->GetLockedEnemy())
 	{
 		if (fLockOnOffset < OFFSET_Y)
 			fLockOnOffset += 0.05f;

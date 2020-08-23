@@ -113,7 +113,7 @@ float fAnimationSpeed[] =
 };
 
 Player3D* pCurrentPlayer = nullptr;
-
+bool bIsSoftLockOn = true;
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -239,7 +239,7 @@ void Player3D::Update()
 
 	bKick = GetInput(INPUT_ATTACK) && CheckHoldingBack();
 	bPunch = GetInput(INPUT_ATTACK) && !CheckHoldingBack();
-	bLockingOn = GetInput(INPUT_LOCKON);
+	bLockingOn = GetInput(INPUT_LOCKON)|| (pLockedEnemy && bIsSoftLockOn);
 	//ロックオン確認する
 	LockingControl();
 	if (nState != PLAYER_ATTACKING_STATE && nState != PLAYER_IDLE_FIGHT_STATE)
@@ -395,7 +395,7 @@ void Player3D::Jump()
 
 void Player3D::LockingControl()
 {
-	if (!pLockedEnemy && bLockingOn)
+	if ((!pLockedEnemy && bLockingOn && !bIsSoftLockOn) || (bIsSoftLockOn && !pLockedEnemy &&  GetInput(INPUT_CAMERA)))
 	{
 		float fDistance = 0;
 		while (!pLockedEnemy && (fDistance += 0.1f) <LOCK_ON_DISTANCE)
@@ -405,9 +405,10 @@ void Player3D::LockingControl()
 			Hitboxes[PLAYER_HB_LOCKON].PositionZ = -cosf(XM_PI + Model->GetRotation().y) * fDistance;
 			pLockedEnemy = (Actor*)(((S_InGame3D*)pGame)->GetList(GO_ENEMY)->CheckCollision(GetHitboxPlayer(PLAYER_HB_LOCKON)));
 		}
-
+		if (bIsSoftLockOn && pLockedEnemy)
+			return;
 	}
-	if (!bLockingOn)
+	if ((!bLockingOn && !bIsSoftLockOn) || (bIsSoftLockOn && pLockedEnemy && GetInput(INPUT_CAMERA)))
 		pLockedEnemy = nullptr;
 	else {
 		if (pLockedEnemy && nState != PLAYER_DODGING_STATE && nState != PLAYER_DODGING_RECOVERY_STATE)
@@ -1669,6 +1670,11 @@ char Player3D::GetLastInputInserted()
 Player3D * GetPlayer()
 {
 	return pCurrentPlayer;
+}
+
+bool GetIsSoftLockOn()
+{
+	return bIsSoftLockOn;
 }
 
 //*****************************************************************************
