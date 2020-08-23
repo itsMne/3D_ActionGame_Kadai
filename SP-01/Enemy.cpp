@@ -174,7 +174,8 @@ void Enemy::Update()
 			Player->RedHotKicked();
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
-		SetHitEffect();
+		if(nState==EN_STATE_DAMAGED)
+			SetHitEffect();
 		nHP -= pPlayerAttack->nDamage;
 
 	}

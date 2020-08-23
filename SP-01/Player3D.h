@@ -174,6 +174,7 @@ private:
 	Actor* pEnemiesFollowingPlayer[MAX_ENEMIES_FOLLOWING_PLAYER];
 	//É_ÉÅÅ[ÉW
 	bool bHitDamage;
+	bool bDodged;
 public:
 	Player3D();
 	~Player3D();
@@ -225,9 +226,9 @@ public:
 	int					GetStamina() { return nStamina; };
 	bool				IsStaminaOverused() { return bAllStaminaUsed; };
 	int					GetState() { return nState; };
-	void				Damage() { if (fGravityForce < 0) { return; }; bHitDamage = true; };
+	void				Damage() { if (fGravityForce < 0) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } bHitDamage = true; };
 };
 
-Player3D* GetPlayer();
-bool GetIsSoftLockOn();
+Player3D*				GetPlayer();
+bool					GetIsSoftLockOn();
 #endif

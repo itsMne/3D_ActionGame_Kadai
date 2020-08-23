@@ -79,14 +79,14 @@ float fAnimationSpeed[] =
 	2,//JUMP_UP
 	1.5f,//JUMP_UP_TO_FALLDOWN
 	1,//FIGHT_STANCE
-	1.4f,//BASIC_CHAIN_A
-	1.4f,//BASIC_CHAIN_B
-	0.75f,//BASIC_CHAIN_C
+	1.45f,//BASIC_CHAIN_A
+	1.45f,//BASIC_CHAIN_B
+	1.05f,//BASIC_CHAIN_C
 	1.75f,//RUN_TO_IDLE
 	1.0f,//	DOWN_DODGE,
 	1.0f,//	DOWN_DODGE_TO_SLIDE,
 	0.65f,//DOWN_DODGE_TO_IDLE,
-	1.0f,//	DODGE_ROLL,
+	1.2f,//	DODGE_ROLL,
 	1.0f,//	UPPERCUT,
 	1.0f,//	BASIC_CHAIN_B_PAUSEA,
 	1.25f,//KICK_CHAIN_A,
@@ -96,9 +96,9 @@ float fAnimationSpeed[] =
 	1.0f,//BACKDROP_KICK,
 	1.25f,//HEADBUTT,
 	1.25f,//KICK_CHAIN_C,
-	1.4f,//AIR_PUNCHA,
-	1.4f,//AIR_PUNCHB,
-	1.0f,//AIR_PUNCHC,
+	1.45f,//AIR_PUNCHA,
+	1.45f,//AIR_PUNCHB,
+	1.15f,//AIR_PUNCHC,
 	1.0f,//ROULETTE,
 	1.5f,//KNEEKICK,
 	0.8f,//BASIC_CHAIN_B_KICKA,
@@ -303,8 +303,8 @@ void Player3D::Update()
 		}
 		if (Model->GetCurrentFrame() <= 1721)
 		{
-			Position.x -= sinf(XM_PI + Model->GetRotation().y) * 10;
-			Position.z -= cosf(XM_PI + Model->GetRotation().y) * 10;
+			Position.x -= sinf(XM_PI + Model->GetRotation().y) * 9.5f;
+			Position.z -= cosf(XM_PI + Model->GetRotation().y) * 9.5f;
 		}
 		if (Model->GetCurrentFrame() >= 1758)
 			nState = PLAYER_DODGING_RECOVERY_STATE;
@@ -1221,9 +1221,11 @@ void Player3D::StopAttack()
 		default:
 			break;
 		}
-
+		if (pCurrentAttackPlaying->ResetInputs)
+			ResetInputs();
 		pPreviousAttack = GetAttack(pCurrentAttackPlaying->Animation);
 	}
+
 	pCurrentAttackPlaying = nullptr;
 }
 
@@ -1267,7 +1269,7 @@ void Player3D::CalculateDirectionalInput()
 	{
 		eDirection = DIR_BACKWARD;
 		AddInput('B');
-		nInputTimer = MAX_INPUT_TIMER /2;
+		nInputTimer -= MAX_INPUT_TIMER /2;
 #if DEBUG_DIRECTIONALS
 		printf("BACKWARD\n", DirInput);
 #endif
@@ -1275,7 +1277,7 @@ void Player3D::CalculateDirectionalInput()
 	else if (DirInput<= FORWARD_INPUT_OFFSET)
 	{
 		AddInput('F');
-		nInputTimer = MAX_INPUT_TIMER / 2;
+		nInputTimer -= MAX_INPUT_TIMER / 2;
 		eDirection = DIR_FORWARD;
 #if DEBUG_DIRECTIONALS
 		printf("FORWARD\n", DirInput);
