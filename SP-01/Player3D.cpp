@@ -9,6 +9,7 @@
 #include "Texture.h"
 #include "Sound.h"
 #include "S_InGame3D.h"
+#include "Enemy.h"
 
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
@@ -63,7 +64,7 @@ PLAYER_ATTACK_MOVE stAllMoves[MAX_ATTACKS] =
 	{"N",	  ROULETTE,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 3337, 3395}	,{15, 20, 10,  0},		4,	5,	1900},//A
 	{"K",	  KICKDOWN,						true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4157, 4200}	,{15, 20, 30,  0},		7,	6,	1900},//K
 	{"n",	  RED_HOT_KICK,					true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4283, 4338}	,{15, 20, 30,  0},		13,	9,	2000},//K
-	{"n",	  BUNBUN_FALL_ATK,				true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4564, 4638}	,{120, 30, 120,  0},	13,	9,	2000},//K
+	{"n",	  BUNBUN_FALL_ATK,				true,	AIR_MOVE,	 MAX_ANIMATIONS, -1,	{ 4564, 4638}	,{120, 30, 120,0},	13,	9,	2000},//K
 };
 
 float fAnimationSpeed[] =
@@ -306,6 +307,8 @@ void Player3D::Update()
 		AttackInputsControl();
 		if (Model->GetCurrentFrame() >= 4817)
 			nState = PLAYER_IDLE_STATE;
+		if (pLockedEnemy)
+			((Enemy*)pLockedEnemy)->Enrage(600);
 		break;
 	case PLAYER_MOVING_STATE:
 		GravityControl();
@@ -1337,7 +1340,7 @@ void Player3D::CalculateDirectionalInput()
 	{
 		eDirection = DIR_BACKWARD;
 		AddInput('B');
-		nInputTimer -= MAX_INPUT_TIMER /2;
+		nInputTimer = MAX_INPUT_TIMER * 0.25f;
 #if DEBUG_DIRECTIONALS
 		printf("BACKWARD\n", DirInput);
 #endif
@@ -1345,7 +1348,7 @@ void Player3D::CalculateDirectionalInput()
 	else if (DirInput<= FORWARD_INPUT_OFFSET)
 	{
 		AddInput('F');
-		nInputTimer -= MAX_INPUT_TIMER / 2;
+		nInputTimer = MAX_INPUT_TIMER * 0.25f;
 		eDirection = DIR_FORWARD;
 #if DEBUG_DIRECTIONALS
 		printf("FORWARD\n", DirInput);

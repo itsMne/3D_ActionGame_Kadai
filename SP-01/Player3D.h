@@ -233,6 +233,7 @@ public:
 	bool				IsStaminaOverused() { return bAllStaminaUsed; };
 	int					GetState() { return nState; };
 	void				Damage() { if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } nState = PLAYER_DAMAGED_STATE; nHP--; };
+	void				Damage(int dam) { if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } nState = PLAYER_DAMAGED_STATE; nHP-= dam; };
 };
 
 Player3D*				GetPlayer();

@@ -53,6 +53,10 @@ Object3D::Object3D(int Type)
 		Model->SetLoop(false);
 		Model->SetFrameOfAnimation(250);
 		break;
+	case GO_ANGRY:
+		Model = new Model3D(this, ANGRY_MODEL);
+		Model->SwitchAnimation(0, 0, 1.0f);
+		break;
 	default:
 		break;
 	}

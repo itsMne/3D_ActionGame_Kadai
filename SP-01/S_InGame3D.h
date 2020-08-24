@@ -22,7 +22,8 @@ private:
 	Light3D* pSceneLight;
 	Go_List* Enemies;
 	Go_List* Fields;
-	cUI* PauseScreen;
+	cUI* UI_Manager;
+
 public:
 	S_InGame3D();
 	~S_InGame3D();
@@ -40,3 +41,4 @@ S_InGame3D* GetCurrentGame();
 int GetScore();
 void AddScore(int add);
 bool IsGamePaused();
+void SetPauseFrames(int pause, int wait);

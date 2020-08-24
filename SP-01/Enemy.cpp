@@ -3,6 +3,7 @@
 #include "S_InGame3D.h"
 #include "TechnicalCamera.h"
 #include "InputManager.h"
+#include "cUI.h"
 #include "Player3D.h"
 
 #define SHOW_ENEMY_HITBOX true
@@ -23,7 +24,7 @@ float fEnemyAnimations[ENEMY_MAX] =
 	2*1,//EN_JUMPED_ABOVE,
 	2*1,//EN_LAUNCHED_FORWARD,
 	2*1,//EN_STRONG_HITFORWARD,
-	2*0.75f,//EN_ATTACK_1,
+	2*0.55f,//EN_ATTACK_1,
 	2*1,//EN_ATTACK_2,
 	2*1,//EN_DEATH,
 	2*1,//EN_WALKING,
@@ -54,6 +55,11 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	nIdleWaitFramesCount = 0;
 	nMaxIdleWaitFrames = IDLE_WAIT_FRAMES;
 	fSpeed = ENEMY_SPEED;
+	pAngrySign = new Object3D(GO_ANGRY);
+	pAngrySign->SetParent(this);
+	pAngrySign->SetPosition({ 50, 0, 0 });
+	pAngrySign->SetScale({ 0.5f, 0.5f, 0.5f });
+	nEnragedFrames = 0;
 }
 
 void Enemy::SetHitEffect()
@@ -145,12 +151,17 @@ void Enemy::Update()
 			return;
 	}
 	Player3D* Player = (Player3D*)pPlayer;
-#ifdef DEBUG_GRAVITY
-	if (GetKeyPress(VK_UP)) {
-		Jump(10);
-	}
-#endif
-	
+	Camera3D* pCamera = (Camera3D*)GetMainCamera()->GetFocalPoint();
+	//“{‚è
+	pAngrySign->Update();
+	pAngrySign->GetModel()->SetRotation(SumVector({0,XM_PI*0.5f, 0}, pCamera->GetRotation()));
+	pAngrySign->SetPosition({ sinf(XM_PI + pCamera->GetRotation().y + 20) * 5, 145, cosf(XM_PI + pCamera->GetRotation().y) * 50 });
+	bool bIsEnraged;
+	if (--nEnragedFrames <= 0)
+		nEnragedFrames = 0;
+	else
+		bIsEnraged = true;
+
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED && nState != EN_STATE_REDHOTKICKED) {
 		nState = EN_STATE_DAMAGED;
 		
@@ -160,8 +171,12 @@ void Enemy::Update()
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 		if (pPlayerAttack) {
 			CameraRumbleControl(pPlayerAttack->Animation);
-			if (Model->GetCurrentAnimation() == EN_ATTACK_1 && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B))
+			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B)) {
 				nState = EN_ATTACKING;
+				SetPauseFrames(15, 200);
+				ActivateInefectiveHit();
+				Player->GetCameraPlayer()->SetShaking(10.0f, 24, 2);
+			}
 			else
 				InitialAttackedAnimation(pPlayerAttack->Animation);
 			Player->AddStamina(pPlayerAttack->nStaminaToAdd);
@@ -185,7 +200,7 @@ void Enemy::Update()
 	while (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_OBJECT_COL), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED)
 	{
 		nIdleWaitFramesCount++;
-		if (++nPlayerTouchFramesCount >= nMaxIdleWaitFrames*0.5f && pFloor) {
+		if (++nPlayerTouchFramesCount >= nMaxIdleWaitFrames*0.95f && pFloor) {
 			nState = EN_ATTACKING;
 			FaceActor(Player);
 			nPlayerTouchFramesCount = 0;
@@ -195,12 +210,15 @@ void Enemy::Update()
 	}
 
 	Hitboxes[ENEMY_HB_ATTACK] = { 0,0,0,0,0,0 };
+	float EnragedOffset = 1;
 	switch (nState)
 	{
 	case EN_STATE_IDLE:
 		SetAnimation(EN_IDLE, fEnemyAnimations[EN_IDLE]);
+		if (bIsEnraged)
+			nIdleWaitFramesCount++;
 		if (++nIdleWaitFramesCount >= nMaxIdleWaitFrames)
-			nState = EN_MOVING;//
+			nState = EN_MOVING;
 		break;
 	case EN_MOVING:
 		if (!pFloor)
@@ -213,7 +231,10 @@ void Enemy::Update()
 			Model->SetFrameOfAnimation(1660);
 		FaceActor(Player);
 		nPlayerTouchFramesCount = nMaxIdleWaitFrames;
-		Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed });
+		 EnragedOffset = 1;
+		if (bIsEnraged)
+			EnragedOffset = 1.5f;
+		Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed * EnragedOffset });
 		if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
 		{
 			nState = EN_ATTACKING;
@@ -222,11 +243,18 @@ void Enemy::Update()
 		break;
 	case EN_ATTACKING:
 		nIdleWaitFramesCount=nPlayerTouchFramesCount = 0;
-		SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]);
+		EnragedOffset = 1;
+		if (bIsEnraged)
+			EnragedOffset = 1.5f;
+		SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*0.75f* EnragedOffset);
 		if (Model->GetCurrentFrame() >= 1353)
 			nState = EN_STATE_IDLE;
+		
+		if (bIsEnraged)
+			EnragedOffset = 0.5f;
 		if (Model->GetCurrentFrame() >= 1299 && Model->GetCurrentFrame() <= 1322)
 		{
+			SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*2* EnragedOffset);
 			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
 				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2 });
 			Hitboxes[ENEMY_HB_ATTACK] = { -sinf(XM_PI + Model->GetRotation().y) * 80, 100.0f, -cosf(XM_PI + Model->GetRotation().y) * 100, 30.0f, 40.0f, 40.0f };
@@ -235,8 +263,10 @@ void Enemy::Update()
 					Player->FaceActor(this);
 					Player->GetCameraPlayer()->SetShaking(17.0f, 7, 2);
 				}
-				Player->Damage();
-				
+				int damage = 1;
+				if (nEnragedFrames > 0)
+					damage = 2;
+				Player->Damage(damage);
 			}
 		}
 		else if(Model->GetCurrentFrame() <= 1264){
@@ -627,6 +657,8 @@ void Enemy::Draw()
 	}
 	SetCullMode(CULLMODE_CW);
 	Actor::Draw();
+	if(nEnragedFrames>0)
+		pAngrySign->Draw();
 	SetCullMode(CULLMODE_NONE);
 	DrawHearts();
 	SetCullMode(CULLMODE_CW);

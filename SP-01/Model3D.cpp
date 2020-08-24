@@ -29,6 +29,7 @@ char ModelPaths[MAX_PRELOADED_MODELS][256] =
 	"data/model/BunBun.fbx",
 	"data/model/Enemy.fbx",
 	"data/model/Chu.fbx",
+	"data/model/AngrySign.fbx",
 };
 CFbxModel* Models[MAX_PRELOADED_MODELS] = { nullptr };
 

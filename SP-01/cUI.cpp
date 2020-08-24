@@ -4,17 +4,20 @@
 #include "Player3D.h"
 #include "stdio.h"
 
+#define MAX_HIT_EFF 5
+
 enum UI_TEXTURES
 {
 	UI_PAUSE_TEX,
 	UI_FLOWER_TEX,
 	UI_LOCKON_TEX,
 	UI_ZOOM_TEX,
+	UI_NOHIT_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
-
-
+cUI* IneffectiveHitEffect[MAX_HIT_EFF] = {nullptr};
+int nIneffectiveHitWaitOffset = 0;
 cUI::cUI(int Type):Polygon2D()
 {
 	nType = Type;
@@ -83,6 +86,15 @@ void cUI::Init()
 		break;
 	case UI_GAME_MANAGER:
 		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUIs[i] = new cUI(i), i++);
+		if (--nIneffectiveHitWaitOffset < 0)
+			nIneffectiveHitWaitOffset = 0;
+		break;
+	case UI_INEFFECTIVE_HIT:
+		if (!pTextures[UI_NOHIT_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/HitUneffective.tga", &pTextures[UI_NOHIT_TEX]);
+		SetTexture(pTextures[UI_NOHIT_TEX]);
+		SetSize(0, 0);
+		SetAlpha(1.0f);
 		break;
 	}
 	fAcceleration = 0;
@@ -135,7 +147,21 @@ void cUI::Update()
 		break;
 	case UI_GAME_MANAGER:
 		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUIs[i]->Update(), i++);
+		for (int i = 0; i < MAX_HIT_EFF; i++)
+		{
+			if (IneffectiveHitEffect[i]) {
+				IneffectiveHitEffect[i]->Update();
+				if (IneffectiveHitEffect[i]->GetSize().x > 1500)
+					SAFE_DELETE(IneffectiveHitEffect[i]);
+			}
+		}
 		break;
+	case UI_INEFFECTIVE_HIT:
+		if (fAcceleration < 10)
+			fAcceleration = 10;
+		fAcceleration+=5;
+		ScaleUp(fAcceleration);
+		return;
 	default:
 		Polygon2D::UpdatePolygon();
 		break;
@@ -195,6 +221,11 @@ void cUI::Draw()
 		break;
 	case UI_GAME_MANAGER:
 		pUIs[UI_ZOOM]->Draw();
+		for (int i = 0; i < MAX_HIT_EFF; i++)
+		{
+			if (IneffectiveHitEffect[i])
+				IneffectiveHitEffect[i]->Draw();
+		}
 		if (GetPlayer() && GetPlayer()->GetLockedEnemy()) {
 			pUIs[UI_LOCKON]->SetTexture(nullptr);
 			pUIs[UI_LOCKON]->SetAlpha(0.5f);
@@ -225,4 +256,22 @@ void cUI::Draw()
 void cUI::End()
 {
 	UninitPolygon();
+	if (nType == UI_GAME_MANAGER)
+		for (int i = 0; i < MAX_HIT_EFF; i++)
+			SAFE_DELETE(IneffectiveHitEffect[i]);
+}
+
+void ActivateInefectiveHit()
+{
+	static bool flip = false;
+	for (int i = 0; i < MAX_HIT_EFF; i++)
+	{
+		if (IneffectiveHitEffect[i])
+			continue;
+		IneffectiveHitEffect[i] = new cUI(UI_INEFFECTIVE_HIT);
+		if (flip)
+			IneffectiveHitEffect[i]->RotateAroundZ(100);
+		flip ^= true;
+		nIneffectiveHitWaitOffset = 60;
+	}
 }

@@ -22,6 +22,7 @@ enum eGameObjectTypes
 	GO_BUNBUN,
 	GO_CHU,
 	GO_CAMERA,
+	GO_ANGRY,
 	GO_MAX
 };
 

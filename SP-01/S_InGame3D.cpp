@@ -24,7 +24,8 @@ S_InGame3D* pCurrentGame = nullptr;
 int nScore;
 int nScoreToAdd;
 bool bGamePaused;
-
+int nTempPauseFrames;
+int nWaitFramesForNextPause;
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -48,7 +49,9 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	Enemies->AddEnemy({ 0, 100, 0 });
 	Fields->AddField({ 2.578626f, 100, -138.668900f }, { 1000,10,1000 }, TEX_FIELD_A);
 	bGamePaused = false;
-	PauseScreen = new cUI(UI_GAME_MANAGER);
+	UI_Manager = new cUI(UI_GAME_MANAGER);
+	nTempPauseFrames = 0;
+	nWaitFramesForNextPause = 0;
 }
 
 
@@ -82,10 +85,19 @@ eSceneType S_InGame3D::Update()
 {
 	if (GetInput(INPUT_PAUSE))
 		bGamePaused ^= true;
-	PauseScreen->Update();
+	UI_Manager->Update();
 	if (bGamePaused) 
 	{
 		return SCENE_IN_GAME;
+	}
+	if (--nTempPauseFrames > 0)
+	{
+		pPlayer->GetCameraPlayer()->Update();
+		return SCENE_IN_GAME;
+	}
+	else {
+		if (--nWaitFramesForNextPause < 0)
+			nWaitFramesForNextPause = 0;
 	}
 	pSceneCamera->Update();
 	pPlayer->Update();
@@ -120,7 +132,7 @@ void S_InGame3D::Draw()
 	// Zバッファ無効
 	SetZBuffer(false);
 
-	PauseScreen->Draw();
+	UI_Manager->Draw();
 	// デバッグ文字列表示
 	DrawDebugProc();
 }
@@ -205,4 +217,12 @@ void AddScore(int add)
 bool IsGamePaused()
 {
 	return bGamePaused;
+}
+
+void SetPauseFrames(int pause, int wait)
+{
+	if (nWaitFramesForNextPause > 0)
+		return;
+	nTempPauseFrames = pause;
+	nWaitFramesForNextPause = wait;
 }

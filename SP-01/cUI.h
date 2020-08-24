@@ -14,6 +14,7 @@ enum UI_TYPE
 	UI_ZOOM,
 	UI_LOCKON,
 	UI_GAME_MANAGER,
+	UI_INEFFECTIVE_HIT,
 	MAX_INGAME_UI
 };
 class cUI :
@@ -37,3 +38,4 @@ public:
 	void End();
 };
 
+void ActivateInefectiveHit();

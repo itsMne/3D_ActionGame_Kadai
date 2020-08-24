@@ -71,6 +71,8 @@ private:
 	int			nIdleWaitFramesCount;
 	int			nMaxIdleWaitFrames;
 	float		fSpeed;
+	Object3D*	pAngrySign;
+	int			nEnragedFrames;
 public:
 	Enemy();
 	void SetHitEffect();
@@ -90,5 +92,6 @@ public:
 	void End();
 	Box GetHitboxEnemy(int i);
 	bool IsEnemyDead();
+	void Enrage(int Frames) { if (nEnragedFrames > 0)return; nEnragedFrames = Frames; };
 };
 
