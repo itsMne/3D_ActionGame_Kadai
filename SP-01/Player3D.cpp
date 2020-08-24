@@ -143,7 +143,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	ChuSign = new Object3D(GO_CHU);
 	ChuSign->SetParent(this);
 	ChuSign->SetScale({0.25f,0.25f,0.25f});
-	ChuSign->SetPosition({ 50, 50, 0 });
+	ChuSign->SetPosition({ 30, 80, 0 });
 
 	pCurrentAttackPlaying = nullptr;
 	pPreviousAttack = nullptr;
@@ -285,6 +285,7 @@ void Player3D::Update()
 	ChuSign->GetModel()->SetRotation(SumVector(pCamera->GetRotation(), {0,-XM_PI*0.5f,0}));
 	if(nState!= PLAYER_TAUNTING_STATE)
 		ChuSign->GetModel()->SwitchAnimation(1, 0, 2.05f);
+	ChuSign->SetPosition({ -sinf(-XM_PI/2 + pCamera->GetRotation().y) * 30, 80, -cosf(-XM_PI/2 + pCamera->GetRotation().y) * 30 });
 	//ステートマシン
 	switch (nState)
 	{

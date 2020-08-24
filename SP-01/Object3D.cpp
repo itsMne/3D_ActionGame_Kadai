@@ -175,13 +175,13 @@ void Object3D::BunBunControl()
 	{
 	case BUN_BUN_APPEARS:
 		if (Model->GetCurrentFrame() >= 4057) {
-			SetAnimation(BUN_BUN_IDLE, 1.0f);
+			SetAnimation(BUN_BUN_IDLE, 0.5f);
 			Model->SetLoop(true);
 		}
 		break;
 	case BUN_BUN_IDLE:
 		if (Player->GetState() == PLAYER_BUNBUN_FALLING) {
-			SetAnimation(BUN_BUN_DISAPPEARS, 1.0f);
+			SetAnimation(BUN_BUN_DISAPPEARS, 0.5f);
 			Model->SetLoop(false);
 		}
 		break;
