@@ -190,7 +190,7 @@ void Player3D::Init()
 		pVisualHitboxes[i] = nullptr;
 		Hitboxes[i] = { 0 };
 	}
-	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 15.0f, 15.0f, 15.0f };
+	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 17.0f, 15.0f, 17.0f };
 	Hitboxes[PLAYER_HB_BODY] = { 0, 25.0f, 0, 20.0f, 40.0f, 20.0f };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
@@ -298,6 +298,8 @@ void Player3D::Update()
 	ChuSign->SetPosition({ -sinf(-XM_PI/2 + pCamera->GetRotation().y) * 30, 80, -cosf(-XM_PI/2 + pCamera->GetRotation().y) * 30 });
 	Hitboxes[PLAYER_HB_TAUNT] = { 0, 0.0f, 0, 0.0f, 0.0f, 0.0f };
 	
+	if (pFloor && (nState == PLAYER_IDLE_STATE || nState == PLAYER_IDLE_FIGHT_STATE))
+		x3LastSafePos = Position;
 	//ステートマシン
 	switch (nState)
 	{
@@ -1490,14 +1492,10 @@ void Player3D::MoveControl()
 	if (Model->GetCurrentAnimation() == BACKWARD)
 		fLockMoveBack = 0.5f;
 	if (fVerticalAxis != 0) {
-		if (pFloor && nState != PLAYER_TELEPORTING_STATE)
-			x3LastSafePos = Position;
 		Position.x -= sinf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset;
 		Position.z -= cosf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset;
 	}
 	if (fHorizontalAxis != 0) {
-		if (pFloor && nState != PLAYER_TELEPORTING_STATE)
-			x3LastSafePos = Position;
 		Position.x -= sinf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset;
 		Position.z -= cosf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset;
 	}
