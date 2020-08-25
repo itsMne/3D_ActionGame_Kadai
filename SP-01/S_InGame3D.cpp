@@ -16,7 +16,7 @@
 // マクロ定義
 //*****************************************************************************
 #define MAX_TIME 150
-
+#define DEFAULT_BOTTOM -450.0f
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -26,6 +26,7 @@ int nScoreToAdd;
 bool bGamePaused;
 int nTempPauseFrames;
 int nWaitFramesForNextPause;
+float fBottom;
 //*****************************************************************************
 // コンストラクタ関数
 //*****************************************************************************
@@ -52,6 +53,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	UI_Manager = new cUI(UI_GAME_MANAGER);
 	nTempPauseFrames = 0;
 	nWaitFramesForNextPause = 0;
+	fBottom = DEFAULT_BOTTOM;
 }
 
 
@@ -225,4 +227,9 @@ void SetPauseFrames(int pause, int wait)
 		return;
 	nTempPauseFrames = pause;
 	nWaitFramesForNextPause = wait;
+}
+
+float GetCurrentBottom()
+{
+	return fBottom;
 }

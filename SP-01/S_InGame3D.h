@@ -42,3 +42,4 @@ int GetScore();
 void AddScore(int add);
 bool IsGamePaused();
 void SetPauseFrames(int pause, int wait);
+float GetCurrentBottom();

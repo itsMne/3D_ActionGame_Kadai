@@ -96,6 +96,7 @@ public:
 	Model3D* GetModel();
 	void SetScale(float fScale);
 	void SetScale(XMFLOAT3 fScale);
+	void SetScaling(float fScale);
 	void SetRotation(XMFLOAT3 fRot);
 	XMFLOAT4X4* GetModelWorld();
 	void SetPosition(XMFLOAT3 newPos);

@@ -329,6 +329,11 @@ void Object3D::SetScale(XMFLOAT3 fScale)
 	Scale = fScale;
 }
 
+void Object3D::SetScaling(float fScale)
+{
+	Scale = { Scale.x + fScale, Scale.y + fScale, Scale.z + fScale };
+}
+
 //*****************************************************************************
 //SetRotationŠÖ”
 //‰ñ“]‚ðÝ’è‚·‚é
@@ -984,7 +989,7 @@ Object3D * Go_List::AddEnemy(XMFLOAT3 newPosition, bool Moveable, XMFLOAT3 Start
 		HeadNode = new go_node();
 		HeadNode->Object = new Enemy();
 		Enemy* enemy = (Enemy*)(HeadNode->Object);
-		enemy->SetPosition(newPosition);
+		enemy->SetPosition(newPosition, true);
 		if (Moveable)
 			enemy->SetMovement(Start, End, Speed, DelayFrames);
 		HeadNode->next = nullptr;

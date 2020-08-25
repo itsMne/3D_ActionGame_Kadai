@@ -61,6 +61,7 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	pAngrySign->SetPosition({ 50, 0, 0 });
 	pAngrySign->SetScale({ 0.5f, 0.5f, 0.5f });
 	nEnragedFrames = 0;
+	fAcceleration = 0;
 }
 
 void Enemy::SetHitEffect()
@@ -292,6 +293,36 @@ void Enemy::Update()
 	case EN_STATE_REDHOTKICKED:
 		RedHotKickedStateControl();
 		break;
+	case EN_STATE_TELEPORTING:
+		fAcceleration++;
+		if (CompareXmfloat3(InitialPosition, Position))
+		{
+			if (Scale.x != 1)
+			{
+				SetScaling(fAcceleration*0.001f);
+				printf("%f\n", Scale.x);
+				if (Scale.x >= 1) {
+					Scale = { 1,1,1 };
+					fAcceleration = 0;
+					nState = EN_IDLE;
+					fGravityForce = 0;
+				}
+			}
+		}
+		else {
+			if (Scale.x != 0)
+			{
+				SetScaling(-fAcceleration*0.005f);
+				if (Scale.x <= 0) {
+					Scale = { 0,0,0 };
+					fAcceleration = 0;
+				}
+			}
+			else {
+				MoveToPos(fAcceleration, InitialPosition);
+			}
+		}
+		break;
 	default:
 		break;
 	}
@@ -315,6 +346,10 @@ void Enemy::Update()
 
 	if (nHP <= 0)
 		nState = EN_DEAD;
+	if (Position.y <= GetCurrentBottom()) {
+		nState = EN_STATE_TELEPORTING;
+		fAcceleration = 0;
+	}
 }
 
 void Enemy::HeartsControl()
@@ -613,6 +648,8 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 
 void Enemy::GravityControl()
 {
+	if (nState == EN_STATE_TELEPORTING)
+		return;
 	if (pFloor) {
 		fGravityForce = 0;
 		if (!IsInCollision3D(pFloor->GetHitbox(), GetHitboxEnemy(ENEMY_HB_FEET)))
