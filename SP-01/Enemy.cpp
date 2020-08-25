@@ -28,7 +28,7 @@ float fEnemyAnimations[ENEMY_MAX] =
 	2*1,//EN_ATTACK_2,
 	2*1,//EN_DEATH,
 	2*1,//EN_WALKING,
-	2*1,//EN_RUNNING,
+	2*2,//EN_RUNNING,
 };
 
 Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(true)
@@ -235,7 +235,7 @@ void Enemy::Update()
 		}
 		else {
 			SetAnimation(EN_RUNNING, fEnemyAnimations[EN_RUNNING]);
-			if (Model->GetCurrentFrame() >= 1937)
+			if (Model->GetCurrentFrame() >= 1936)
 				Model->SetFrameOfAnimation(1829);
 		}
 		FaceActor(Player);

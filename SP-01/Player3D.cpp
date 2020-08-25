@@ -224,7 +224,7 @@ void Player3D::Update()
 	pCamera->Update();
 	if (Position.y <= GetCurrentBottom() && nState != PLAYER_TELEPORTING_STATE) {
 		nState = PLAYER_TELEPORTING_STATE;
-		x3LastSafePos.y += 25.0f;
+		x3LastSafePos.y += 35.0f;
 		fAcceleration = 0;
 	}
 	if (nHP <= 0)
@@ -298,8 +298,15 @@ void Player3D::Update()
 	ChuSign->SetPosition({ -sinf(-XM_PI/2 + pCamera->GetRotation().y) * 30, 80, -cosf(-XM_PI/2 + pCamera->GetRotation().y) * 30 });
 	Hitboxes[PLAYER_HB_TAUNT] = { 0, 0.0f, 0, 0.0f, 0.0f, 0.0f };
 	
-	if (pFloor && (nState == PLAYER_IDLE_STATE || nState == PLAYER_IDLE_FIGHT_STATE))
-		x3LastSafePos = Position;
+	if (pFloor && nState != PLAYER_TELEPORTING_STATE)//&& (nState == PLAYER_IDLE_STATE || nState == PLAYER_IDLE_FIGHT_STATE))
+	{
+		Box hb = pFloor->GetHitbox();
+		float hbflooroffset = 70;
+		hb.SizeX -= hbflooroffset;
+		hb.SizeZ -= hbflooroffset;
+		if(IsInCollision3D(hb, GetHitboxPlayer(ENEMY_HB_FEET)))
+			x3LastSafePos = Position;
+	}
 	//ステートマシン
 	switch (nState)
 	{
@@ -1660,14 +1667,7 @@ void Player3D::ResetInputs()
 //*****************************************************************************
 void Player3D::AttackInputsControl()
 {
-	if (!IsOnTheFloor() && CheckHoldingForward() && GetInput(INPUT_ATTACK) && !strstr("FF", szInputs) && !(pCurrentAttackPlaying && pCurrentAttackPlaying->Animation == RED_HOT_KICK))
-	{
-		if (pCurrentAttackPlaying && pCurrentAttackPlaying->Animation != KNEEDASH)
-			return;
-		SwitchAttack(RED_HOT_KICK);
-		ResetInputs();
-		return;
-	}
+
 	if (nState == PLAYER_ATTACKING_STATE) {
 		if(!(pCurrentAttackPlaying && pCurrentAttackPlaying->Animation==RED_HOT_KICK))
 			return;
@@ -1676,6 +1676,11 @@ void Player3D::AttackInputsControl()
 	{
 		if (strstr("FF", szInputs) && IsOnTheFloor()) {
 			SwitchAttack(HEADBUTT);
+			ResetInputs();
+			return;
+		}
+		if (strstr("FF", szInputs) && !IsOnTheFloor()) {
+			SwitchAttack(KNEEDASH);
 			ResetInputs();
 			return;
 		}
@@ -1689,6 +1694,14 @@ void Player3D::AttackInputsControl()
 			SwitchAttack(SLIDE);
 			return;
 		}
+	}
+	if (!IsOnTheFloor() && CheckHoldingForward() && GetInput(INPUT_ATTACK) && !bAllStaminaUsed && !strstr("FF", szInputs) && !(pCurrentAttackPlaying && pCurrentAttackPlaying->Animation == RED_HOT_KICK))
+	{
+		if (pCurrentAttackPlaying && pCurrentAttackPlaying->Animation != KNEEDASH)
+			return;
+		SwitchAttack(RED_HOT_KICK);
+		ResetInputs();
+		return;
 	}
 	if (bPunch)
 	{
