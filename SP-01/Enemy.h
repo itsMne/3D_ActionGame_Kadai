@@ -21,6 +21,7 @@ enum ENEMY_ANIMATIONS
 	EN_ATTACK_2,
 	EN_DEATH,
 	EN_WALKING,
+	EN_RUNNING,
 	ENEMY_MAX
 };
 enum ENEMY_HITBOXES
@@ -92,6 +93,6 @@ public:
 	void End();
 	Box GetHitboxEnemy(int i);
 	bool IsEnemyDead();
-	void Enrage(int Frames) { if (nEnragedFrames > 0)return; nEnragedFrames = Frames; };
+	void Enrage(int Frames) { if (nEnragedFrames > 0)return; nEnragedFrames = Frames; nIdleWaitFramesCount = nMaxIdleWaitFrames; };
 };
 

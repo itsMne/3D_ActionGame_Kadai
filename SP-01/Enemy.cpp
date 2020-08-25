@@ -28,6 +28,7 @@ float fEnemyAnimations[ENEMY_MAX] =
 	2*1,//EN_ATTACK_2,
 	2*1,//EN_DEATH,
 	2*1,//EN_WALKING,
+	2*1,//EN_RUNNING,
 };
 
 Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(true)
@@ -156,7 +157,7 @@ void Enemy::Update()
 	pAngrySign->Update();
 	pAngrySign->GetModel()->SetRotation(SumVector({0,XM_PI*0.5f, 0}, pCamera->GetRotation()));
 	pAngrySign->SetPosition({ sinf(XM_PI + pCamera->GetRotation().y + 20) * 5, 145, cosf(XM_PI + pCamera->GetRotation().y) * 50 });
-	bool bIsEnraged;
+	bool bIsEnraged = false;
 	if (--nEnragedFrames <= 0)
 		nEnragedFrames = 0;
 	else
@@ -171,7 +172,8 @@ void Enemy::Update()
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 		if (pPlayerAttack) {
 			CameraRumbleControl(pPlayerAttack->Animation);
-			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B)) {
+			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B
+				|| (pFloor && (pPlayerAttack->Animation == AIR_PUNCHA|| pPlayerAttack->Animation == AIR_PUNCHB)))) {
 				nState = EN_ATTACKING;
 				SetPauseFrames(15, 200);
 				ActivateInefectiveHit();
@@ -226,9 +228,16 @@ void Enemy::Update()
 			nState = EN_IDLE;
 			break;
 		}
-		SetAnimation(EN_WALKING, fEnemyAnimations[EN_WALKING]);
-		if (Model->GetCurrentFrame()>=1778)
-			Model->SetFrameOfAnimation(1660);
+		if (!bIsEnraged) {
+			SetAnimation(EN_WALKING, fEnemyAnimations[EN_WALKING]);
+			if (Model->GetCurrentFrame() >= 1778)
+				Model->SetFrameOfAnimation(1660);
+		}
+		else {
+			SetAnimation(EN_RUNNING, fEnemyAnimations[EN_RUNNING]);
+			if (Model->GetCurrentFrame() >= 1937)
+				Model->SetFrameOfAnimation(1829);
+		}
 		FaceActor(Player);
 		nPlayerTouchFramesCount = nMaxIdleWaitFrames;
 		 EnragedOffset = 1;

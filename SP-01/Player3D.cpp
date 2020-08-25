@@ -307,8 +307,10 @@ void Player3D::Update()
 		AttackInputsControl();
 		if (Model->GetCurrentFrame() >= 4817)
 			nState = PLAYER_IDLE_STATE;
-		if (pLockedEnemy)
-			((Enemy*)pLockedEnemy)->Enrage(600);
+		if (Model->GetCurrentAnimation() == TAUNT_A && Model->GetCurrentFrame() >= 4765) {
+			if (pLockedEnemy)
+				((Enemy*)pLockedEnemy)->Enrage(600);
+		}
 		break;
 	case PLAYER_MOVING_STATE:
 		GravityControl();
