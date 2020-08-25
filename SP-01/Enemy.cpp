@@ -12,7 +12,7 @@
 #define DEAD_FRAME_COUNT 250
 #define IDLE_WAIT_FRAMES 120
 #define ENEMY_SPEED 5.5f
-#define ENEMY_SPEED 0
+//#define ENEMY_SPEED 0
 float fEnemyAnimations[ENEMY_MAX] =
 {
 	2*1,//EN_IDLE,

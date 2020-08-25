@@ -298,7 +298,7 @@ void Player3D::Update()
 	ChuSign->SetPosition({ -sinf(-XM_PI/2 + pCamera->GetRotation().y) * 30, 80, -cosf(-XM_PI/2 + pCamera->GetRotation().y) * 30 });
 	Hitboxes[PLAYER_HB_TAUNT] = { 0, 0.0f, 0, 0.0f, 0.0f, 0.0f };
 	
-	if (pFloor && nState != PLAYER_TELEPORTING_STATE)//&& (nState == PLAYER_IDLE_STATE || nState == PLAYER_IDLE_FIGHT_STATE))
+	if (pFloor && nState != PLAYER_TELEPORTING_STATE)
 	{
 		Box hb = pFloor->GetHitbox();
 		float hbflooroffset = 70;
@@ -568,7 +568,6 @@ bool Player3D::CheckHoldingBack()
 	}
 	if (DirInput >= BACKWARD_INPUT_OFFSET)
 		IsHoldingBack = true;
-	
 	return IsHoldingBack;
 }
 
