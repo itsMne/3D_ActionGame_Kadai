@@ -15,7 +15,7 @@ private:
 	bool bIsSkybox;
 public:
 	Sphere3D(XMFLOAT3 pos, XMFLOAT3 rot, int nSlice, int nStack, float fRadius, const char* szPath);
-	Sphere3D(const char* szPath);
+	Sphere3D(const char* szPath, bool);
 	~Sphere3D();
 
 	HRESULT Init(XMFLOAT3 pos, XMFLOAT3 rot, int nSlice, int nStack, float fRadius, const char* szPath);
@@ -23,5 +23,6 @@ public:
 	void Update(void);
 	void Draw(void);
 	void SetUnlit(bool isUnlit);
+	void SetRotSpeed(XMFLOAT3 rs) { fRotSpeed = rs; };
 };
 

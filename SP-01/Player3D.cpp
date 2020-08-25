@@ -145,7 +145,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	ChuSign->SetParent(this);
 	ChuSign->SetScale({0.25f,0.25f,0.25f});
 	ChuSign->SetPosition({ 30, 80, 0 });
-
+	pDodgedEnemy = nullptr;
 	pCurrentAttackPlaying = nullptr;
 	pPreviousAttack = nullptr;
 	nFightStanceFrameCount = 0;
@@ -169,6 +169,9 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pBatteryWasted->SetUnusableAfterAnimation(false);
 	pBatteryWasted->SetUse(true);
 	nStamina = MAX_PLAYER_STAMINA;
+	pDodgeSkybox = new Sphere3D("data/texture/SkyboxDodge.tga", false);
+	pDodgeSkybox->SetScale({ 0.0f,0.0f,0.0f });
+	pDodgeSkybox->SetRotSpeed({ 0.0f ,0.1f ,0.0f });
 }
 
 Player3D::~Player3D()
@@ -192,6 +195,7 @@ void Player3D::Init()
 	}
 	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 17.0f, 15.0f, 17.0f };
 	Hitboxes[PLAYER_HB_BODY] = { 0, 25.0f, 0, 20.0f, 40.0f, 20.0f };
+	Hitboxes[PLAYER_HB_DODGE] = { 0, 25.0f, 0, 20.0f*3, 40.0f, 20.0f*3 };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
@@ -222,6 +226,7 @@ void Player3D::Update()
 {
 	Actor::Update();
 	pCamera->Update();
+	DodgeSkyboxControl();
 	if (Position.y <= GetCurrentBottom() && nState != PLAYER_TELEPORTING_STATE) {
 		nState = PLAYER_TELEPORTING_STATE;
 		x3LastSafePos.y += 35.0f;
@@ -237,8 +242,16 @@ void Player3D::Update()
 	}
 	if(DamagedStateControl())
 		return;
-	if (bDodged)
+	if (bDodged && pDodgedEnemy)
 	{
+		XMFLOAT3 Rot = pCamera->GetRotation();
+		pCamera->SetZooming(-140, 40, 2, 4);
+		Rot.y = GetFaceActorRotation(pDodgedEnemy);
+		pCamera->SetNewTargetRotation(Rot);
+		if (((Enemy*)pDodgedEnemy)->GetState() != EN_ATTACKING) {
+			bDodged = false;
+			pDodgedEnemy = nullptr;
+		}
 		//dodge reward
 	}
 	bSoftLocking = false;
@@ -451,6 +464,32 @@ void Player3D::Update()
 	TransitionToFloatingBunBun();
 	StaminaControl();
 	//printf("STATE: %d FRAME: %d\n", nState, Model->GetCurrentFrame());
+}
+
+void Player3D::DodgeSkyboxControl()
+{
+	pDodgeSkybox->Update();
+	pDodgeSkybox->SetPosition(Position);
+	static float fAcc = 0;
+	fAcc += 0.005f;
+	if (GetKeyPress(VK_B))
+	{
+		if (pDodgeSkybox->GetScaleX() != 2.0f)
+			pDodgeSkybox->ScaleUP({ fAcc,fAcc,fAcc });
+		if (pDodgeSkybox->GetScaleX() >= 2.1f) {
+			pDodgeSkybox->SetScale({ 2.1f, 2.1f, 2.1f });
+			fAcc = 0;
+		}
+	}
+	else
+	{
+		if(pDodgeSkybox->GetScaleX()!=0)
+			pDodgeSkybox->ScaleUP({ -fAcc,-fAcc,-fAcc });
+		if (pDodgeSkybox->GetScaleX() <= 0) {
+			fAcc = 0;
+			pDodgeSkybox->SetScale({ 0, 0, 0 });
+		}
+	}
 }
 
 bool Player3D::DamagedStateControl()
@@ -1529,6 +1568,9 @@ void Player3D::MoveControl()
 //*****************************************************************************
 void Player3D::Draw()
 {
+	SetCullMode(CULLMODE_CCW);
+	pDodgeSkybox->Draw();
+	SetCullMode(CULLMODE_NONE);
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	GetMainLight()->SetLightEnable(false);
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
@@ -1552,7 +1594,6 @@ void Player3D::Draw()
 		if(bAllStaminaUsed)
 			pBatteryWasted->Draw();
 	}
-
 	SetCullMode(CULLMODE_CW);
 }
 
@@ -1569,6 +1610,7 @@ void Player3D::End()
 	SAFE_DELETE(pBatteryEnergy);
 	SAFE_DELETE(pBatteryWasted);
 	SAFE_DELETE(ChuSign);
+	SAFE_DELETE(pDodgeSkybox);
 }
 
 //*****************************************************************************

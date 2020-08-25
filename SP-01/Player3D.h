@@ -7,6 +7,7 @@
 #include "Cube3D.h"
 #include "CameraObj.h"
 #include "S_Scene3D.h"
+#include "Sphere3D.h"
 #include "Billboard2D.h"
 
 //*****************************************************************************
@@ -94,6 +95,7 @@ enum EPLAYER_HITBOXES
 	PLAYER_HB_OBJECT_COL,
 	PLAYER_HB_BODY,
 	PLAYER_HB_TAUNT,
+	PLAYER_HB_DODGE,
 	PLAYER_HB_MAX
 };
 enum AirMove
@@ -184,12 +186,15 @@ private:
 	bool bDodged;
 	//—Ž‚¿‚é
 	XMFLOAT3 x3LastSafePos;
+	Actor*	pDodgedEnemy;
+	Sphere3D* pDodgeSkybox;
 public:
 	Player3D();
 	~Player3D();
 
 	void				Init();
 	void				Update();
+	void DodgeSkyboxControl();
 	bool				DamagedStateControl();
 	void				StaminaControl();
 	void				Jump();
@@ -238,6 +243,9 @@ public:
 	int					GetState() { return nState; };
 	void				Damage();
 	void				Damage(int dam);
+	void				SetAsDodged() { bDodged = true; };
+	bool				DodgeSuccessful() { return bDodged; };
+	void				SetDodgedEnemy(Actor* pEn) { if (pDodgedEnemy)return; pDodgedEnemy = pEn; };
 };
 
 Player3D*				GetPlayer();

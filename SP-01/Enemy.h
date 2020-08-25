@@ -94,6 +94,7 @@ public:
 	void End();
 	Box GetHitboxEnemy(int i);
 	bool IsEnemyDead();
+	int GetState() { return nState; };
 	void Enrage(int Frames) { if (nEnragedFrames > 0)return; nEnragedFrames = Frames; nIdleWaitFramesCount = nMaxIdleWaitFrames; };
 };
 

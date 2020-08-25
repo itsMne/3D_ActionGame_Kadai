@@ -30,5 +30,6 @@ public:
 	virtual void End();
 	int GetActorType();
 	void FaceActor(Actor* pToFace);
+	float GetFaceActorRotation(Actor* pToFace);
 };
 

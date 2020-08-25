@@ -49,9 +49,8 @@ protected:
 	bool bisUnlit;
 	bool bNoCull;
 	bool bUsingOutsideTexture;
-
-
 	bool bUse;
+
 	XMFLOAT3 Rotation;
 	XMFLOAT3 Scale;
 	XMFLOAT3 Position;
@@ -76,9 +75,12 @@ public:
 	HRESULT MakeMeshVertex(ID3D11Device* pDevice,
 		VERTEX_3D vertexWk[], int indexWk[]);
 	void ReleaseMesh();
+	void SetScale(XMFLOAT3 scl) { Scale = scl; };
+	void ScaleUP(XMFLOAT3 scl);
 	void SetNoCull(bool);
 	void SetUnlit(bool);
-	
+	float GetScaleX() { return Scale.x; };
+	void SetPosition(XMFLOAT3 pos) { Position = pos; };
 };
 
 

@@ -37,7 +37,8 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	MainWindow->SetWindowColor255(150, 71, 89);
 	pPlayer = new Player3D();
 	pPlayer->SetPosition({ 2.578626f, 119.499969f, -138.668900f });
-	pSkybox = new Sphere3D("data/texture/Skybox.tga");
+	pSkybox = new Sphere3D("data/texture/Skybox.tga", true);
+	pSkybox->SetScale({ 2.5f, 2.5f, 2.5f });
 	//HRESULT	hr;
 	g_pDevice = GetDevice();
 	pSceneLight = GetMainLight();
@@ -54,6 +55,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	nTempPauseFrames = 0;
 	nWaitFramesForNextPause = 0;
 	fBottom = DEFAULT_BOTTOM;
+
 }
 
 

@@ -60,3 +60,21 @@ void Actor::FaceActor(Actor* pActor)
 	else
 		Model->SetRotationY(rotationAngle);
 }
+
+float Actor::GetFaceActorRotation(Actor * pActor)
+{
+	XMFLOAT3 a;
+	XMFLOAT3 calc = GetVectorDifference(pActor->GetPosition(), Position);
+	a.x = sin(GetRotation().y);
+	a.y = sin(GetRotation().x);
+	a.z = cos(GetRotation().y);
+	XMFLOAT3 b = NormalizeVector(calc);
+	XMVECTOR dot = XMVector3Dot(XMLoadFloat3(&a), XMLoadFloat3(&b));
+
+
+	float rotationAngle = (float)acos(XMVectorGetX(dot));
+	rotationAngle = ceilf(rotationAngle * 10) / 10;
+	if (pActor->GetPosition().x < Position.x)
+		return -rotationAngle;
+	return rotationAngle;
+}

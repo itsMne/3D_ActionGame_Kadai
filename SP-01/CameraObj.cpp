@@ -19,6 +19,7 @@ Camera3D::~Camera3D()
 
 void Camera3D::Init()
 {
+	bLockOnActivated = false;
 }
 
 void Camera3D::Update()
@@ -126,7 +127,7 @@ void Camera3D::Update()
 void Camera3D::PlayerCameraControl()
 {
 	//printf("Cur: %f  --  Tar: %f\n", Rotation.y, x3TargetRotation.y);
-	static bool bLockOnActivated = false;
+	
 	static float fAcceleration = 0;
 	Player3D* pPlayer = GetPlayer();
 	if (pPlayer->GetLockedEnemy())
@@ -216,4 +217,10 @@ XMFLOAT3 Camera3D::GetRotation(bool Offset)
 	if(Offset)
 		CurRot.y += fLockOnOffset;
 	return CurRot;
+}
+
+void Camera3D::SetNewTargetRotation(XMFLOAT3 newRot)
+{
+	x3TargetRotation = newRot;
+	bLockOnActivated = true;
 }

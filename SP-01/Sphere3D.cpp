@@ -24,7 +24,7 @@ Sphere3D::Sphere3D(XMFLOAT3 pos, XMFLOAT3 rot, int nSlice, int nStack, float fRa
 	bIsSkybox = false;
 }
 
-Sphere3D::Sphere3D(const char * szPath)
+Sphere3D::Sphere3D(const char * szPath, bool skybox)
 {
 #if USE_16_SLASHES
 	Init({ 0,50,100 }, { 0,0,0 }, 16, 8, SKYBOX_SIZE, szPath);
@@ -34,7 +34,7 @@ Sphere3D::Sphere3D(const char * szPath)
 	bisUnlit = true;
 	bNoCull = true;
 	fRotSpeed = { 0,0.0001f,0 };
-	bIsSkybox = true;
+	bIsSkybox = skybox;
 }
 
 Sphere3D::~Sphere3D()
@@ -161,19 +161,20 @@ void Sphere3D::Uninit(void)
 void Sphere3D::Update(void)
 {
 	Mesh3D::Update();
-	if (!bIsSkybox)
-		return;
 	Rotation.x += fRotSpeed.x;
 	Rotation.y += fRotSpeed.y;
 	Rotation.z += fRotSpeed.z;
-	TechCamera* pCam = GetMainCamera();
-	//printf("a");
-	if (!pCam)
-		return;
 
-	Position = pCam->GetCameraPos();
-	Position.y -= 150;
-	Scale = { 2.5f, 2.5f, 2.5f };
+	//printf("a");
+	
+	if (bIsSkybox) {
+		TechCamera* pCam = GetMainCamera();
+		if (!pCam)
+			return;
+		Position = pCam->GetCameraPos();
+		Position.y -= 150;
+	}
+	//Scale = { 2.5f, 2.5f, 2.5f };
 }
 
 //*****************************************************************************

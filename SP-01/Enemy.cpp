@@ -276,12 +276,20 @@ void Enemy::Update()
 				if (nEnragedFrames > 0)
 					damage = 2;
 				Player->Damage(damage);
+				if (Player->DodgeSuccessful())
+					Player->SetDodgedEnemy(this);
 			}
 		}
 		else if(Model->GetCurrentFrame() <= 1264){
 			FaceActor(Player);
 			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
 				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*0.5f, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*0.5f });
+		}
+		if (IsInCollision3D(Player->GetHitboxPlayer(ENEMY_HB_BODY), GetHitboxEnemy(ENEMY_HB_ATTACK)) && Player->GetState() == PLAYER_DODGING_STATE)
+		{
+			Player->Damage(0);
+			if (Player->DodgeSuccessful())
+				Player->SetDodgedEnemy(this);
 		}
 		break;
 	case EN_STATE_DAMAGED:

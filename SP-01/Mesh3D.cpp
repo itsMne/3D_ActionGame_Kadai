@@ -303,6 +303,11 @@ void Mesh3D::ReleaseMesh()
 	SAFE_RELEASE(pIndexBuffer);
 }
 
+void Mesh3D::ScaleUP(XMFLOAT3 scl)
+{
+	Scale = SumVector(Scale, scl);
+}
+
 //*****************************************************************************
 //SetNoCullä÷êî
 //ÉJÉäÉìÉOÇê›íËÇ∑ÇÈ

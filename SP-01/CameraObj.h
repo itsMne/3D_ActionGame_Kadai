@@ -27,6 +27,7 @@ private:
 	float		fZoomSpeed;
 	int			nZoomFrames;
 	float		fZoomAcceleration;
+	bool		bLockOnActivated;
 public:
 	Camera3D(int type);
 	~Camera3D();
@@ -43,5 +44,6 @@ public:
 	void SetZooming(float intensity, int frames, float speed, float accel) { if (nZoomFrames > 0 && intensity == fZoomTargetIntensity && fZoomSpeed == speed && fZoomAcceleration == accel)return; nZoomFrames = frames; fZoomTargetIntensity = intensity; fZoomSpeed = speed; fZoomAcceleration = accel;};
 	void SetZoomOut(float zoom) { fZoomOut = zoom; };
 	float GetTempZoomIntensity() {return fZoomTargetIntensity;};
+	void SetNewTargetRotation(XMFLOAT3 newRot);
 };
 
