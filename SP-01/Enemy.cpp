@@ -346,7 +346,7 @@ void Enemy::Update()
 
 	if (nHP <= 0)
 		nState = EN_DEAD;
-	if (Position.y <= GetCurrentBottom()) {
+	if (Position.y <= GetCurrentBottom() && nState != EN_STATE_TELEPORTING) {
 		nState = EN_STATE_TELEPORTING;
 		fAcceleration = 0;
 	}

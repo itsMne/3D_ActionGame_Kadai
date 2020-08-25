@@ -95,7 +95,7 @@ void Camera3D::Update()
 		mtxWorld = XMMatrixIdentity();
 
 	//ƒTƒCƒY
-	mtxScale = XMMatrixScaling(Scale.x * ParentScale.x, Scale.y * ParentScale.y, Scale.z * ParentScale.z);
+	mtxScale = XMMatrixScaling(Scale.x, Scale.y, Scale.z);
 	mtxWorld = XMMatrixMultiply(mtxWorld, mtxScale);
 
 	// ‰ñ“]‚ð”½‰f

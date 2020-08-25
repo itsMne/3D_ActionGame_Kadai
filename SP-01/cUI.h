@@ -15,6 +15,7 @@ enum UI_TYPE
 	UI_LOCKON,
 	UI_GAME_MANAGER,
 	UI_INEFFECTIVE_HIT,
+	UI_DAMAGE_AURA,
 	MAX_INGAME_UI
 };
 class cUI :
@@ -39,3 +40,4 @@ public:
 };
 
 void ActivateInefectiveHit();
+void ActivateDamageEffect();

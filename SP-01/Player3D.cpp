@@ -190,7 +190,7 @@ void Player3D::Init()
 		pVisualHitboxes[i] = nullptr;
 		Hitboxes[i] = { 0 };
 	}
-	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 5.0f, 15.0f, 5.0f };
+	Hitboxes[PLAYER_HB_FEET] = { 0, -5.0f, 0, 15.0f, 15.0f, 15.0f };
 	Hitboxes[PLAYER_HB_BODY] = { 0, 25.0f, 0, 20.0f, 40.0f, 20.0f };
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
@@ -222,8 +222,14 @@ void Player3D::Update()
 {
 	Actor::Update();
 	pCamera->Update();
+	if (Position.y <= GetCurrentBottom() && nState != PLAYER_TELEPORTING_STATE) {
+		nState = PLAYER_TELEPORTING_STATE;
+		x3LastSafePos.y += 25.0f;
+		fAcceleration = 0;
+	}
 	if (nHP <= 0)
 	{
+		pLockedEnemy = nullptr;
 		Model->SetLoop(false);
 		GravityControl();
 		SetAnimation(PLAYER_DEATH, fAnimationSpeed[PLAYER_DEATH]);
@@ -241,7 +247,8 @@ void Player3D::Update()
 		if (!pGame)
 			return;
 	}
-	if (IsOnTheFloor() && Model->GetCurrentAnimation()!=SLIDE_KICKUP && nState != PLAYER_DODGING_STATE && nState != PLAYER_DODGING_RECOVERY_STATE)
+	if (IsOnTheFloor() && Model->GetCurrentAnimation()!=SLIDE_KICKUP && nState != PLAYER_DODGING_STATE && nState != PLAYER_DODGING_RECOVERY_STATE
+		&& nState != PLAYER_TELEPORTING_STATE)
 	{
 		if (GetInput(INPUT_JUMP))
 			Jump();
@@ -270,7 +277,7 @@ void Player3D::Update()
 		bFirstSetOfPunches = false;
 	//避ける
 	if (GetInput(INPUT_DODGE) && IsOnTheFloor() && (abs(GetAxis(MOVEMENT_AXIS_HORIZONTAL)) > 0.35f || abs(GetAxis(MOVEMENT_AXIS_VERTICAL)) > 0.35f) 
-		&& Model->GetCurrentAnimation()!=DODGE_ROLL && !bAllStaminaUsed)
+		&& Model->GetCurrentAnimation()!=DODGE_ROLL && !bAllStaminaUsed && nState != PLAYER_TELEPORTING_STATE)
 	{
 		nState = PLAYER_DODGING_STATE;
 		float fHorizontalAxis = GetAxis(MOVEMENT_AXIS_HORIZONTAL);
@@ -290,6 +297,7 @@ void Player3D::Update()
 		ChuSign->GetModel()->SwitchAnimation(1, 0, 2.05f);
 	ChuSign->SetPosition({ -sinf(-XM_PI/2 + pCamera->GetRotation().y) * 30, 80, -cosf(-XM_PI/2 + pCamera->GetRotation().y) * 30 });
 	Hitboxes[PLAYER_HB_TAUNT] = { 0, 0.0f, 0, 0.0f, 0.0f, 0.0f };
+	
 	//ステートマシン
 	switch (nState)
 	{
@@ -300,6 +308,40 @@ void Player3D::Update()
 	case PLAYER_IDLE_FIGHT_STATE:
 		GravityControl();
 		FightingStanceStateControl();
+		break;
+	case PLAYER_TELEPORTING_STATE:
+		SetAnimation(BUNBUN_FALL_ATK, fAnimationSpeed[BUNBUN_FALL_ATK]);
+		if (Model->GetCurrentFrame() > 4620)
+			Model->SetFrameOfAnimation(4580);
+
+		fAcceleration++;
+		if (MoveToPos(fAcceleration, x3LastSafePos))
+		{
+			if (Scale.x != 1)
+			{
+				SetScaling(fAcceleration*0.005f);
+				if (Scale.x >= 1) {
+					Scale = { 1,1,1 };
+					fAcceleration = 0;
+					fGravityForce = 0;
+					Damage();
+					nState = PLAYER_BUNBUN_FALLING;
+					break;
+				}
+			}
+		}
+		else {
+			if (Scale.x != 0)
+			{
+				SetScaling(-fAcceleration * 0.005f);
+				if (Scale.x <= 0) {
+					Scale = { 0,0,0 };
+					fAcceleration = 0;
+					ActivateDamageEffect();
+				}
+			}
+		}
+
 		break;
 	case PLAYER_TAUNTING_STATE:
 		SetAnimation(TAUNT_A, fAnimationSpeed[TAUNT_A]);
@@ -1448,10 +1490,14 @@ void Player3D::MoveControl()
 	if (Model->GetCurrentAnimation() == BACKWARD)
 		fLockMoveBack = 0.5f;
 	if (fVerticalAxis != 0) {
+		if (pFloor && nState != PLAYER_TELEPORTING_STATE)
+			x3LastSafePos = Position;
 		Position.x -= sinf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset;
 		Position.z -= cosf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset;
 	}
 	if (fHorizontalAxis != 0) {
+		if (pFloor && nState != PLAYER_TELEPORTING_STATE)
+			x3LastSafePos = Position;
 		Position.x -= sinf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset;
 		Position.z -= cosf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset;
 	}
@@ -1784,3 +1830,20 @@ void Player3D::AddStamina(int Stamina)
 {
 	nStamina += Stamina;
 }
+
+void Player3D::Damage()
+{
+	if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; 
+	if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } 
+	nState = PLAYER_DAMAGED_STATE; 
+	nHP--;
+	ActivateDamageEffect();
+}
+void Player3D::Damage(int dam)
+{
+	if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; 
+	if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } 
+	nState = PLAYER_DAMAGED_STATE; 
+	nHP -= dam;
+	ActivateDamageEffect();
+};

@@ -13,10 +13,12 @@ enum UI_TEXTURES
 	UI_LOCKON_TEX,
 	UI_ZOOM_TEX,
 	UI_NOHIT_TEX,
+	UI_AURA_PLAYERDAMAGE_TEX,//AURA_DAMAGED.tga
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
 cUI* IneffectiveHitEffect[MAX_HIT_EFF] = {nullptr};
+cUI* DamageEffect[MAX_HIT_EFF] = {nullptr};
 int nIneffectiveHitWaitOffset = 0;
 cUI::cUI(int Type):Polygon2D()
 {
@@ -96,6 +98,13 @@ void cUI::Init()
 		SetSize(0, 0);
 		SetAlpha(1.0f);
 		break;
+	case UI_DAMAGE_AURA:
+		if (!pTextures[UI_AURA_PLAYERDAMAGE_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/AURA_DAMAGED.tga", &pTextures[UI_AURA_PLAYERDAMAGE_TEX]);
+		SetTexture(pTextures[UI_AURA_PLAYERDAMAGE_TEX]);
+		SetSize(0, 0);
+		SetAlpha(1.0f);
+		break;
 	}
 	fAcceleration = 0;
 }
@@ -154,9 +163,14 @@ void cUI::Update()
 				if (IneffectiveHitEffect[i]->GetSize().x > 1500)
 					SAFE_DELETE(IneffectiveHitEffect[i]);
 			}
+			if (DamageEffect[i]) {
+				DamageEffect[i]->Update();
+				if (DamageEffect[i]->GetSize().x > 1500)
+					SAFE_DELETE(DamageEffect[i]);
+			}
 		}
 		break;
-	case UI_INEFFECTIVE_HIT:
+	case UI_INEFFECTIVE_HIT:case UI_DAMAGE_AURA:
 		if (fAcceleration < 10)
 			fAcceleration = 10;
 		fAcceleration+=5;
@@ -225,6 +239,8 @@ void cUI::Draw()
 		{
 			if (IneffectiveHitEffect[i])
 				IneffectiveHitEffect[i]->Draw();
+			if (DamageEffect[i])
+				DamageEffect[i]->Draw();
 		}
 		if (GetPlayer() && GetPlayer()->GetLockedEnemy()) {
 			pUIs[UI_LOCKON]->SetTexture(nullptr);
@@ -257,8 +273,10 @@ void cUI::End()
 {
 	UninitPolygon();
 	if (nType == UI_GAME_MANAGER)
-		for (int i = 0; i < MAX_HIT_EFF; i++)
+		for (int i = 0; i < MAX_HIT_EFF; i++) {
 			SAFE_DELETE(IneffectiveHitEffect[i]);
+			SAFE_DELETE(DamageEffect[i]);
+		}
 }
 
 void ActivateInefectiveHit()
@@ -273,5 +291,15 @@ void ActivateInefectiveHit()
 			IneffectiveHitEffect[i]->RotateAroundZ(100);
 		flip ^= true;
 		nIneffectiveHitWaitOffset = 60;
+	}
+}
+
+void ActivateDamageEffect()
+{
+	for (int i = 0; i < MAX_HIT_EFF; i++)
+	{
+		if (DamageEffect[i])
+			continue;
+		DamageEffect[i] = new cUI(UI_DAMAGE_AURA);
 	}
 }

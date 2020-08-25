@@ -83,6 +83,7 @@ enum EPLAYER_STATE
 	PLAYER_DODGING_RECOVERY_STATE,
 	PLAYER_TAUNTING_STATE,
 	PLAYER_DAMAGED_STATE,
+	PLAYER_TELEPORTING_STATE,
 	PLAYER_STATE_MAX
 };
 enum EPLAYER_HITBOXES
@@ -181,6 +182,8 @@ private:
 	Actor* pEnemiesFollowingPlayer[MAX_ENEMIES_FOLLOWING_PLAYER];
 	//”ð‚¯‚é
 	bool bDodged;
+	//—Ž‚¿‚é
+	XMFLOAT3 x3LastSafePos;
 public:
 	Player3D();
 	~Player3D();
@@ -233,8 +236,8 @@ public:
 	int					GetStamina() { return nStamina; };
 	bool				IsStaminaOverused() { return bAllStaminaUsed; };
 	int					GetState() { return nState; };
-	void				Damage() { if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } nState = PLAYER_DAMAGED_STATE; nHP--; };
-	void				Damage(int dam) { if (fGravityForce < 0 || nState == PLAYER_DAMAGED_STATE) { return; }; if (nState == PLAYER_DODGING_STATE) { bDodged = true; return; } nState = PLAYER_DAMAGED_STATE; nHP-= dam; };
+	void				Damage();
+	void				Damage(int dam);
 };
 
 Player3D*				GetPlayer();
