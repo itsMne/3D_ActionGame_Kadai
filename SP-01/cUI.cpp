@@ -49,7 +49,7 @@ void cUI::Init()
 		SetUVSize(5.0f, 4.0f);
 		SetSpeedAnimationFrameChange(2);
 		SetSize(1280 * 35, 720 * 35);
-		SetAlpha(0.5f);
+		SetAlpha(0.75f);
 		fPauseSizeOffset = 35;
 		break;
 	case UI_HEALTH_FLOWER:
