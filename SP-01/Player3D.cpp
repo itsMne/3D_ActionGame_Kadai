@@ -24,7 +24,7 @@
 #define MAX_SPEED 6.8f
 #define GRAVITY_FORCE 0.98f*2
 #define SHOW_PLAYER_HITBOX false
-#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_BODY
+#define SHOW_SPECIFIC_PLAYER_HITBOX PLAYER_HB_TAUNT
 #define JUMP_FORCE 20*1.34f
 #define DEBUG_DIRECTIONALS false
 #define DEBUG_WAITFRAME false
@@ -195,6 +195,7 @@ void Player3D::Init()
 	Hitboxes[PLAYER_HB_ATTACK] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_OBJECT_COL] = { 0, 25.0f, 0, 15.0f, 20.0f, 10.0f };
 	Hitboxes[PLAYER_HB_LOCKON] = { 0, 25.0f, 20, 60.0f, 60.0f, 60.0f };
+	Hitboxes[PLAYER_HB_TAUNT] = { 0, 0.0f, 0, 0.0f, 0.0f, 0.0f };
 	for (int i = 0; i < MAX_ENEMIES_FOLLOWING_PLAYER; pEnemiesFollowingPlayer[i] = nullptr, i++);
 	bDodged = false;
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
@@ -257,6 +258,7 @@ void Player3D::Update()
 
 	SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 10, 25.0f, -cosf(XM_PI + Model->GetRotation().y) * 10, PLAYER_HB_OBJECT_COL);
 	SetHitboxPosition(-sinf(XM_PI + Model->GetRotation().y) * 45,25.0f,-cosf(XM_PI + Model->GetRotation().y) * 45, PLAYER_HB_ATTACK);
+	
 	ActivateAttackHitbox(0, 0, 0, 0);
 
 	bKick = GetInput(INPUT_ATTACK) && CheckHoldingBack();
@@ -287,6 +289,7 @@ void Player3D::Update()
 	if(nState!= PLAYER_TAUNTING_STATE)
 		ChuSign->GetModel()->SwitchAnimation(1, 0, 2.05f);
 	ChuSign->SetPosition({ -sinf(-XM_PI/2 + pCamera->GetRotation().y) * 30, 80, -cosf(-XM_PI/2 + pCamera->GetRotation().y) * 30 });
+	Hitboxes[PLAYER_HB_TAUNT] = { 0, 0.0f, 0, 0.0f, 0.0f, 0.0f };
 	//ステートマシン
 	switch (nState)
 	{
@@ -308,6 +311,7 @@ void Player3D::Update()
 		if (Model->GetCurrentFrame() >= 4817)
 			nState = PLAYER_IDLE_STATE;
 		if (Model->GetCurrentAnimation() == TAUNT_A && Model->GetCurrentFrame() >= 4765) {
+			Hitboxes[PLAYER_HB_TAUNT] = { -sinf(XM_PI + Model->GetRotation().y) * 220, 25.0f, -cosf(XM_PI + Model->GetRotation().y) * 220, 150.0f, 60.0f, 200.0f };
 			if (pLockedEnemy)
 				((Enemy*)pLockedEnemy)->Enrage(600);
 		}

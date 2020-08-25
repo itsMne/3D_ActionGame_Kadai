@@ -11,7 +11,7 @@
 #define GRAVITY_FORCE 0.98f*2
 #define DEAD_FRAME_COUNT 250
 #define IDLE_WAIT_FRAMES 120
-#define ENEMY_SPEED 8
+#define ENEMY_SPEED 5.5f
 #define ENEMY_SPEED 0
 float fEnemyAnimations[ENEMY_MAX] =
 {
@@ -165,7 +165,6 @@ void Enemy::Update()
 
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED && nState != EN_STATE_REDHOTKICKED) {
 		nState = EN_STATE_DAMAGED;
-		
 		FaceActor(pPlayer);
 		bCanBeAttacked = false;
 		bAlternatePunchAnim ^= true;
@@ -265,7 +264,7 @@ void Enemy::Update()
 		{
 			SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*2* EnragedOffset);
 			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
-				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*2 });
+				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*4, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*4 });
 			Hitboxes[ENEMY_HB_ATTACK] = { -sinf(XM_PI + Model->GetRotation().y) * 80, 100.0f, -cosf(XM_PI + Model->GetRotation().y) * 100, 30.0f, 40.0f, 40.0f };
 			if (IsInCollision3D(Player->GetHitboxPlayer(ENEMY_HB_BODY), GetHitboxEnemy(ENEMY_HB_ATTACK)) && Player->GetState()!=PLAYER_DAMAGED_STATE) {
 				if (Player->GetState() != PLAYER_DODGING_STATE) {
@@ -296,6 +295,8 @@ void Enemy::Update()
 	default:
 		break;
 	}
+	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_TAUNT), GetHitboxEnemy(ENEMY_HB_BODY)))
+		Enrage(500);
 	if (!pFloor && Model->GetCurrentAnimation() == EN_SENDTOAIR_AIRIDLE && Model->GetCurrentFrame()>=729)
 		Model->SetFrameOfAnimation(729);
 	else if(pFloor && Model->GetCurrentAnimation() == EN_SENDTOAIR_AIRIDLE && Model->GetCurrentFrame() < 773)
