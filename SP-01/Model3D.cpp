@@ -174,6 +174,7 @@ void Model3D::UninitModel(void)
 //*****************************************************************************
 void Model3D::UpdateModel(void)
 {
+	g_pModel->SetAnimStack(nCurrentAnimation);
 	AnimationControl();
 }
 
@@ -252,7 +253,8 @@ void Model3D::DrawModel(void)
 	XMStoreFloat4x4(&g_mtxWorld, mtxWorld);
 
 	g_pModel->SetAnimStack(nCurrentAnimation);
-	//AnimationControl();
+	g_pModel->SetAnimFrame((int)fFrame);
+
 	SetZWrite(true);
 	g_pModel->Render(g_mtxWorld, pMainCamera->GetViewMatrix(), pMainCamera->GetProjMatrix(), eOpacityOnly);
 	SetZWrite(false);
@@ -300,8 +302,11 @@ void Model3D::DrawModel(XMFLOAT3 * ParPos, XMFLOAT3 * ParScal, XMFLOAT3 * ParRot
 	// ワールドマトリックスの設定
 	XMStoreFloat4x4(&g_mtxWorld, mtxWorld);
 
+
+
 	g_pModel->SetAnimStack(nCurrentAnimation);
-	AnimationControl();
+	g_pModel->SetAnimFrame((int)fFrame);
+
 	SetZWrite(true);
 	g_pModel->Render(g_mtxWorld, pMainCamera->GetViewMatrix(), pMainCamera->GetProjMatrix(), eOpacityOnly);
 	SetZWrite(false);

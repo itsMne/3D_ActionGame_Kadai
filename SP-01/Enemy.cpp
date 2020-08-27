@@ -12,7 +12,8 @@
 #define DEAD_FRAME_COUNT 250
 #define IDLE_WAIT_FRAMES 120
 #define ENEMY_SPEED 5.5f
-//#define ENEMY_SPEED 0
+#define MAX_DIZZINESS 3
+#define ENEMY_SPEED 0
 float fEnemyAnimations[ENEMY_MAX] =
 {
 	2*1,//EN_IDLE,
@@ -29,11 +30,15 @@ float fEnemyAnimations[ENEMY_MAX] =
 	2*1,//EN_DEATH,
 	2*1,//EN_WALKING,
 	2*2,//EN_RUNNING,
+	2*0.5f,//EN_DIZZY,
+	2*2,//EN_DIZZYSPIN,
 };
 
 Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(true)
 {
 	Init();
+	bIsDizzy = false;
+	bDizzyPush = false;
 	Model->SetRotation({ 0,XM_PI,0 });
 	Model->SetScale({ 0.65f, 0.65f, 0.65f });
 	Model->SetPosition({ 0,5,0 });
@@ -62,6 +67,10 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	pAngrySign->SetScale({ 0.5f, 0.5f, 0.5f });
 	nEnragedFrames = 0;
 	fAcceleration = 0;
+	nDizzyness = 0;
+	nDizzynessFrames = 0;
+	nDizzyWaitCountFrames = 0;
+	fHeartsAccel = 0;
 }
 
 void Enemy::SetHitEffect()
@@ -110,10 +119,13 @@ void Enemy::Init()
 
 void Enemy::Update()
 {
+	if (nDizzyness > MAX_DIZZINESS)
+		nDizzyness = MAX_DIZZINESS;
 	if (nDeathFrameCount >= DEAD_FRAME_COUNT)
 		return;
 	if (nState == EN_DEAD)
 	{
+		nDizzynessFrames = 0;
 		for (int i = 0; i < MAX_HIT_EFFECTS; i++)
 		{
 			if (pHit[i]) {
@@ -126,10 +138,11 @@ void Enemy::Update()
 		if(Model->GetCurrentAnimation()!= EN_DEATH)
 			SetAnimation(EN_DEATH, fEnemyAnimations[EN_DEATH]);
 		Player3D* Player = (Player3D*)pPlayer;
-		if (Player && Player->GetLockedEnemy()==this)
-		{
+		if (Player && Player->GetLockedEnemy() == this)
 			Player->SetLockedEnemy(false);
-		}
+		if (Player && Player->GetDizzyEnemy() == this)
+			Player->SetDizzyEnemy(nullptr);
+
 		Model->SetLoop(false);
 		Hitbox = { 0,0,0,0,0,0 };
 		Actor::Update();
@@ -163,8 +176,17 @@ void Enemy::Update()
 		nEnragedFrames = 0;
 	else
 		bIsEnraged = true;
-
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED && nState != EN_STATE_REDHOTKICKED) {
+		if (bIsDizzy && nDizzyWaitCountFrames>40)
+		{
+			
+			Player->SetDizzyEnemy(this);
+			bIsDizzy = false;
+			nDizzynessFrames = 600;
+			nDizzyness = 0;
+			nDizzyWaitCountFrames = 0;
+			SetPauseFrames(20, 200);
+		}
 		nState = EN_STATE_DAMAGED;
 		FaceActor(pPlayer);
 		bCanBeAttacked = false;
@@ -173,14 +195,20 @@ void Enemy::Update()
 		if (pPlayerAttack) {
 			CameraRumbleControl(pPlayerAttack->Animation);
 			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B
-				|| (pFloor && (pPlayerAttack->Animation == AIR_PUNCHA|| pPlayerAttack->Animation == AIR_PUNCHB)))) {
+				|| (pFloor && (pPlayerAttack->Animation == AIR_PUNCHA|| pPlayerAttack->Animation == AIR_PUNCHB || pPlayerAttack->Animation == SLIDE)))) {
 				nState = EN_ATTACKING;
 				SetPauseFrames(15, 200);
 				ActivateInefectiveHit();
 				Player->GetCameraPlayer()->SetShaking(10.0f, 24, 2);
+				Player->StopAttack();
 			}
-			else
+			else {
+				if (bIsEnraged && Model->GetCurrentAnimation() == EN_ATTACK_1) {
+					nDizzyness = MAX_DIZZINESS;
+					bDizzyPush = true;
+				}
 				InitialAttackedAnimation(pPlayerAttack->Animation);
+			}
 			Player->AddStamina(pPlayerAttack->nStaminaToAdd);
 		}
 		if (pPlayerAttack && pPlayerAttack->Animation == ROULETTE)
@@ -193,12 +221,28 @@ void Enemy::Update()
 		nCancellingGravityFrames = 70;
 		if(nState==EN_STATE_DAMAGED)
 			SetHitEffect();
-		nHP -= pPlayerAttack->nDamage;
+		if(pPlayerAttack)
+			nHP -= pPlayerAttack->nDamage;
 
 	}
-	if (nState != EN_STATE_SENDOFF)
+	if (nState != EN_STATE_SENDOFF && nState != EN_STATE_DIZZY)
 		fSendOffAcceleration = nSendOffFrames = 0;
+	if (nDizzyness == MAX_DIZZINESS && !bIsDizzy) {
+		bIsDizzy = true;
+		nDizzynessFrames = 600;
+	}
+	if (bIsDizzy) {
+		nState = EN_STATE_DIZZY;
+		nDizzyWaitCountFrames++;
+		nEnragedFrames = 0;
+	}
+	if (Player->GetDizzyEnemy() == this) {
+		--nDizzynessFrames;
+		nEnragedFrames = 0;
+		nDizzyness = 0;
 
+	}
+	
 	while (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_OBJECT_COL), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED)
 	{
 		nIdleWaitFramesCount++;
@@ -210,7 +254,7 @@ void Enemy::Update()
 		Translate({ -sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, -cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
 		Player->Translate({ sinf(XM_PI + Player->GetModel()->GetRotation().y) * 2, 0, cosf(XM_PI + Player->GetModel()->GetRotation().y) * 2 });
 	}
-
+	//printf("%d\n", nDizzyWaitCountFrames);
 	Hitboxes[ENEMY_HB_ATTACK] = { 0,0,0,0,0,0 };
 	float EnragedOffset = 1;
 	switch (nState)
@@ -221,6 +265,25 @@ void Enemy::Update()
 			nIdleWaitFramesCount++;
 		if (++nIdleWaitFramesCount >= nMaxIdleWaitFrames)
 			nState = EN_MOVING;
+		break;
+	case EN_STATE_DIZZY:
+		if (bDizzyPush) {
+			//
+			fSendOffAcceleration += 0.5f;
+			Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+			SetAnimation(EN_DIZZYSPIN, fEnemyAnimations[EN_DIZZYSPIN]);
+			if (Model->GetLoops() > 1)
+				bDizzyPush = false;
+		}else {
+			SetAnimation(EN_DIZZY, fEnemyAnimations[EN_DIZZY]);
+			if (Model->GetCurrentFrame() >= 2096)
+				Model->SetFrameOfAnimation(2013);
+		}
+		if (--nDizzynessFrames <= 0) {
+			nState = EN_STATE_IDLE;
+			bIsDizzy = false;
+			nDizzyness = 0;
+		}
 		break;
 	case EN_MOVING:
 		if (!pFloor)
@@ -255,7 +318,7 @@ void Enemy::Update()
 		EnragedOffset = 1;
 		if (bIsEnraged)
 			EnragedOffset = 1.5f;
-		SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*0.75f* EnragedOffset);
+		SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*0.8f* EnragedOffset);
 		if (Model->GetCurrentFrame() >= 1353)
 			nState = EN_STATE_IDLE;
 		
@@ -276,8 +339,10 @@ void Enemy::Update()
 				if (nEnragedFrames > 0)
 					damage = 2;
 				Player->Damage(damage);
-				if (Player->DodgeSuccessful())
+				if (Player->DodgeSuccessful() && !Player->GetDodgedEnemy()) {
 					Player->SetDodgedEnemy(this);
+					nDizzyness++;
+				}
 			}
 		}
 		else if(Model->GetCurrentFrame() <= 1264){
@@ -308,7 +373,7 @@ void Enemy::Update()
 			if (Scale.x != 1)
 			{
 				SetScaling(fAcceleration*0.001f);
-				printf("%f\n", Scale.x);
+				//printf("%f\n", Scale.x);
 				if (Scale.x >= 1) {
 					Scale = { 1,1,1 };
 					fAcceleration = 0;
@@ -363,7 +428,6 @@ void Enemy::Update()
 void Enemy::HeartsControl()
 {
 	pHearts->Update();
-	static float fAccel = 0;
 	Player3D* Player = (Player3D*)pPlayer;
 	float MaxHealthHeart = (nHP / (float)MAX_ENEMY_HP)*(40 * (float)MAX_ENEMY_HEART);
 	MaxHealthHeart -= MAX_ENEMY_HEART*40;
@@ -382,23 +446,23 @@ void Enemy::HeartsControl()
 	if (Player->GetLockedEnemy() == this)
 	{
 		if (fHeartPosLockOn < 40)
-			fHeartPosLockOn += fAccel;
+			fHeartPosLockOn += fHeartsAccel;
 		else
 		{
 			fHeartPosLockOn = 40;
-			fAccel = 0;
+			fHeartsAccel = 0;
 		}
-		fAccel += 0.5f;
+		fHeartsAccel += 0.5f;
 	}
 	else {
 		if (fHeartPosLockOn > 0)
-			fHeartPosLockOn -= fAccel;
+			fHeartPosLockOn -= fHeartsAccel;
 		else
 		{
 			fHeartPosLockOn = 0;
-			fAccel = 0;
+			fHeartsAccel = 0;
 		}
-		fAccel += 0.5f;
+		fHeartsAccel += 0.5f;
 	}
 }
 
@@ -421,6 +485,7 @@ void Enemy::RedHotKickedStateControl()
 void Enemy::SendOffStateControl()
 {
 	nSendOffFrames++;
+	//printf("sendoffstate frames %d\n", nSendOffFrames);
 	switch (nSendoffAttack)
 	{
 	case AIR_PUNCHC:
@@ -451,6 +516,7 @@ void Enemy::SendOffStateControl()
 		SetAnimation(EN_LAUNCHED_FORWARD, fEnemyAnimations[EN_LAUNCHED_FORWARD] * 2.75f);
 		fSendOffAcceleration += 0.3f;
 		Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
+		printf("sendoffstate frames %d\n", Model->GetLoops());
 		if (Model->GetLoops() > 0)
 			nState = EN_IDLE;
 		break;
@@ -500,18 +566,19 @@ void Enemy::DamagedStateControl()
 		if (pPlayerAttack && pPlayerAttack->Animation != RED_HOT_KICK)
 			FaceActor(pPlayer);
 		bCanBeAttacked = false;
-		CameraRumbleControl(pPlayerAttack->Animation);
+		if(pPlayerAttack)
+			CameraRumbleControl(pPlayerAttack->Animation);
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
 		if (!GetInput(INPUT_LOCKON) && !Player->IsSoftLocked()) {
 			pPlayer->FaceActor(this);
 			Player->SoftLock();
 		}
-		if (pPlayerAttack->Animation == ROULETTE)
+		if (pPlayerAttack && pPlayerAttack->Animation == ROULETTE)
 			bFollowRoulette = true;
 		else
 			bFollowRoulette = false;
-		if (pPlayerAttack->Animation == RED_HOT_KICK) {
+		if (pPlayerAttack && pPlayerAttack->Animation == RED_HOT_KICK) {
 			pPlayer->FaceActor(this);
 			Player->RedHotKicked();
 		}

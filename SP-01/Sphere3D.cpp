@@ -6,6 +6,7 @@
 #include "Sphere3D.h"
 #include "main.h"
 #include "Texture.h"
+#include "Player3D.h"
 #include "TechnicalCamera.h"
 
 //*****************************************************************************
@@ -173,6 +174,13 @@ void Sphere3D::Update(void)
 			return;
 		Position = pCam->GetCameraPos();
 		Position.y -= 150;
+		Player3D* Player = GetPlayer();
+		if (!Player)
+			return;
+		if (Player->GetDizzySkybox()->GetScaleX() >= 2.1f)
+			SetScale({0,0,0});
+		else
+			SetScale({ 2.5f, 2.5f, 2.5f });
 	}
 	//Scale = { 2.5f, 2.5f, 2.5f };
 }
@@ -185,6 +193,8 @@ void Sphere3D::Update(void)
 //*****************************************************************************
 void Sphere3D::Draw(void)
 {
+	if (Scale.x == 0)
+		return;
 	Mesh3D::Draw(GetDeviceContext());
 }
 

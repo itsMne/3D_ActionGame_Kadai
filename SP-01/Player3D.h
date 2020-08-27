@@ -187,14 +187,16 @@ private:
 	//—Ž‚¿‚é
 	XMFLOAT3 x3LastSafePos;
 	Actor*	pDodgedEnemy;
-	Sphere3D* pDodgeSkybox;
+	Actor*	pDizzyEnemy;
+	Sphere3D* pDizzySkybox;
+	float	fDizzyBonusOffset;
 public:
 	Player3D();
 	~Player3D();
 
 	void				Init();
 	void				Update();
-	void DodgeSkyboxControl();
+	void				DizzySkyboxControl();
 	bool				DamagedStateControl();
 	void				StaminaControl();
 	void				Jump();
@@ -216,6 +218,7 @@ public:
 	void				SwitchAttack(int nNextAttack);
 	void				MoveControl();
 	void				Draw();
+	void				DrawDizzySkybox();
 	void				End();
 	void				Attack(const char * atkInput);
 	void				Attack(const char * atkInput, int recursions);
@@ -231,6 +234,8 @@ public:
 	float				GetGravityForce();
 	Camera3D*			GetCameraPlayer() { return pCamera; };
 	Actor*				GetLockedEnemy() { return pLockedEnemy; };
+	Actor*				GetDodgedEnemy() { return pDodgedEnemy; };
+	Actor*				GetDizzyEnemy() { return pDizzyEnemy; };
 	PLAYER_ATTACK_MOVE* GetCurrentAttack() { return pCurrentAttackPlaying; };
 	int					GetCurrentHP() { return nHP; };
 	bool				IsSoftLocked() { return bSoftLocking; };
@@ -246,6 +251,8 @@ public:
 	void				SetAsDodged() { bDodged = true; };
 	bool				DodgeSuccessful() { return bDodged; };
 	void				SetDodgedEnemy(Actor* pEn) { if (pDodgedEnemy)return; pDodgedEnemy = pEn; };
+	void				SetDizzyEnemy(Actor* pEn) { if (pDizzyEnemy)return; pDizzyEnemy = pEn; };
+	Sphere3D*			GetDizzySkybox() { return pDizzySkybox; };
 };
 
 Player3D*				GetPlayer();

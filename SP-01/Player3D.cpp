@@ -148,6 +148,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pDodgedEnemy = nullptr;
 	pCurrentAttackPlaying = nullptr;
 	pPreviousAttack = nullptr;
+	pDizzyEnemy = nullptr;
 	nFightStanceFrameCount = 0;
 	eDirection = DIR_NONE;
 	nCancellingGravityFrames = 0;
@@ -169,9 +170,10 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	pBatteryWasted->SetUnusableAfterAnimation(false);
 	pBatteryWasted->SetUse(true);
 	nStamina = MAX_PLAYER_STAMINA;
-	pDodgeSkybox = new Sphere3D("data/texture/SkyboxDodge.tga", false);
-	pDodgeSkybox->SetScale({ 0.0f,0.0f,0.0f });
-	pDodgeSkybox->SetRotSpeed({ 0.0f ,0.1f ,0.0f });
+	pDizzySkybox = new Sphere3D("data/texture/SkyboxDodge.tga", false);
+	pDizzySkybox->SetScale({ 0.0f,0.0f,0.0f });
+	pDizzySkybox->SetRotSpeed({ 0.0f ,0.1f ,0.0f });
+	fDizzyBonusOffset = 0;
 }
 
 Player3D::~Player3D()
@@ -226,7 +228,7 @@ void Player3D::Update()
 {
 	Actor::Update();
 	pCamera->Update();
-	DodgeSkyboxControl();
+	DizzySkyboxControl();
 	if (Position.y <= GetCurrentBottom() && nState != PLAYER_TELEPORTING_STATE) {
 		nState = PLAYER_TELEPORTING_STATE;
 		x3LastSafePos.y += 35.0f;
@@ -304,7 +306,7 @@ void Player3D::Update()
 		if(IsOnTheFloor())
 			nState = PLAYER_TAUNTING_STATE;
 	}
-
+	ChuSign->Update();
 	ChuSign->GetModel()->SetRotation(SumVector(pCamera->GetRotation(), {0,-XM_PI*0.5f,0}));
 	if(nState!= PLAYER_TAUNTING_STATE)
 		ChuSign->GetModel()->SwitchAnimation(1, 0, 2.05f);
@@ -466,28 +468,32 @@ void Player3D::Update()
 	//printf("STATE: %d FRAME: %d\n", nState, Model->GetCurrentFrame());
 }
 
-void Player3D::DodgeSkyboxControl()
+void Player3D::DizzySkyboxControl()
 {
-	pDodgeSkybox->Update();
-	pDodgeSkybox->SetPosition(Position);
+	pDizzySkybox->Update();
+	pDizzySkybox->SetPosition(Position);
 	static float fAcc = 0;
 	fAcc += 0.005f;
-	if (GetKeyPress(VK_B))
+	if (pDizzyEnemy)
 	{
-		if (pDodgeSkybox->GetScaleX() != 2.0f)
-			pDodgeSkybox->ScaleUP({ fAcc,fAcc,fAcc });
-		if (pDodgeSkybox->GetScaleX() >= 2.1f) {
-			pDodgeSkybox->SetScale({ 2.1f, 2.1f, 2.1f });
+		if (pDizzySkybox->GetScaleX() != 2.0f)
+			pDizzySkybox->ScaleUP({ fAcc,fAcc,fAcc });
+		if (pDizzySkybox->GetScaleX() >= 2.1f) {
+			pDizzySkybox->SetScale({ 2.1f, 2.1f, 2.1f });
 			fAcc = 0;
 		}
+		fDizzyBonusOffset = 1.25f;
+		if (((Enemy*)pDizzyEnemy)->GetDizzyFrames() <= 0)
+			pDizzyEnemy = nullptr;
 	}
 	else
 	{
-		if(pDodgeSkybox->GetScaleX()!=0)
-			pDodgeSkybox->ScaleUP({ -fAcc,-fAcc,-fAcc });
-		if (pDodgeSkybox->GetScaleX() <= 0) {
+		fDizzyBonusOffset = 1;
+		if(pDizzySkybox->GetScaleX()!=0)
+			pDizzySkybox->ScaleUP({ -fAcc,-fAcc,-fAcc });
+		if (pDizzySkybox->GetScaleX() <= 0) {
 			fAcc = 0;
-			pDodgeSkybox->SetScale({ 0, 0, 0 });
+			pDizzySkybox->SetScale({ 0, 0, 0 });
 		}
 	}
 }
@@ -939,7 +945,7 @@ void Player3D::AttackStateControl()
 		pPreviousAttack->Animation != AIR_PUNCHB)
 		bFirstSetOfPunches = false;
 
-	SetAnimation(pCurrentAttackPlaying->Animation, fAnimationSpeed[pCurrentAttackPlaying->Animation]);
+	SetAnimation(pCurrentAttackPlaying->Animation, fAnimationSpeed[pCurrentAttackPlaying->Animation]* fDizzyBonusOffset);
 	XMFLOAT3 rotCamera = Model->GetRotation();
 	if (Model->GetCurrentFrame() > pCurrentAttackPlaying->nMinFrameForInputDetection 
 		&& pCurrentAttackPlaying->nMinFrameForInputDetection!=-1)
@@ -953,7 +959,7 @@ void Player3D::AttackStateControl()
 		PressedKick = PressedPunch = false;
 	}
 	if (Model->GetCurrentFrame() > pCurrentAttackPlaying->fpHitBoxActivation.InitialFrame && Model->GetCurrentFrame() < pCurrentAttackPlaying->fpHitBoxActivation.EndFrame)
-		ActivateAttackHitbox(abs(-sinf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.x), abs(pCurrentAttackPlaying->ahsHitboxSize.y),abs(-cosf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.z),pCurrentAttackPlaying->ahsHitboxSize.speed);
+		ActivateAttackHitbox(abs(-sinf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.x), abs(pCurrentAttackPlaying->ahsHitboxSize.y),abs(-cosf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.z),pCurrentAttackPlaying->ahsHitboxSize.speed*fDizzyBonusOffset);
 	
 	if (GetInput(INPUT_ATTACK))
 		bMultiPunch = true;
@@ -1030,8 +1036,14 @@ void Player3D::AttackStateControl()
 		}
 		break;
 	case SLIDE:
-		Position.x -= sinf(XM_PI + rotCamera.y) * 15;
-		Position.z -= cosf(XM_PI + rotCamera.y) * 15;
+		if (fDizzyBonusOffset > 1) {
+			Position.x -= sinf(XM_PI + rotCamera.y) * 15 * 1.35f;
+			Position.z -= cosf(XM_PI + rotCamera.y) * 15 * 1.35f;
+		}
+		else {
+			Position.x -= sinf(XM_PI + rotCamera.y) * 15 * 1.0f;
+			Position.z -= cosf(XM_PI + rotCamera.y) * 15 * 1.0f;
+		}
 		if (Model->GetCurrentFrame() >= 510 || PressedKick)
 		{
 			if (GetInput(INPUT_ATTACK) && CheckHoldingBack()) {
@@ -1055,7 +1067,7 @@ void Player3D::AttackStateControl()
 			(Model->GetCurrentFrame() > 1998 && Model->GetCurrentFrame() < 2003) ||
 			(Model->GetCurrentFrame() > 2008 && Model->GetCurrentFrame() < 2013) ||
 			(Model->GetCurrentFrame() > 2055 && Model->GetCurrentFrame() < 2063))
-				ActivateAttackHitbox(abs(-sinf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.x), abs(pCurrentAttackPlaying->ahsHitboxSize.y), abs(-cosf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.z), pCurrentAttackPlaying->ahsHitboxSize.speed);
+				ActivateAttackHitbox(abs(-sinf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.x), abs(pCurrentAttackPlaying->ahsHitboxSize.y), abs(-cosf(XM_PI + Model->GetRotation().y)*pCurrentAttackPlaying->ahsHitboxSize.z), pCurrentAttackPlaying->ahsHitboxSize.speed*fDizzyBonusOffset);
 
 		if (Model->GetCurrentFrame() == 1914 ||
 			Model->GetCurrentFrame() == 1954 ||
@@ -1537,12 +1549,12 @@ void Player3D::MoveControl()
 	if (Model->GetCurrentAnimation() == BACKWARD)
 		fLockMoveBack = 0.5f;
 	if (fVerticalAxis != 0) {
-		Position.x -= sinf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset;
-		Position.z -= cosf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset;
+		Position.x -= sinf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset*fDizzyBonusOffset;
+		Position.z -= cosf(XM_PI + rotCamera.y) * fPlayerSpeed * fVerticalAxis * fLockMoveBack*fSpeedSlowOffset*fDizzyBonusOffset;
 	}
 	if (fHorizontalAxis != 0) {
-		Position.x -= sinf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset;
-		Position.z -= cosf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset;
+		Position.x -= sinf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset*fDizzyBonusOffset;
+		Position.z -= cosf(rotCamera.y - XM_PI * 0.50f) * fPlayerSpeed * fHorizontalAxis * fLockMoveBack*fSpeedSlowOffset*fDizzyBonusOffset;
 	}
 	
 	if (GetAxis(MOVEMENT_AXIS_HORIZONTAL) || GetAxis(MOVEMENT_AXIS_VERTICAL))
@@ -1568,9 +1580,6 @@ void Player3D::MoveControl()
 //*****************************************************************************
 void Player3D::Draw()
 {
-	SetCullMode(CULLMODE_CCW);
-	pDodgeSkybox->Draw();
-	SetCullMode(CULLMODE_NONE);
 #if SHOW_HITBOX && SHOW_PLAYER_HITBOX
 	GetMainLight()->SetLightEnable(false);
 	for (int i = 0; i < PLAYER_HB_MAX; i++)
@@ -1596,7 +1605,12 @@ void Player3D::Draw()
 	}
 	SetCullMode(CULLMODE_CW);
 }
-
+void Player3D::DrawDizzySkybox()
+{
+	SetCullMode(CULLMODE_CCW);
+	pDizzySkybox->Draw();
+	SetCullMode(CULLMODE_NONE);
+}
 //*****************************************************************************
 //Endä÷êî
 //èIóπä÷êî
@@ -1610,7 +1624,7 @@ void Player3D::End()
 	SAFE_DELETE(pBatteryEnergy);
 	SAFE_DELETE(pBatteryWasted);
 	SAFE_DELETE(ChuSign);
-	SAFE_DELETE(pDodgeSkybox);
+	SAFE_DELETE(pDizzySkybox);
 }
 
 //*****************************************************************************

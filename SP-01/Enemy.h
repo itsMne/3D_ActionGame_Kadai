@@ -22,6 +22,8 @@ enum ENEMY_ANIMATIONS
 	EN_DEATH,
 	EN_WALKING,
 	EN_RUNNING,
+	EN_DIZZY,
+	EN_DIZZYSPIN,
 	ENEMY_MAX
 };
 enum ENEMY_HITBOXES
@@ -42,6 +44,7 @@ enum ENEMY_STATES
 	EN_ATTACKING,
 	EN_MOVING,
 	EN_STATE_TELEPORTING,
+	EN_STATE_DIZZY,
 	EN_STATE_MAX
 };
 
@@ -73,8 +76,14 @@ private:
 	int			nIdleWaitFramesCount;
 	int			nMaxIdleWaitFrames;
 	float		fSpeed;
+	float		fHeartsAccel;
 	Object3D*	pAngrySign;
 	int			nEnragedFrames;
+	int			nDizzyness;
+	int			nDizzynessFrames;
+	bool		bIsDizzy;
+	bool		bDizzyPush;
+	int			nDizzyWaitCountFrames;
 public:
 	Enemy();
 	void SetHitEffect();
@@ -95,6 +104,7 @@ public:
 	Box GetHitboxEnemy(int i);
 	bool IsEnemyDead();
 	int GetState() { return nState; };
+	int GetDizzyFrames() { return nDizzynessFrames; };
 	void Enrage(int Frames) { if (nEnragedFrames > 0)return; nEnragedFrames = Frames; nIdleWaitFramesCount = nMaxIdleWaitFrames; };
 };
 
