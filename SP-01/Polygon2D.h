@@ -81,9 +81,11 @@ public:
 	void SetUVSize(float fWidth, float fHeight);
 	void SetColor(float fRed, float fGreen, float fBlue);
 	void SetAlpha(float fAlpha);
+	void RaiseAlpha(float up);
 	void ScaleUp(float scale);
 	void RotateAroundY(float frot);
 	void RotateAroundZ(float frot);
+	float GetRotationZ() { return Rotation.z; };
 	HRESULT MakeVertexPolygon(ID3D11Device* pDevice);
 	void SetVertexPolygon(void);
 	void Translate(XMFLOAT2);
@@ -93,5 +95,7 @@ public:
 	void bScaleUp(float scal);
 	void SetMoveableOnUV(bool flag) { bMoveToNextV = flag; };
 	void SetSpeedAnimationFrameChange(int speed) { nFrameAnimCounter = nAnimeFrameChange = speed; bUsesAnimation = true; }
+	XMFLOAT2 GetUVFrames() { return x2UVFrame; };
+	float GetAlpha() { return Color.w; };
 };
 #endif

@@ -110,6 +110,7 @@
     <ClCompile Include="Explosion.cpp">
       <Filter>CPPファイル\エンジンCPP</Filter>
     </ClCompile>
+    <ClCompile Include="S_TitleScreen3D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">

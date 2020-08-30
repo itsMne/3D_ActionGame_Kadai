@@ -2,10 +2,12 @@
 #include "Texture.h"
 #include "S_InGame3D.h"
 #include "Player3D.h"
+#include "InputManager.h"
+#include "S_TitleScreen3D.h"
 #include "stdio.h"
 
 #define MAX_HIT_EFF 5
-
+#define MAX_UI_TITLE_OBJS MAX_MENU_UI-MAX_INGAME_UI
 enum UI_TEXTURES
 {
 	UI_PAUSE_TEX,
@@ -13,7 +15,14 @@ enum UI_TEXTURES
 	UI_LOCKON_TEX,
 	UI_ZOOM_TEX,
 	UI_NOHIT_TEX,
-	UI_AURA_PLAYERDAMAGE_TEX,//AURA_DAMAGED.tga
+	UI_AURA_PLAYERDAMAGE_TEX,
+	UI_TITLE_TEX,
+	UI_TITLE_BG_TEX,
+	UI_MENU_OPTION_LEFTRIGHT,
+	UI_MENU_OPTION_UPDOWN,
+	UI_GAMESTART_OPTION,
+	UI_EXIT_OPTION,
+	UI_SELECTOR_OPTION,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -41,7 +50,9 @@ cUI::~cUI()
 void cUI::Init()
 {
 	for (int i = 0; i < UI_HEALTH_FLOWER; pHealthFlower[i] = nullptr, i++);
-	for (int i = 0; i < UI_GAME_MANAGER; pUIs[i] = nullptr, i++);
+	for (int i = 0; i < UI_GAME_MANAGER; pUI_INGAMEs[i] = nullptr, i++);
+	for (int i = 0; i < MAX_UI_TITLE_OBJS; pUI_MENUs[i] = nullptr, i++);
+	pMenuOption = nullptr;
 	switch (nType)
 	{
 	case UI_PAUSE:
@@ -87,7 +98,7 @@ void cUI::Init()
 		SetAlpha(0.75f);
 		break;
 	case UI_GAME_MANAGER:
-		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUIs[i] = new cUI(i), i++);
+		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUI_INGAMEs[i] = new cUI(i), i++);
 		if (--nIneffectiveHitWaitOffset < 0)
 			nIneffectiveHitWaitOffset = 0;
 		break;
@@ -104,6 +115,74 @@ void cUI::Init()
 		SetTexture(pTextures[UI_AURA_PLAYERDAMAGE_TEX]);
 		SetSize(0, 0);
 		SetAlpha(1.0f);
+		break;
+	case UI_TITLESCREEN:
+		if (!pTextures[UI_TITLE_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/TitleT.tga", &pTextures[UI_TITLE_TEX]);
+		SetTexture(pTextures[UI_TITLE_TEX]);
+		SetSize(1280, 720);
+		SetAlpha(1.0f);
+		SetUVSize(2.0f, 19.0f);
+		SetSpeedAnimationFrameChange(3);
+		break;
+	case UI_TITLE_BG:
+		if (!pTextures[UI_TITLE_BG_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/0.tga", &pTextures[UI_TITLE_BG_TEX]);
+		SetTexture(pTextures[UI_TITLE_BG_TEX]);
+		SetSize(0, 5);
+		SetColor(0.55f,0.45f,0.95f);
+		break;
+	case UI_MENU_OPTION_RIGHT: case UI_MENU_OPTION_LEFT:
+		if (!pTextures[UI_MENU_OPTION_LEFTRIGHT])
+			CreateTextureFromFile(GetDevice(), "data/texture/LeftRightOption.tga", &pTextures[UI_MENU_OPTION_LEFTRIGHT]);
+		SetTexture(pTextures[UI_MENU_OPTION_LEFTRIGHT]);
+		SetSize(640, 720);
+		SetPosition(640 * 2, 0);
+		if (nType == UI_MENU_OPTION_LEFT)
+		{
+			RotateAroundZ(180);
+			SetPosition(-640 * 2, 0);
+		}
+		break;
+	case UI_MENU_OPTION_UP: case UI_MENU_OPTION_DOWN:
+		if (!pTextures[UI_MENU_OPTION_UPDOWN])
+			CreateTextureFromFile(GetDevice(), "data/texture/UpDownOption.tga", &pTextures[UI_MENU_OPTION_UPDOWN]);
+		SetTexture(pTextures[UI_MENU_OPTION_UPDOWN]);
+		SetSize(1279, 362);
+		SetPosition(0, -362 * 2);
+		pMenuOption = new cUI(UI_MENU_OPTION, this);
+		if (nType == UI_MENU_OPTION_UP)
+		{
+			RotateAroundZ(180);
+			SetPosition(0, 362 * 2);
+			if (!pTextures[UI_GAMESTART_OPTION])
+				CreateTextureFromFile(GetDevice(), "data/texture/GameStartMenu.tga", &pTextures[UI_GAMESTART_OPTION]);
+			pMenuOption->SetTexture(pTextures[UI_GAMESTART_OPTION]);
+			pMenuOption->SetPosition(0, 50);
+			pMenuOption->SetSize(530, 173);
+		}
+		else {
+			if (!pTextures[UI_EXIT_OPTION])
+				CreateTextureFromFile(GetDevice(), "data/texture/ExitMenu.tga", &pTextures[UI_EXIT_OPTION]);
+			pMenuOption->SetTexture(pTextures[UI_EXIT_OPTION]);
+			pMenuOption->SetPosition(0, -50);
+			pMenuOption->SetSize(252, 181);
+		}
+		break;
+	case UI_MENU_MANAGER:
+		for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; pUI_MENUs[i - UI_TITLE_BG] = new cUI(i), i++);
+		break;
+	case UI_MENU_OPTION:
+		SetPosition(0, 0);
+		break;
+	case UI_MENU_SELECTOR:
+		SetPosition(0, 0);
+		if (!pTextures[UI_SELECTOR_OPTION])
+			CreateTextureFromFile(GetDevice(), "data/texture/SelectorMenu.tga", &pTextures[UI_SELECTOR_OPTION]);
+		SetTexture(pTextures[UI_SELECTOR_OPTION]);
+		SetSize(70, 100);
+		SetPosition(0, 0);
+		SetAlpha(0);
 		break;
 	}
 	fAcceleration = 0;
@@ -155,7 +234,7 @@ void cUI::Update()
 		AtkZoomControl();
 		break;
 	case UI_GAME_MANAGER:
-		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUIs[i]->Update(), i++);
+		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUI_INGAMEs[i]->Update(), i++);
 		for (int i = 0; i < MAX_HIT_EFF; i++)
 		{
 			if (IneffectiveHitEffect[i]) {
@@ -176,9 +255,100 @@ void cUI::Update()
 		fAcceleration+=5;
 		ScaleUp(fAcceleration);
 		return;
+	case UI_TITLESCREEN:
+		Polygon2D::UpdatePolygon();
+		if (x2UVFrame.x == 1 && x2UVFrame.y == 18) {
+			x2UVFrame.x = 0;
+			x2UVFrame.y = 14;
+		}
+		if (GetInput(INPUT_JUMP) || GetInput(INPUT_LOCKON) || GetInput(INPUT_PAUSE))
+		{
+			if (x2UVFrame.y < 14)
+			{
+				x2UVFrame.x = 0;
+				x2UVFrame.y = 14;
+			}
+		}
+		break;
+	case UI_MENU_MANAGER:
+		MenuManagerControl();
+		break;
+	case UI_TITLE_BG:
+		if (Scale.x < 1280)
+		{
+			fAcceleration += 2.0f;
+			Scale.x += fAcceleration;
+		}
+		else if(Scale.y<720){
+			fAcceleration += 0.5f;
+			Scale.y += fAcceleration;
+		}
+		if (GetInput(INPUT_JUMP) || GetInput(INPUT_LOCKON) || GetInput(INPUT_PAUSE))
+			SetSize(1280, 720);
+		break;
 	default:
 		Polygon2D::UpdatePolygon();
 		break;
+	}
+}
+
+void cUI::MenuManagerControl()
+{
+	for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; i++) 
+	{
+		if (pUI_MENUs[i - UI_TITLE_BG])
+			pUI_MENUs[i - UI_TITLE_BG]->Update();
+	}
+	if (GetTitleSceneState() == MENU_DISPLAY)
+	{
+		fAcceleration++;
+		bool bRight, bLeft, bUp, bDown;
+		bRight = bLeft = bUp = bDown = false;
+		
+		cUI* obj = GetSubObject(UI_MENU_OPTION_RIGHT);
+		if (obj->GetPosition().x > 640 / 2) {
+			obj->Translate({ -fAcceleration,0 });
+			if (obj->GetPosition().x < 640 / 2)
+				obj->SetPosition(640 / 2, 0);
+		}
+		if (obj->GetPosition().x == 640 / 2)
+			bRight = true;
+		//obj->SetAlpha(0);
+		obj = GetSubObject(UI_MENU_OPTION_LEFT);
+		if (obj->GetPosition().x < -640 / 2) {
+			obj->Translate({ fAcceleration,0 });
+			if (obj->GetPosition().x > -640 / 2)
+				obj->SetPosition(-640 / 2, 0);
+		}
+		if (obj->GetPosition().x == -640 / 2)
+			bLeft = true;
+		obj = GetSubObject(UI_MENU_OPTION_DOWN);
+		if (obj->GetPosition().y < -362 / 2) {
+
+			obj->Translate({ 0,fAcceleration });
+			if (obj->GetPosition().y > -362 / 2)
+				obj->SetPosition(0, -362 / 2);
+		}
+		if (obj->GetPosition().y == -362 / 2)
+			bDown = true;
+		obj = GetSubObject(UI_MENU_OPTION_UP);
+		if (obj->GetPosition().y > 362 / 2) {
+
+			obj->Translate({ 0,-fAcceleration });
+			if (obj->GetPosition().y < 362 / 2)
+				obj->SetPosition(0, 362 / 2);
+		}
+		if (obj->GetPosition().y == 362 / 2)
+			bUp = true;
+		if (bUp && bDown && bRight && bLeft)
+		{
+			SAFE_DELETE(pUI_MENUs[UI_TITLESCREEN - UI_TITLE_BG]);
+			SAFE_RELEASE(pTextures[UI_TITLE_TEX]);
+			obj = GetSubObject(UI_MENU_SELECTOR);
+			if (obj->GetAlpha() < 1)
+				obj->RaiseAlpha(0.05f);
+		}
+
 	}
 }
 
@@ -234,7 +404,7 @@ void cUI::Draw()
 		pHealthFlower[1]->Draw();
 		break;
 	case UI_GAME_MANAGER:
-		pUIs[UI_ZOOM]->Draw();
+		pUI_INGAMEs[UI_ZOOM]->Draw();
 		for (int i = 0; i < MAX_HIT_EFF; i++)
 		{
 			if (IneffectiveHitEffect[i])
@@ -243,24 +413,36 @@ void cUI::Draw()
 				DamageEffect[i]->Draw();
 		}
 		if (GetPlayer() && GetPlayer()->GetLockedEnemy()) {
-			pUIs[UI_LOCKON]->SetTexture(nullptr);
-			pUIs[UI_LOCKON]->SetAlpha(0.5f);
-			pUIs[UI_LOCKON]->SetPosition(0, SCREEN_HEIGHT / 2 - pUIs[UI_LOCKON]->GetSize().y / 2);
-			pUIs[UI_LOCKON]->Draw();
-			pUIs[UI_LOCKON]->SetPosition(0, -(SCREEN_HEIGHT / 2 - pUIs[UI_LOCKON]->GetSize().y / 2));
-			pUIs[UI_LOCKON]->Draw();
-			pUIs[UI_LOCKON]->SetTexture(pTextures[UI_LOCKON_TEX]);
-			pUIs[UI_LOCKON]->SetAlpha(1.0f);
-			pUIs[UI_LOCKON]->SetPosition(0, SCREEN_HEIGHT / 2 - pUIs[UI_LOCKON]->GetSize().y / 2);
-			pUIs[UI_LOCKON]->Draw();
-			pUIs[UI_LOCKON]->SetPosition(0, -(SCREEN_HEIGHT / 2 - pUIs[UI_LOCKON]->GetSize().y / 2));
-			pUIs[UI_LOCKON]->Draw();
+			pUI_INGAMEs[UI_LOCKON]->SetTexture(nullptr);
+			pUI_INGAMEs[UI_LOCKON]->SetAlpha(0.5f);
+			pUI_INGAMEs[UI_LOCKON]->SetPosition(0, SCREEN_HEIGHT / 2 - pUI_INGAMEs[UI_LOCKON]->GetSize().y / 2);
+			pUI_INGAMEs[UI_LOCKON]->Draw();
+			pUI_INGAMEs[UI_LOCKON]->SetPosition(0, -(SCREEN_HEIGHT / 2 - pUI_INGAMEs[UI_LOCKON]->GetSize().y / 2));
+			pUI_INGAMEs[UI_LOCKON]->Draw();
+			pUI_INGAMEs[UI_LOCKON]->SetTexture(pTextures[UI_LOCKON_TEX]);
+			pUI_INGAMEs[UI_LOCKON]->SetAlpha(1.0f);
+			pUI_INGAMEs[UI_LOCKON]->SetPosition(0, SCREEN_HEIGHT / 2 - pUI_INGAMEs[UI_LOCKON]->GetSize().y / 2);
+			pUI_INGAMEs[UI_LOCKON]->Draw();
+			pUI_INGAMEs[UI_LOCKON]->SetPosition(0, -(SCREEN_HEIGHT / 2 - pUI_INGAMEs[UI_LOCKON]->GetSize().y / 2));
+			pUI_INGAMEs[UI_LOCKON]->Draw();
 		}
 		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; i++){
 			if (i == UI_LOCKON || i == UI_ZOOM)
 				continue;
-			pUIs[i]->Draw();
+			pUI_INGAMEs[i]->Draw();
 	}
+		break;
+	case UI_MENU_MANAGER:
+		for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; i++)
+		{
+			if (pUI_MENUs[i - UI_TITLE_BG])
+				pUI_MENUs[i - UI_TITLE_BG]->Draw();
+		}
+		break;
+	case UI_MENU_OPTION_UP: case UI_MENU_OPTION_DOWN: case UI_MENU_OPTION_LEFT: case UI_MENU_OPTION_RIGHT:
+		Polygon2D::DrawPolygon(GetDeviceContext());
+		if (pMenuOption)
+			pMenuOption->Draw();
 		break;
 	default:
 		Polygon2D::DrawPolygon(GetDeviceContext());
@@ -271,12 +453,41 @@ void cUI::Draw()
 
 void cUI::End()
 {
-	UninitPolygon();
-	if (nType == UI_GAME_MANAGER)
+	switch (nType)
+	{
+	case UI_GAME_MANAGER:
 		for (int i = 0; i < MAX_HIT_EFF; i++) {
 			SAFE_DELETE(IneffectiveHitEffect[i]);
 			SAFE_DELETE(DamageEffect[i]);
 		}
+		break;
+	case UI_MENU_MANAGER:
+		for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; i++)
+		{
+			SAFE_DELETE(pUI_MENUs[i - UI_TITLE_BG]);
+		}
+		break;
+	default:
+		break;
+	}
+	UninitPolygon();
+	SAFE_DELETE(pMenuOption);
+}
+
+cUI * cUI::GetSubObject(int objType)
+{
+	for (int i = 0; i < MAX_HIT_EFF; i++) {
+		if (IneffectiveHitEffect[i] && IneffectiveHitEffect[i]->GetType() == objType)
+			return IneffectiveHitEffect[i];
+		if (DamageEffect[i] && DamageEffect[i]->GetType() == objType)
+			return DamageEffect[i];
+	}
+	for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; i++)
+	{
+		if (pUI_MENUs[i - UI_TITLE_BG] && pUI_MENUs[i - UI_TITLE_BG]->GetType() == objType)
+			return pUI_MENUs[i - UI_TITLE_BG];
+	}
+	return nullptr;
 }
 
 void ActivateInefectiveHit()

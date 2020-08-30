@@ -177,6 +177,7 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="cUI.cpp" />
     <ClCompile Include="Explosion.cpp" />
+    <ClCompile Include="S_TitleScreen3D.cpp" />
     <ClCompile Include="TechnicalCamera.cpp" />
     <ClCompile Include="debugproc.cpp" />
     <ClCompile Include="DXWindow3D.cpp" />

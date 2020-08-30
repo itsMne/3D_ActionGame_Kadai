@@ -516,7 +516,7 @@ void Enemy::SendOffStateControl()
 		SetAnimation(EN_LAUNCHED_FORWARD, fEnemyAnimations[EN_LAUNCHED_FORWARD] * 2.75f);
 		fSendOffAcceleration += 0.3f;
 		Translate({ sinf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration), 0, cosf(XM_PI + GetModel()->GetRotation().y) * (5 + fSendOffAcceleration) });
-		printf("sendoffstate frames %d\n", Model->GetLoops());
+		//printf("sendoffstate frames %d\n", Model->GetLoops());
 		if (Model->GetLoops() > 0)
 			nState = EN_IDLE;
 		break;

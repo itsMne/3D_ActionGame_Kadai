@@ -49,8 +49,10 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	Enemies = new Go_List();
 	Fields = new Go_List();
 	Enemies->AddEnemy({ 0, 100, 0 });
-	Enemies->AddEnemy({ 500, 100, 500 });
-	Enemies->AddEnemy({ -500, 100, -500 });
+	//Enemies->AddEnemy({ 500, 100, 500 });
+	//Enemies->AddEnemy({ -500, 100, -500 });
+	//Enemies->AddEnemy({ -500, 100, 500 });
+	//Enemies->AddEnemy({ 500, 100, -500 });
 	Fields->AddField({ 2.578626f, 100, -138.668900f }, { 1000,10,1000 }, TEX_FIELD_A);
 	bGamePaused = false;
 	UI_Manager = new cUI(UI_GAME_MANAGER);

@@ -123,6 +123,7 @@ HRESULT Polygon2D::InitPolygon(ID3D11Device* pDevice)
 //=============================================================================
 void Polygon2D::UninitPolygon(void)
 {
+	return;//DEL
 	// テクスチャ サンプラの開放
 	SAFE_RELEASE(g_pSamplerState);
 	// 頂点バッファの解放
@@ -414,6 +415,11 @@ void Polygon2D::SetAlpha(float fAlpha)
 		Color.w = fAlpha;
 		g_bInvalidate = true;
 	}
+}
+
+void Polygon2D::RaiseAlpha(float up)
+{
+	SetAlpha(Color.w + up);
 }
 
 void Polygon2D::ScaleUp(float scale)

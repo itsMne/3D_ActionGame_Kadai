@@ -140,7 +140,7 @@ Player3D::Player3D() : Actor(PLAYER_MODEL, A_PLAYER)
 	BunBun = new Object3D(GO_BUNBUN);
 	BunBun->SetParent(this);
 	BunBun->SetPosition({ 0, -100, 0 });
-	BunBun->SetAnimation(BUN_BUN_APPEARS, 0.5f);
+	BunBun->SetAnimation(BUN_BUN_APPEARS, 1.0f);
 	ChuSign = new Object3D(GO_CHU);
 	ChuSign->SetParent(this);
 	ChuSign->SetScale({0.25f,0.25f,0.25f});
@@ -643,8 +643,8 @@ void Player3D::TransitionToFloatingBunBun()
 		return;
 	if (GetInput(INPUT_JUMP_HOLD) && Model->GetCurrentAnimation() == AIR_IDLE ) {
 		SetAnimation(BUNBUN_FLOAT, fAnimationSpeed[BUNBUN_FLOAT]);
-		BunBun->SetAnimation(BUN_BUN_APPEARS, 0.5f);
-		BunBun->GetModel()->SetFrameOfAnimation(4020);
+		BunBun->SetAnimation(BUN_BUN_APPEARS, 1.0f);
+		BunBun->GetModel()->SetFrameOfAnimation(4038);
 		nState = PLAYER_BUNBUN_FLOATING;
 	}
 }

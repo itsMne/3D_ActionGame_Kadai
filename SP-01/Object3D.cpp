@@ -45,7 +45,7 @@ Object3D::Object3D(int Type)
 		break;
 	case GO_BUNBUN:
 		Model = new Model3D(this, BUNBUN_MODEL);
-		Model->SwitchAnimation(1, 0, 0.25f);
+		Model->SwitchAnimation(1, 0, 1.0f);
 		break;
 	case GO_CHU:
 		Model = new Model3D(this, CHU_MODEL);
@@ -179,13 +179,13 @@ void Object3D::BunBunControl()
 	{
 	case BUN_BUN_APPEARS:
 		if (Model->GetCurrentFrame() >= 4057) {
-			SetAnimation(BUN_BUN_IDLE, 0.5f);
+			SetAnimation(BUN_BUN_IDLE, 1.0f);
 			Model->SetLoop(true);
 		}
 		break;
 	case BUN_BUN_IDLE:
 		if (Player->GetState() == PLAYER_BUNBUN_FALLING) {
-			SetAnimation(BUN_BUN_DISAPPEARS, 0.5f);
+			SetAnimation(BUN_BUN_DISAPPEARS, 1.0f);
 			Model->SetLoop(false);
 		}
 		break;

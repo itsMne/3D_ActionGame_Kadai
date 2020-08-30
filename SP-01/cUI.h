@@ -16,7 +16,17 @@ enum UI_TYPE
 	UI_GAME_MANAGER,
 	UI_INEFFECTIVE_HIT,
 	UI_DAMAGE_AURA,
-	MAX_INGAME_UI
+	MAX_INGAME_UI,
+	UI_TITLE_BG,
+	UI_TITLESCREEN,
+	UI_MENU_OPTION_RIGHT,
+	UI_MENU_OPTION_LEFT,
+	UI_MENU_OPTION_UP,
+	UI_MENU_OPTION_DOWN,
+	UI_MENU_SELECTOR,
+	UI_MENU_MANAGER,
+	UI_MENU_OPTION,
+	MAX_MENU_UI
 };
 class cUI :
 	public Polygon2D
@@ -26,17 +36,22 @@ private:
 	float fAcceleration;
 	float fPauseSizeOffset;
 	cUI* pHealthFlower[UI_HEALTH_FLOWER];
-	cUI* pUIs[MAX_INGAME_UI];
+	cUI* pUI_INGAMEs[MAX_INGAME_UI];
+	cUI* pUI_MENUs[MAX_MENU_UI-MAX_INGAME_UI];
+	cUI* pMenuOption;
 public:
 	cUI(int Type);
 	cUI(int Type, cUI* Parent);
 	~cUI();
 	void Init();
 	void Update();
+	void MenuManagerControl();
 	void AtkZoomControl();
 	void FlowerHealthUIControl();
 	void Draw();
 	void End();
+	int GetType() { return nType; };
+	cUI* GetSubObject(int objType);
 };
 
 void ActivateInefectiveHit();

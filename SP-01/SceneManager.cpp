@@ -22,7 +22,8 @@ int nNextScene = SCENE_IN_GAME;
 //*****************************************************************************
 HRESULT InitScene()
 {
-	pCurrentScene = new S_InGame3D();
+	//pCurrentScene = new S_InGame3D();
+	pCurrentScene = new S_TitleScreen3D();
 	
 	return S_OK;
 }
