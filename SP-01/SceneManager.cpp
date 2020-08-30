@@ -11,8 +11,8 @@
 //ƒOƒ[ƒoƒ‹•Ï”
 //*****************************************************************************
 Scene3D* pCurrentScene = nullptr;
-int nCurrentScene = SCENE_IN_GAME;
-int nNextScene = SCENE_IN_GAME;
+int nCurrentScene = SCENE_TITLE_SCREEN;
+int nNextScene = SCENE_TITLE_SCREEN;
 
 //*****************************************************************************
 //InitSceneŠÖ”
@@ -22,8 +22,20 @@ int nNextScene = SCENE_IN_GAME;
 //*****************************************************************************
 HRESULT InitScene()
 {
-	//pCurrentScene = new S_InGame3D();
-	pCurrentScene = new S_TitleScreen3D();
+	nCurrentScene = nNextScene;
+	switch (nCurrentScene)
+	{
+	case SCENE_IN_GAME:
+		pCurrentScene = new S_InGame3D();
+		break;
+	case SCENE_TITLE_SCREEN:
+		pCurrentScene = new S_TitleScreen3D();
+		break;
+	default:
+		break;
+	}
+	//
+	
 	
 	return S_OK;
 }
@@ -38,6 +50,11 @@ void UpdateScene()
 {
 	if (pCurrentScene)
 		nNextScene = pCurrentScene->Update();
+	if (nNextScene != nCurrentScene)
+	{
+		EndScene();
+		InitScene();
+	}
 }
 
 //*****************************************************************************

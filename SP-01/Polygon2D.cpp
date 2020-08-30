@@ -363,6 +363,11 @@ void Polygon2D::SetSize(float fScaleX, float fScaleY)
 	Scale.y = fScaleY;
 }
 
+void Polygon2D::SetSize(XMFLOAT3 scale)
+{
+	SetSize(scale.x, scale.y);
+}
+
 //=============================================================================
 // 表示角度の設定(単位:度)
 //=============================================================================

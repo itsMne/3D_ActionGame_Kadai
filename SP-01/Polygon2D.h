@@ -75,6 +75,7 @@ public:
 	void SetPolygonPosY(float y);
 	void SetPosition(float fX, float fY, bool IsInit);
 	void SetSize(float fScaleX, float fScaleY);
+	void SetSize(XMFLOAT3 scale);
 	void SetPolygonAngle(float fAngle);
 	void SetPolygonUV(float fU, float fV);
 	void SetPolygonFrameSize(float fWidth, float fHeight);

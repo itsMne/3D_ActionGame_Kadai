@@ -10,7 +10,7 @@
 //*****************************************************************************
 enum MENU_STATES
 {
-	MENU_TITLE_SCREEN,
+	MENU_TITLE_SCREEN = 0,
 	MENU_DISPLAY,
 	MENU_LOAD_NEXT_SCENE_STATE,
 	MENU_MAX_STATES

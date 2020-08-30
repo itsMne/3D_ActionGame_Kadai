@@ -43,13 +43,33 @@ eSceneType S_TitleScreen3D::Update()
 		if (GetAxis(MOVEMENT_AXIS_VERTICAL) || GetAxis(MOVEMENT_AXIS_HORIZONTAL)) {
 			fRot = (atan2(-GetAxis(MOVEMENT_AXIS_HORIZONTAL), GetAxis(MOVEMENT_AXIS_VERTICAL)))*(180 / XM_PI);
 			pObj->SetRotation(0, 0, fRot);
-			printf("%f\n", fRot);
 			fRot = abs(fRot);
 			if (fRot >= 0 && fRot <= 45)
 				nNewMenuSelection = MENU_OPTION_GAMESTART;
 			if (fRot >= 135 && fRot <= 180)
 				nNewMenuSelection = MENU_OPTION_GAMEEND;
 		}
+		if (nNewMenuSelection != nCurrentMenuSelection)
+		{
+			//sound
+			nCurrentMenuSelection = nNewMenuSelection;
+		}
+		if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+		{
+			switch (nCurrentMenuSelection)
+			{
+			case MENU_OPTION_GAMESTART:
+				return SCENE_IN_GAME;
+				break;
+			case MENU_OPTION_GAMEEND:
+				//StopSound();
+				EndCurrentGame();
+				break;
+			default:
+				break;
+			}
+		}
+
 		break;
 	default:
 		break;

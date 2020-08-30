@@ -168,6 +168,7 @@ void cUI::Init()
 			pMenuOption->SetPosition(0, -50);
 			pMenuOption->SetSize(252, 181);
 		}
+		pMenuOption->SetInitialScale({ pMenuOption->GetSize().x, pMenuOption->GetSize().y,0 });
 		break;
 	case UI_MENU_MANAGER:
 		for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; pUI_MENUs[i - UI_TITLE_BG] = new cUI(i), i++);
@@ -186,6 +187,7 @@ void cUI::Init()
 		break;
 	}
 	fAcceleration = 0;
+	InitialScale = {0,0,0};
 }
 
 void cUI::Update()
@@ -347,6 +349,29 @@ void cUI::MenuManagerControl()
 			obj = GetSubObject(UI_MENU_SELECTOR);
 			if (obj->GetAlpha() < 1)
 				obj->RaiseAlpha(0.05f);
+			int nCurrentSel = GetMenuState();
+
+			GetSubObject(UI_MENU_OPTION_UP)->GetMenuTitleObject()->SetSize(GetSubObject(UI_MENU_OPTION_UP)->GetMenuTitleObject()->GetInitialScale());
+			GetSubObject(UI_MENU_OPTION_DOWN)->GetMenuTitleObject()->SetSize(GetSubObject(UI_MENU_OPTION_DOWN)->GetMenuTitleObject()->GetInitialScale());
+
+			static float fSelectedOffset=0;
+			static int nDir = 1;
+			fSelectedOffset += nDir;
+			if (abs(fSelectedOffset) > 10)
+				nDir *= -1;
+			switch (nCurrentSel)
+			{
+			case MENU_OPTION_GAMESTART:
+				obj = GetSubObject(UI_MENU_OPTION_UP)->GetMenuTitleObject();
+				obj->ScaleUp(fSelectedOffset);
+				break;
+			case MENU_OPTION_GAMEEND:
+				obj = GetSubObject(UI_MENU_OPTION_DOWN)->GetMenuTitleObject();
+				obj->ScaleUp(fSelectedOffset);
+				break;
+			default:
+				break;
+			}
 		}
 
 	}
