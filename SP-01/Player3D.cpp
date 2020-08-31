@@ -1871,6 +1871,13 @@ bool GetIsSoftLockOn()
 	return bIsSoftLockOn;
 }
 
+bool IsPlayerDead()
+{
+	if(!pCurrentPlayer)
+		return false;
+	return pCurrentPlayer->IsPlayerDead();
+}
+
 //*****************************************************************************
 //GetHitboxPlayer関数
 //プレイヤーのヒットボックスを戻す
@@ -1912,4 +1919,10 @@ void Player3D::Damage(int dam)
 	nState = PLAYER_DAMAGED_STATE; 
 	nHP -= dam;
 	ActivateDamageEffect();
-};
+}
+bool Player3D::IsPlayerDead()
+{
+	return nHP <= 0;
+	return false;
+}
+;

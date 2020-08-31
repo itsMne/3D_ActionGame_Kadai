@@ -42,6 +42,7 @@ private:
 	int nCurrentPauseSelection;
 	bool bSceneEnded;
 	int nNextScene;
+	int nGameOverFrames;
 public:
 	S_InGame3D();
 	~S_InGame3D();

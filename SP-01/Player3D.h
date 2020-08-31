@@ -190,6 +190,7 @@ private:
 	Actor*	pDizzyEnemy;
 	Sphere3D* pDizzySkybox;
 	float	fDizzyBonusOffset;
+
 public:
 	Player3D();
 	~Player3D();
@@ -253,8 +254,10 @@ public:
 	void				SetDodgedEnemy(Actor* pEn) { if (pDodgedEnemy)return; pDodgedEnemy = pEn; };
 	void				SetDizzyEnemy(Actor* pEn) { if (pDizzyEnemy)return; pDizzyEnemy = pEn; };
 	Sphere3D*			GetDizzySkybox() { return pDizzySkybox; };
+	bool				IsPlayerDead();
 };
 
 Player3D*				GetPlayer();
 bool					GetIsSoftLockOn();
+bool					IsPlayerDead();
 #endif

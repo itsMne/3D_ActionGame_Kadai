@@ -44,7 +44,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	pSceneLight = GetMainLight();
 	InitDebugProc();
 	pSceneCamera->SetFocalPointGO(pPlayer->GetCameraPlayer());
-	nScoreToAdd = nScore = 0;
+	nGameOverFrames = nScoreToAdd = nScore = 0;
 	//PlaySoundGame(SOUND_LABEL_TUTORIAL);
 	Enemies = new Go_List();
 	Fields = new Go_List();
@@ -99,7 +99,12 @@ eSceneType S_InGame3D::Update()
 		return (eSceneType)nNextScene;
 
 	UI_Manager->Update();
-
+	if (nGameOverFrames>=300)
+	{
+		if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+			return SCENE_TITLE_SCREEN;
+		return SCENE_IN_GAME;
+	}
 	//PAUSE CONTROL
 	if (bGamePaused) 
 	{
@@ -173,6 +178,10 @@ eSceneType S_InGame3D::Update()
 	Enemies->Update();
 	nCurrentPauseState = NOT_PAUSED_STATE;
 	nCurrentPauseSelection = SELECTION_CONTINUE;
+	if (pPlayer->IsPlayerDead())
+	{
+		nGameOverFrames++;
+	}
 	return SCENE_IN_GAME;
 }
 

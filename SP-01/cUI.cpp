@@ -28,6 +28,8 @@ enum UI_TEXTURES
 	UI_BACKTOTITLE_OPTION,
 	UI_INS_OPTION,
 	UI_RETURN_OPTION,
+	UI_STATIC_TEX,
+	UI_GAMEOVER_MESSAGE,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -70,6 +72,27 @@ void cUI::Init()
 		SetAlpha(0.75f);
 		fPauseSizeOffset = 35;
 		break;
+
+	case UI_STATIC:
+		if (!pTextures[UI_STATIC_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/NoiseTexture.tga", &pTextures[UI_STATIC_TEX]);
+		SetTexture(pTextures[UI_STATIC_TEX]);
+		SetUVSize(2.0f, 7.0f);
+		SetSpeedAnimationFrameChange(2);
+		SetSize(1280, 720);
+		SetAlpha(0.0f);
+		break;
+
+	case UI_GAMEOVER:
+		if (!pTextures[UI_GAMEOVER_MESSAGE])
+			CreateTextureFromFile(GetDevice(), "data/texture/GameOverTitle.tga", &pTextures[UI_GAMEOVER_MESSAGE]);
+		SetTexture(pTextures[UI_GAMEOVER_MESSAGE]);
+		SetUVSize(1.0f, 3.0f);
+		SetSpeedAnimationFrameChange(5);
+		SetSize(960, 294);
+		SetAlpha(0.0f);
+		break;
+
 	case UI_HEALTH_FLOWER:
 		for (int i = 0; i < UI_HEALTH_FLOWER; pHealthFlower[i] = new cUI(i, this), i++);
 		Position.x = (-SCREEN_WIDTH / 2)+ 107;
@@ -320,6 +343,11 @@ void cUI::Update()
 		}
 		if (GetInput(INPUT_JUMP) || GetInput(INPUT_LOCKON) || GetInput(INPUT_PAUSE))
 			SetSize(1280, 720);
+		break;
+	case UI_STATIC: case UI_GAMEOVER:
+		Polygon2D::UpdatePolygon();
+		if(IsPlayerDead() && Color.w<1)
+			RaiseAlpha(0.005f);
 		break;
 	default:
 		Polygon2D::UpdatePolygon();
