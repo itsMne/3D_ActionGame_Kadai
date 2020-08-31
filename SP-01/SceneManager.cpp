@@ -12,7 +12,7 @@
 //*****************************************************************************
 Scene3D* pCurrentScene = nullptr;
 int nCurrentScene = SCENE_TITLE_SCREEN;
-int nNextScene = SCENE_TITLE_SCREEN;
+int nNextScene = SCENE_IN_GAME;//CHANGE
 
 //*****************************************************************************
 //InitSceneä÷êî

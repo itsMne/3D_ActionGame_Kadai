@@ -11,6 +11,13 @@ enum UI_TYPE
 	UI_FLOWER_PETAL_E,
 	UI_HEALTH_FLOWER,
 	UI_PAUSE,
+
+	UI_PAUSE_OPTION_BACKTOGAME,
+	UI_PAUSE_OPTION_MOVESET,
+	UI_PAUSE_OPTION_BACKTOTITLE,
+	UI_PAUSE_INSTRUCTIONS,
+	UI_PAUSE_RETURNTOMAINPAUSE,
+
 	UI_ZOOM,
 	UI_LOCKON,
 	UI_GAME_MANAGER,
@@ -46,6 +53,7 @@ public:
 	~cUI();
 	void Init();
 	void Update();
+	void InGameUIManagerControl();
 	void MenuManagerControl();
 	void AtkZoomControl();
 	void FlowerHealthUIControl();

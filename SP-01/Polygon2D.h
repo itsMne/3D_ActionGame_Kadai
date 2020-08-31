@@ -87,6 +87,7 @@ public:
 	void RotateAroundY(float frot);
 	void RotateAroundZ(float frot);
 	float GetRotationZ() { return Rotation.z; };
+	float GetRotationY() { return Rotation.y; };
 	HRESULT MakeVertexPolygon(ID3D11Device* pDevice);
 	void SetVertexPolygon(void);
 	void Translate(XMFLOAT2);

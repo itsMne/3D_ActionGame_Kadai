@@ -23,6 +23,11 @@ enum UI_TEXTURES
 	UI_GAMESTART_OPTION,
 	UI_EXIT_OPTION,
 	UI_SELECTOR_OPTION,
+	UI_BACKTOGAME_OPTION,
+	UI_MOVESET_OPTION,
+	UI_BACKTOTITLE_OPTION,
+	UI_INS_OPTION,
+	UI_RETURN_OPTION,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -50,7 +55,7 @@ cUI::~cUI()
 void cUI::Init()
 {
 	for (int i = 0; i < UI_HEALTH_FLOWER; pHealthFlower[i] = nullptr, i++);
-	for (int i = 0; i < UI_GAME_MANAGER; pUI_INGAMEs[i] = nullptr, i++);
+	for (int i = 0; i < MAX_INGAME_UI; pUI_INGAMEs[i] = nullptr, i++);
 	for (int i = 0; i < MAX_UI_TITLE_OBJS; pUI_MENUs[i] = nullptr, i++);
 	pMenuOption = nullptr;
 	switch (nType)
@@ -185,9 +190,50 @@ void cUI::Init()
 		SetPosition(0, 0);
 		SetAlpha(0);
 		break;
+	case UI_PAUSE_OPTION_BACKTOGAME:
+		if (!pTextures[UI_BACKTOGAME_OPTION])
+			CreateTextureFromFile(GetDevice(), "data/texture/PauseObjects/ContinueOption.tga", &pTextures[UI_BACKTOGAME_OPTION]);
+		SetTexture(pTextures[UI_BACKTOGAME_OPTION]);
+		SetSize(113, 65);
+		SetPosition(0, SCREEN_HEIGHT/2-80);
+		SetRotation(0, 90, 0);
+		break;	
+	case UI_PAUSE_OPTION_MOVESET:
+		if (!pTextures[UI_MOVESET_OPTION])
+			CreateTextureFromFile(GetDevice(), "data/texture/PauseObjects/MovesOption.tga", &pTextures[UI_MOVESET_OPTION]);
+		SetTexture(pTextures[UI_MOVESET_OPTION]);
+		SetSize(133, 73);
+		SetPosition(SCREEN_WIDTH / 2 - 200, SCREEN_HEIGHT / 2 - 80);
+		SetRotation(0, 90, 0);
+		break;
+
+	case UI_PAUSE_OPTION_BACKTOTITLE:
+		if (!pTextures[UI_BACKTOTITLE_OPTION])
+			CreateTextureFromFile(GetDevice(), "data/texture/PauseObjects/BackToTitleOption.tga", &pTextures[UI_BACKTOTITLE_OPTION]);
+		SetTexture(pTextures[UI_BACKTOTITLE_OPTION]);
+		SetSize(206, 68);
+		SetPosition(-(SCREEN_WIDTH / 2 - 200), SCREEN_HEIGHT / 2 - 80);
+		SetRotation(0, 90, 0);
+		break;
+	case UI_PAUSE_INSTRUCTIONS:
+		if (!pTextures[UI_INS_OPTION])
+			CreateTextureFromFile(GetDevice(), "data/texture/PauseObjects/Instructions.tga", &pTextures[UI_INS_OPTION]);
+		SetTexture(pTextures[UI_INS_OPTION]);
+		SetSize(1257, 573);
+		SetPosition(0, -50);
+		SetRotation( 0,90,0 );
+		break;
+	case UI_PAUSE_RETURNTOMAINPAUSE:
+		if (!pTextures[UI_RETURN_OPTION])
+			CreateTextureFromFile(GetDevice(), "data/texture/PauseObjects/ReturnOption.tga", &pTextures[UI_RETURN_OPTION]);
+		SetTexture(pTextures[UI_RETURN_OPTION]);
+		SetSize(172, 89);
+		SetPosition(-(SCREEN_WIDTH / 2 - 200), SCREEN_HEIGHT / 2 - 80);
+		SetRotation(0, 90, 0);
+		break;
 	}
 	fAcceleration = 0;
-	InitialScale = {0,0,0};
+	InitialScale = Scale;
 }
 
 void cUI::Update()
@@ -236,20 +282,7 @@ void cUI::Update()
 		AtkZoomControl();
 		break;
 	case UI_GAME_MANAGER:
-		for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUI_INGAMEs[i]->Update(), i++);
-		for (int i = 0; i < MAX_HIT_EFF; i++)
-		{
-			if (IneffectiveHitEffect[i]) {
-				IneffectiveHitEffect[i]->Update();
-				if (IneffectiveHitEffect[i]->GetSize().x > 1500)
-					SAFE_DELETE(IneffectiveHitEffect[i]);
-			}
-			if (DamageEffect[i]) {
-				DamageEffect[i]->Update();
-				if (DamageEffect[i]->GetSize().x > 1500)
-					SAFE_DELETE(DamageEffect[i]);
-			}
-		}
+		InGameUIManagerControl();
 		break;
 	case UI_INEFFECTIVE_HIT:case UI_DAMAGE_AURA:
 		if (fAcceleration < 10)
@@ -291,6 +324,109 @@ void cUI::Update()
 	default:
 		Polygon2D::UpdatePolygon();
 		break;
+	}
+}
+
+void cUI::InGameUIManagerControl()
+{
+	for (int i = UI_HEALTH_FLOWER; i < UI_GAME_MANAGER; pUI_INGAMEs[i]->Update(), i++);
+	cUI* pContinueOption = GetSubObject(UI_PAUSE_OPTION_BACKTOGAME);
+	cUI* pMoveSetOption = GetSubObject(UI_PAUSE_OPTION_MOVESET);
+	cUI* pReturnToTitleOption = GetSubObject(UI_PAUSE_OPTION_BACKTOTITLE);
+	cUI* pMoveset = GetSubObject(UI_PAUSE_INSTRUCTIONS);
+	cUI* pPause = GetSubObject(UI_PAUSE);
+	cUI* pReturnToMain = GetSubObject(UI_PAUSE_RETURNTOMAINPAUSE);
+	if (!pPause)
+		return;
+
+	pContinueOption->SetSize(pContinueOption->GetInitialScale());
+	pMoveSetOption->SetSize(pMoveSetOption->GetInitialScale());
+	pReturnToTitleOption->SetSize(pReturnToTitleOption->GetInitialScale());
+	pReturnToMain->SetSize(pReturnToMain->GetInitialScale());
+	static int nDir = 1;
+	fAcceleration += nDir;
+	if (abs(fAcceleration) > 10)
+		nDir *= -1;
+
+
+
+	switch (GetCurrentPauseState())
+	{
+	case NOT_PAUSED_STATE:
+		if (pContinueOption->GetRotationY() < 90)
+			pContinueOption->RotateAroundY(10);
+		if (pMoveSetOption->GetRotationY() < 90)
+			pMoveSetOption->RotateAroundY(10);
+		if (pReturnToTitleOption->GetRotationY() < 90)
+			pReturnToTitleOption->RotateAroundY(10);
+		if (pMoveset->GetRotationY() < 90)
+			pMoveset->RotateAroundY(10);		
+		
+		if (pReturnToMain->GetRotationY() < 90)
+			pReturnToMain->RotateAroundY(10);
+		break;
+	case INSTRUCTIONS_PAUSE:
+		if (pContinueOption->GetRotationY() < 90)
+			pContinueOption->RotateAroundY(10);
+		if (pReturnToTitleOption->GetRotationY() < 90)
+			pReturnToTitleOption->RotateAroundY(10);
+
+		if (pMoveSetOption->GetRotationY() > 0)
+			pMoveSetOption->RotateAroundY(-10);
+
+		if (pMoveset->GetRotationY() > 0)
+			pMoveset->RotateAroundY(-10);
+
+		if (pReturnToMain->GetRotationY() > 0)
+			pReturnToMain->RotateAroundY(-10);
+
+		pReturnToMain->ScaleUp(fAcceleration);
+		break;
+	case MAIN_PAUSE_SCREEN:
+		if (pPause->GetSize().y <= 725)
+		{
+			if (pContinueOption->GetRotationY() > 0)
+				pContinueOption->RotateAroundY(-10); 
+			if (pMoveSetOption->GetRotationY() > 0)
+				pMoveSetOption->RotateAroundY(-10);
+			if (pReturnToTitleOption->GetRotationY() > 0)
+				pReturnToTitleOption->RotateAroundY(-10);
+			if (pMoveset->GetRotationY() < 90)
+				pMoveset->RotateAroundY(10);
+			if (pReturnToMain->GetRotationY() < 90)
+				pReturnToMain->RotateAroundY(10);
+			switch (GetCurrentPauseSelection())
+			{
+			case SELECTION_CONTINUE:
+				pContinueOption->ScaleUp(fAcceleration);
+				break;
+			case SELECTION_MOVESET:
+				pMoveSetOption->ScaleUp(fAcceleration);
+				break;
+			case SELECTION_TITLE:
+				pReturnToTitleOption->ScaleUp(fAcceleration);
+				break;
+			default:
+				break;
+			}
+			//
+		}
+		break;
+	default:
+		break;
+	}
+	for (int i = 0; i < MAX_HIT_EFF; i++)
+	{
+		if (IneffectiveHitEffect[i]) {
+			IneffectiveHitEffect[i]->Update();
+			if (IneffectiveHitEffect[i]->GetSize().x > 1500)
+				SAFE_DELETE(IneffectiveHitEffect[i]);
+		}
+		if (DamageEffect[i]) {
+			DamageEffect[i]->Update();
+			if (DamageEffect[i]->GetSize().x > 1500)
+				SAFE_DELETE(DamageEffect[i]);
+		}
 	}
 }
 
@@ -495,6 +631,10 @@ void cUI::End()
 	default:
 		break;
 	}
+	for (int i = 0; i < MAX_INGAME_UI; i++)
+	{
+		SAFE_DELETE(pUI_INGAMEs[i]);
+	}
 	UninitPolygon();
 	SAFE_DELETE(pMenuOption);
 }
@@ -506,6 +646,11 @@ cUI * cUI::GetSubObject(int objType)
 			return IneffectiveHitEffect[i];
 		if (DamageEffect[i] && DamageEffect[i]->GetType() == objType)
 			return DamageEffect[i];
+	}
+	for (int i = 0; i < MAX_INGAME_UI; i++)
+	{
+		if (pUI_INGAMEs[i] && pUI_INGAMEs[i]->GetType() == objType)
+			return pUI_INGAMEs[i];
 	}
 	for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; i++)
 	{

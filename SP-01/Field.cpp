@@ -59,6 +59,8 @@ ID3D11ShaderResourceView*	pFieldTextures[TEX_FIELD_MAX] = { nullptr };
 Field3D::Field3D() : Object3D(GO_FLOOR)
 {
 	pSceneLight = nullptr;
+	//g_pTexture = nullptr;
+	g_pSamplerState = nullptr;
 	nTextureSubDivisions = 1;
 }
 
@@ -146,7 +148,7 @@ HRESULT Field3D::Init(Light3D* SceneLight, int TexturePath)
 			szTexturePaths[nTexPath],	// ファイルの名前
 			&pFieldTextures[nTexPath]);	// 読み込むメモリー
 	}
-	g_pTexture = pFieldTextures[nTexPath];
+	//g_pTexture = pFieldTextures[nTexPath];
 	if (FAILED(hr)) {
 		printf("FAILED TEXTURE LOAD\n");
 		return hr;
@@ -166,7 +168,7 @@ HRESULT Field3D::Init(Light3D* SceneLight, int TexturePath)
 void Field3D::End(void)
 {
 	// テクスチャ解放
-	SAFE_RELEASE(g_pTexture);
+	//SAFE_RELEASE(g_pTexture);
 	// テクスチャ サンプラの開放
 	SAFE_RELEASE(g_pSamplerState);
 	// 頂点バッファの解放
@@ -233,8 +235,10 @@ void Field3D::Update(void)
 //*****************************************************************************
 void Field3D::Draw(void)
 {
+
 	Object3D::Draw();
 	GetDeviceContext()->RSSetState(GetMainWindow()->GetRasterizerState(2));
+	
 	TechCamera* pMainCamera = GetMainCamera();
 	if (!pMainCamera)
 	{
@@ -243,7 +247,7 @@ void Field3D::Draw(void)
 	}
 	ID3D11DeviceContext* pDeviceContext = GetDeviceContext();
 	XMMATRIX mtxWorld, mtxRot, mtxTranslate, mtxScale;
-
+	
 	// ワールドマトリックスの初期化
 	mtxWorld = XMMatrixIdentity();
 
@@ -268,14 +272,12 @@ void Field3D::Draw(void)
 	UINT stride = sizeof(VERTEX_3D);
 	UINT offset = 0;
 	pDeviceContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-
+	
 	pDeviceContext->PSSetSamplers(0, 1, &g_pSamplerState);
-	pDeviceContext->PSSetShaderResources(0, 1, &g_pTexture);
+	pDeviceContext->PSSetShaderResources(0, 1, &pFieldTextures[nTexPath]);
 
 	SHADER_GLOBAL cb;
-
-	cb.mWVP = XMMatrixTranspose(mtxWorld *
-		XMLoadFloat4x4(&(pMainCamera->GetViewMatrix())) * XMLoadFloat4x4(&(pMainCamera->GetProjMatrix())));
+	cb.mWVP = XMMatrixTranspose(mtxWorld * XMLoadFloat4x4(&(pMainCamera->GetViewMatrix())) * XMLoadFloat4x4(&(pMainCamera->GetProjMatrix())));
 	cb.mW = XMMatrixTranspose(mtxWorld);
 	cb.mTex = XMMatrixTranspose(XMLoadFloat4x4(&g_mtxTexture));
 	pDeviceContext->UpdateSubresource(g_pConstantBuffer[0], 0, nullptr, &cb, 0, 0);
@@ -297,7 +299,7 @@ void Field3D::Draw(void)
 
 	cb2.vDiffuse = XMLoadFloat4(&g_Kd);
 	cb2.vAmbient = XMVectorSet(g_Ka.x, g_Ka.y, g_Ka.z,
-		(g_pTexture != nullptr) ? 1.f : 0.f);
+		(pFieldTextures[nTexPath] != nullptr) ? 1.f : 0.f);
 	cb2.vSpecular = XMVectorSet(g_Ks.x, g_Ks.y, g_Ks.z, g_fPower);
 	cb2.vEmissive = XMLoadFloat4(&g_Ke);
 	pDeviceContext->UpdateSubresource(g_pConstantBuffer[1], 0, nullptr, &cb2, 0, 0);

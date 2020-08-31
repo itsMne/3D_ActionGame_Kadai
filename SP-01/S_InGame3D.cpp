@@ -55,11 +55,14 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	//Enemies->AddEnemy({ 500, 100, -500 });
 	Fields->AddField({ 2.578626f, 100, -138.668900f }, { 1000,10,1000 }, TEX_FIELD_A);
 	bGamePaused = false;
+	bSceneEnded = false;
 	UI_Manager = new cUI(UI_GAME_MANAGER);
 	nTempPauseFrames = 0;
 	nWaitFramesForNextPause = 0;
 	fBottom = DEFAULT_BOTTOM;
-
+	nCurrentPauseState = NOT_PAUSED_STATE;
+	nCurrentPauseSelection = SELECTION_CONTINUE;
+	nNextScene = SCENE_IN_GAME;
 }
 
 
@@ -70,6 +73,7 @@ S_InGame3D::~S_InGame3D()
 	ReleaseAllBillboardTextures();
 	End();
 	pCurrentGame = nullptr;
+	Scene3D::~Scene3D();
 }
 
 //*****************************************************************************
@@ -91,13 +95,67 @@ void S_InGame3D::Init()
 //*****************************************************************************
 eSceneType S_InGame3D::Update()
 {
-	if (GetInput(INPUT_PAUSE))
-		bGamePaused ^= true;
+	if (bSceneEnded)
+		return (eSceneType)nNextScene;
+
 	UI_Manager->Update();
+
+	//PAUSE CONTROL
 	if (bGamePaused) 
 	{
+		if (nCurrentPauseState == NOT_PAUSED_STATE)
+			nCurrentPauseState = MAIN_PAUSE_SCREEN;
+
+		//MENU SELECTION
+		switch (nCurrentPauseState)
+		{
+		case MAIN_PAUSE_SCREEN:
+			if (GetInput(INPUT_MENU_RIGHT))
+				nCurrentPauseSelection++;
+			if (GetInput(INPUT_MENU_LEFT))
+				nCurrentPauseSelection--;
+			if (nCurrentPauseSelection < 0)
+				nCurrentPauseSelection = MAX_SELECTIONS - 1;
+			if (nCurrentPauseSelection >= MAX_SELECTIONS)
+				nCurrentPauseSelection = 0;
+			break;
+		case INSTRUCTIONS_PAUSE:
+			nCurrentPauseSelection = MAX_SELECTIONS;
+			break;
+		default:
+			break;
+		}
+
+		if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+		{
+			switch (nCurrentPauseSelection)
+			{
+			case SELECTION_TITLE:
+				bSceneEnded = true;
+				nNextScene = SCENE_TITLE_SCREEN;
+				return SCENE_TITLE_SCREEN;
+			case SELECTION_CONTINUE:
+				bGamePaused = false;
+				return SCENE_IN_GAME;
+			case SELECTION_MOVESET:
+				nCurrentPauseState = INSTRUCTIONS_PAUSE;
+				return SCENE_IN_GAME;
+			}
+			if (nCurrentPauseState == INSTRUCTIONS_PAUSE)
+			{
+				nCurrentPauseState = MAIN_PAUSE_SCREEN;
+				nCurrentPauseSelection = SELECTION_MOVESET;
+			}
+		}
+		if (GetInput(INPUT_PAUSE)) {
+			bGamePaused ^= true;
+			nCurrentPauseSelection = MAX_SELECTIONS;
+		}
 		return SCENE_IN_GAME;
 	}
+	//PAUSE CONTROL END
+	if (GetInput(INPUT_PAUSE))
+		bGamePaused ^= true;
 	if (--nTempPauseFrames > 0)
 	{
 		pPlayer->GetCameraPlayer()->Update();
@@ -113,7 +171,8 @@ eSceneType S_InGame3D::Update()
 	pSkybox->Update();
 	pSceneLight->SetDirection({ 0.5f,0.5f,0.5 });
 	Enemies->Update();
-
+	nCurrentPauseState = NOT_PAUSED_STATE;
+	nCurrentPauseSelection = SELECTION_CONTINUE;
 	return SCENE_IN_GAME;
 }
 
@@ -174,10 +233,8 @@ Go_List * S_InGame3D::GetList(int Type)
 	{
 	case GO_ENEMY:
 		return Enemies;
-		break;
 	case GO_FLOOR:
 		return Fields;
-		break;
 	default:
 		break;
 	}
@@ -239,4 +296,18 @@ void SetPauseFrames(int pause, int wait)
 float GetCurrentBottom()
 {
 	return fBottom;
+}
+
+int GetCurrentPauseState()
+{
+	if (!pCurrentGame)
+		return NOT_PAUSED_STATE;
+	return pCurrentGame->GetPauseState();
+}
+
+int GetCurrentPauseSelection()
+{
+	if (!pCurrentGame)
+		return MAX_SELECTIONS;
+	return pCurrentGame->GetPauseSelect();
 }

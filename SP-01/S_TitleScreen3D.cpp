@@ -10,6 +10,7 @@ S_TitleScreen3D::S_TitleScreen3D() :Scene3D(true)
 S_TitleScreen3D::~S_TitleScreen3D()
 {
 	End();
+	Scene3D::~Scene3D();
 }
 
 void S_TitleScreen3D::Init()

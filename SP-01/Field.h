@@ -20,7 +20,7 @@ enum FIELD_TEXTURES
 class Field3D : public Object3D
 {
 private:
-	ID3D11ShaderResourceView*	g_pTexture;				// テクスチャへのポインタ
+	//ID3D11ShaderResourceView*	g_pTexture;				// テクスチャへのポインタ
 	VERTEX_3D					g_vertexWk[NUM_VERTEX];	// 頂点情報格納ワーク
 	ID3D11Buffer*				g_pConstantBuffer[2];	// 定数バッファ
 	ID3D11Buffer*				g_pVertexBuffer;		// 頂点バッファ

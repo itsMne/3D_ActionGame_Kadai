@@ -12,6 +12,21 @@
 //*****************************************************************************
 // ƒNƒ‰ƒX
 //*****************************************************************************
+
+enum PAUSE_STATES
+{
+	MAIN_PAUSE_SCREEN,
+	INSTRUCTIONS_PAUSE,
+	NOT_PAUSED_STATE
+};
+
+enum PAUSE_SELECTION
+{
+	SELECTION_TITLE,
+	SELECTION_CONTINUE,
+	SELECTION_MOVESET,
+	MAX_SELECTIONS
+};
 class S_InGame3D :
 	public Scene3D
 {
@@ -23,7 +38,10 @@ private:
 	Go_List* Enemies;
 	Go_List* Fields;
 	cUI* UI_Manager;
-
+	int nCurrentPauseState;
+	int nCurrentPauseSelection;
+	bool bSceneEnded;
+	int nNextScene;
 public:
 	S_InGame3D();
 	~S_InGame3D();
@@ -32,6 +50,8 @@ public:
 	void Draw();
 	void End();
 	Go_List* GetList(int Type);
+	int GetPauseState() { return nCurrentPauseState; };
+	int GetPauseSelect() { return nCurrentPauseSelection; };
 };
 
 //*****************************************************************************
@@ -43,3 +63,5 @@ void AddScore(int add);
 bool IsGamePaused();
 void SetPauseFrames(int pause, int wait);
 float GetCurrentBottom();
+int GetCurrentPauseState();
+int GetCurrentPauseSelection();
