@@ -109,7 +109,12 @@ eSceneType S_InGame3D::Update()
 	{
 		//printf("%d\n", nScoreToAdd);
 	}
-	printf("%d\n", nScoreToAdd);
+	if (nScoreToAdd > 0)
+	{
+		nScoreToAdd--;
+		nScore++;
+	}
+	//printf("%d\n", nScoreToAdd);
 
 	//PAUSE CONTROL
 	if (bGamePaused) 

@@ -30,6 +30,7 @@ enum UI_TEXTURES
 	UI_RETURN_OPTION,
 	UI_STATIC_TEX,
 	UI_GAMEOVER_MESSAGE,
+	UI_INGAMESCORE_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -60,6 +61,7 @@ void cUI::Init()
 	for (int i = 0; i < MAX_INGAME_UI; pUI_INGAMEs[i] = nullptr, i++);
 	for (int i = 0; i < MAX_UI_TITLE_OBJS; pUI_MENUs[i] = nullptr, i++);
 	pMenuOption = nullptr;
+	nNum = 0;
 	switch (nType)
 	{
 	case UI_PAUSE:
@@ -254,6 +256,17 @@ void cUI::Init()
 		SetPosition(-(SCREEN_WIDTH / 2 - 200), SCREEN_HEIGHT / 2 - 80);
 		SetRotation(0, 90, 0);
 		break;
+	case UI_SCORE_INGAME:
+		if (!pTextures[UI_INGAMESCORE_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/UI/NumbersUI.tga", &pTextures[UI_INGAMESCORE_TEX]);
+		SetTexture(pTextures[UI_INGAMESCORE_TEX]);
+		SetUVSize(10.0f, 10.0f);
+		Position.x = SCREEN_WIDTH / 2 - (25 * 8);
+		Position.y = SCREEN_HEIGHT / 2 - 25;
+		SetSpeedAnimationFrameChange(3);
+		SetSize(18, 25);
+		SetAlpha(1.0f);
+		break;
 	}
 	fAcceleration = 0;
 	InitialScale = Scale;
@@ -348,6 +361,14 @@ void cUI::Update()
 		Polygon2D::UpdatePolygon();
 		if(IsPlayerDead() && Color.w<1)
 			RaiseAlpha(0.005f);
+		break;
+	case UI_SCORE_INGAME:
+		Polygon2D::UpdatePolygon();
+		nNum = GetScore();
+		if (++fAcceleration > 5) {
+			x2UVFrame.y++;
+			fAcceleration = 0;
+		}
 		break;
 	default:
 		Polygon2D::UpdatePolygon();
@@ -633,11 +654,67 @@ void cUI::Draw()
 		if (pMenuOption)
 			pMenuOption->Draw();
 		break;
+	case UI_SCORE_INGAME:
+		DrawNumber();
+		break;
 	default:
 		Polygon2D::DrawPolygon(GetDeviceContext());
 		break;
 	}
 	
+}
+
+void cUI::DrawNumber()
+{
+	XMFLOAT3 x2OriginalPosition;
+	int nNumberToPrint;
+	int nDividerByTen;
+	int nDigits = 0;
+	int	nMaxDigits = 7;
+	//if (nType == UI_TIMER)
+	//	nMaxDigits = 2;
+	x2OriginalPosition = Position;
+	nNumberToPrint = nNum;
+	float fSepatation = 27;
+	//if (nType == UI_RESULT_SCREEN_NUMBER)
+	//	fSepatation = 105.0f;
+	for (nDividerByTen = 1; nNumberToPrint > 0; nNumberToPrint /= 10, nDividerByTen *= 10, nDigits++);
+	nDividerByTen /= 10;
+	if (nNum < 10)
+	{
+		for (int i = 0; i < nMaxDigits; i++)
+		{
+			x2UVFrame.x = 0;
+			SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+			SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+			DrawPolygon(GetDeviceContext());
+			Position.x += fSepatation * 0.75f;
+		}
+		x2UVFrame.x = nNum;
+		SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+		SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+		DrawPolygon(GetDeviceContext());
+	}
+	else {
+		for (int i = 0; i < nMaxDigits - nDigits + 1; i++)
+		{
+			x2UVFrame.x = 0;
+			SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+			SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+			DrawPolygon(GetDeviceContext());
+			Position.x += fSepatation * 0.75f;
+		}
+		while (nDividerByTen > 0)
+		{
+			nNumberToPrint = nNum / nDividerByTen % 10;
+			SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+			SetPolygonUV(nNumberToPrint / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+			DrawPolygon(GetDeviceContext());
+			Position.x += fSepatation * 0.75f;
+			nDividerByTen /= 10;
+		}
+	}
+	SetPosition(x2OriginalPosition.x, x2OriginalPosition.y);
 }
 
 void cUI::End()

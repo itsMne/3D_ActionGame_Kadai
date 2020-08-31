@@ -23,6 +23,8 @@ enum UI_TYPE
 	//ゲームオーバー
 	UI_STATIC,
 	UI_GAMEOVER,
+	//スコア
+	UI_SCORE_INGAME,
 
 	UI_GAME_MANAGER,
 	UI_INEFFECTIVE_HIT,
@@ -51,6 +53,7 @@ private:
 	cUI* pUI_MENUs[MAX_MENU_UI-MAX_INGAME_UI];
 	cUI* pMenuOption;
 	XMFLOAT3 InitialScale;
+	int nNum;
 public:
 	cUI(int Type);
 	cUI(int Type, cUI* Parent);
@@ -62,6 +65,7 @@ public:
 	void AtkZoomControl();
 	void FlowerHealthUIControl();
 	void Draw();
+	void DrawNumber();
 	void End();
 	int GetType() { return nType; };
 	cUI* GetSubObject(int objType);
