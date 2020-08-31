@@ -59,6 +59,7 @@ HRESULT Polygon2D::InitPolygon(ID3D11Device* pDevice)
 	bAnimationHorizontal = true;
 	bUsesAnimation = false;
 	bMoveToNextV = true;
+	bAnimationInversed = false;
 	pParent = nullptr;
 	// シェーダ初期化
 	static const D3D11_INPUT_ELEMENT_DESC layout[] = {
@@ -145,19 +146,35 @@ void Polygon2D::UpdatePolygon(void)
 {
 	if (bUsesAnimation)
 	{
-		if (bAnimationHorizontal)
-		{
+		if (!bAnimationInversed) {
+			if (bAnimationHorizontal)
+			{
+				if (++nFrameAnimCounter >= nAnimeFrameChange)
+				{
+					nFrameAnimCounter = 0;
+					x2UVFrame.x++;
+					if (x2UVFrame.x >= x2UVMaxFrameSize.x)
+					{
+						x2UVFrame.x = 0;
+						if (bMoveToNextV)
+							x2UVFrame.y++;
+						if (x2UVFrame.y >= x2UVMaxFrameSize.y)
+							x2UVFrame.y = 0;
+					}
+				}
+			}
+		}
+		else {
 			if (++nFrameAnimCounter >= nAnimeFrameChange)
 			{
 				nFrameAnimCounter = 0;
-				x2UVFrame.x++;
-				if (x2UVFrame.x >= x2UVMaxFrameSize.x)
+				x2UVFrame.x--;
+				if (x2UVFrame.x < 0)
 				{
-					x2UVFrame.x = 0;
-					if(bMoveToNextV)
-						x2UVFrame.y++;
-					if (x2UVFrame.y >= x2UVMaxFrameSize.y)
-						x2UVFrame.y = 0;
+					x2UVFrame.x = x2UVMaxFrameSize.x-1;
+					x2UVFrame.y--;
+					if (x2UVFrame.y < 0)
+						x2UVFrame.y = x2UVMaxFrameSize.y-1;
 				}
 			}
 		}

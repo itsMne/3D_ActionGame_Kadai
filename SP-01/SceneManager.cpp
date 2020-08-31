@@ -6,6 +6,7 @@
 #include "SceneManager.h"
 #include "S_InGame3D.h"
 #include "S_TitleScreen3D.h"
+#include "cUI.h"
 
 //*****************************************************************************
 //グローバル変数
@@ -13,7 +14,7 @@
 Scene3D* pCurrentScene = nullptr;
 int nCurrentScene = SCENE_TITLE_SCREEN;
 int nNextScene = SCENE_IN_GAME;//CHANGE
-
+cUI* pTransition = nullptr;
 //*****************************************************************************
 //InitScene関数
 //初期化関数
@@ -35,7 +36,8 @@ HRESULT InitScene()
 		break;
 	}
 	//
-	
+	if (!pTransition)
+		pTransition = new cUI(UI_TRANSITION);
 	
 	return S_OK;
 }
@@ -48,13 +50,31 @@ HRESULT InitScene()
 //*****************************************************************************
 void UpdateScene()
 {
-	if (pCurrentScene)
+	if (pTransition && nNextScene == nCurrentScene && (pTransition->GetUVFrames().x != 0 || pTransition->GetUVFrames().y != 0))
+	{
+		pTransition->SetAnimationInversed(true);
+		pTransition->Update();
+		if(pTransition->GetUVFrames().x == 0 && pTransition->GetUVFrames().y == 0)
+			pCurrentScene->Update();
+		return;
+	}
+	if (pCurrentScene && nNextScene == nCurrentScene)
 		nNextScene = pCurrentScene->Update();
+
 	if (nNextScene != nCurrentScene)
 	{
-		EndScene();
-		InitScene();
+		if (!pTransition)
+			return;
+		if (pTransition->GetUVFrames().x == 3 && pTransition->GetUVFrames().y == 4)
+		{
+			EndScene();
+			InitScene();
+		}
+		pTransition->SetAnimationInversed(false);
+		pTransition->Update();
+
 	}
+
 }
 
 //*****************************************************************************
@@ -80,6 +100,11 @@ void DrawScene()
 	
 	if (pCurrentScene)
 		pCurrentScene->Draw();
+	SetCullMode(CULLMODE_CCW);
+	// Zバッファ無効
+	SetZBuffer(false);
+	if (pTransition)
+		pTransition->Draw();
 }
 
 //*****************************************************************************

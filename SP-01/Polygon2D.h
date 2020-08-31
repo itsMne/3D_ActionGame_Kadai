@@ -51,6 +51,7 @@ protected:
 
 	XMFLOAT2					x2UVFrame;
 	bool						bAnimationHorizontal;
+	bool						bAnimationInversed;
 	bool						bUsesAnimation;
 	bool						bMoveToNextV;
 	int							nAnimeFrameChange;
@@ -99,5 +100,6 @@ public:
 	void SetSpeedAnimationFrameChange(int speed) { nFrameAnimCounter = nAnimeFrameChange = speed; bUsesAnimation = true; }
 	XMFLOAT2 GetUVFrames() { return x2UVFrame; };
 	float GetAlpha() { return Color.w; };
+	void SetAnimationInversed(bool inv) { bAnimationInversed = inv; };
 };
 #endif

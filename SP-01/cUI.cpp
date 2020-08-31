@@ -34,6 +34,7 @@ enum UI_TEXTURES
 	UI_INGAMESCORE_TEX,
 	UI_STYLE_RANK_TEX,
 	UI_CLEAR_TEX,
+	UI_TRANSITION_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -67,6 +68,16 @@ void cUI::Init()
 	nNum = 0;
 	switch (nType)
 	{
+	case UI_TRANSITION:
+		if (!pTextures[UI_TRANSITION_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/UI/TransitionEffect.tga", &pTextures[UI_TRANSITION_TEX]);
+		SetTexture(pTextures[UI_TRANSITION_TEX]);
+		SetUVSize(4.0f, 5.0f);
+		SetSpeedAnimationFrameChange(2);
+		SetSize(1280, 720);
+		SetAlpha(1.0f);
+		fPauseSizeOffset = 35;
+		break;
 	case UI_PAUSE:
 		if(!pTextures[UI_PAUSE_TEX])
 			CreateTextureFromFile(GetDevice(), "data/texture/PauseScreen.tga", &pTextures[UI_PAUSE_TEX]);

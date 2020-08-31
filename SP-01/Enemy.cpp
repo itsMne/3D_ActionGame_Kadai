@@ -14,7 +14,7 @@
 #define IDLE_WAIT_FRAMES 120
 #define ENEMY_SPEED 5.5f
 #define MAX_DIZZINESS 3
-#define ENEMY_SPEED 0
+//#define ENEMY_SPEED 0
 float fEnemyAnimations[ENEMY_MAX] =
 {
 	2*1,//EN_IDLE,
@@ -602,8 +602,10 @@ void Enemy::DamagedStateControl()
 			Player->RedHotKicked();
 		}
 		SetHitEffect();
-		Player->AddStamina(pPlayerAttack->nStaminaToAdd);
-		nHP -= pPlayerAttack->nDamage;
+		if (pPlayerAttack) {
+			Player->AddStamina(pPlayerAttack->nStaminaToAdd);
+			nHP -= pPlayerAttack->nDamage;
+		}
 	}
 	if (bFollowRoulette)
 	{
