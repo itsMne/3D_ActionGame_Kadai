@@ -33,6 +33,7 @@ enum UI_TEXTURES
 	UI_GAMEOVER_MESSAGE,
 	UI_INGAMESCORE_TEX,
 	UI_STYLE_RANK_TEX,
+	UI_CLEAR_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -76,7 +77,24 @@ void cUI::Init()
 		SetAlpha(0.75f);
 		fPauseSizeOffset = 35;
 		break;
-
+	case UI_CLEAR_BG:
+		SetTexture(nullptr);
+		SetUVSize(1.0f, 1.0f);
+		SetColor(0,0,0);
+		SetAlpha(0.75f);
+		SetSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+		SetRotation(0, 90, 0);
+		break;
+	case UI_CLEAR_SCREEN:
+		if (!pTextures[UI_CLEAR_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/UI/ClearScreen.tga", &pTextures[UI_CLEAR_TEX]);
+		SetTexture(pTextures[UI_CLEAR_TEX]);
+		SetUVSize(1.0f, 3.0f);
+		SetSpeedAnimationFrameChange(7);
+		SetSize(1213, 1794/3);
+		SetAlpha(1.0f);
+		SetRotation(0, 90, 0);
+		break;
 	case UI_STATIC:
 		if (!pTextures[UI_STATIC_TEX])
 			CreateTextureFromFile(GetDevice(), "data/texture/NoiseTexture.tga", &pTextures[UI_STATIC_TEX]);
@@ -262,7 +280,7 @@ void cUI::Init()
 		if (!pTextures[UI_INGAMESCORE_TEX])
 			CreateTextureFromFile(GetDevice(), "data/texture/UI/NumbersUI.tga", &pTextures[UI_INGAMESCORE_TEX]);
 		SetTexture(pTextures[UI_INGAMESCORE_TEX]);
-		SetUVSize(10.0f, 10.0f);
+		SetUVSize(10.0f, 3.0f);
 		Position.x = SCREEN_WIDTH / 2 - (25 * 8);
 		Position.y = SCREEN_HEIGHT / 2 - 25;
 		SetSpeedAnimationFrameChange(3);
@@ -274,9 +292,9 @@ void cUI::Init()
 		if (!pTextures[UI_STYLE_RANK_TEX])
 			CreateTextureFromFile(GetDevice(), "data/texture/UI/RankUI.tga", &pTextures[UI_STYLE_RANK_TEX]);
 		SetTexture(pTextures[UI_STYLE_RANK_TEX]);
-		SetUVSize(4.0f, 10.0f);
-		Position.x = SCREEN_WIDTH / 2 - (25 * 8) + 10;
-		Position.y = SCREEN_HEIGHT / 2 - 75;
+		SetUVSize(4.0f, 3.0f);
+		Position.x = SCREEN_WIDTH / 2 - (25 * 8) + 20;
+		Position.y = SCREEN_HEIGHT / 2 - 95;
 		SetSize(100, 75);
 		SetAlpha(1.0f);
 		break;
@@ -378,16 +396,20 @@ void cUI::Update()
 	case UI_SCORE_INGAME:
 		Polygon2D::UpdatePolygon();
 		nNum = GetScore();
-		if (++fAcceleration > 5) {
+		if (++fAcceleration > 8) {
 			x2UVFrame.y++;
+			if (x2UVFrame.y == x2Frame.y)
+				x2UVFrame.y = 0;
 			fAcceleration = 0;
 		}
 		break;
 	case UI_STYLE_RANK:
 		x2UVFrame.x = GetRank()-1;
-		if (++fAcceleration > 5) {
+		if (++fAcceleration > 8) {
 			x2UVFrame.y++;
 			fAcceleration = 0;
+			if (x2UVFrame.y == x2Frame.y)
+				x2UVFrame.y = 0;
 		}
 		if (x2UVFrame.x == 0)
 			SetAlpha(0);
@@ -411,6 +433,20 @@ void cUI::InGameUIManagerControl()
 	cUI* pMoveset = GetSubObject(UI_PAUSE_INSTRUCTIONS);
 	cUI* pPause = GetSubObject(UI_PAUSE);
 	cUI* pReturnToMain = GetSubObject(UI_PAUSE_RETURNTOMAINPAUSE);
+
+	if (IsGameClear()) {
+		cUI*obj = GetSubObject(UI_CLEAR_BG);
+		if (obj->GetRotationY() > 0) {
+			obj->RotateAroundY(-10);
+			return;
+		}
+		obj = GetSubObject(UI_CLEAR_SCREEN);
+		if (obj->GetRotationY() > 0)
+			obj->RotateAroundY(-10);
+
+		return;
+	}
+
 	if (!pPause)
 		return;
 
@@ -526,7 +562,7 @@ void cUI::MenuManagerControl()
 		}
 		if (obj->GetPosition().x == 640 / 2)
 			bRight = true;
-		//obj->SetAlpha(0);
+		
 		obj = GetSubObject(UI_MENU_OPTION_LEFT);
 		if (obj->GetPosition().x < -640 / 2) {
 			obj->Translate({ fAcceleration,0 });

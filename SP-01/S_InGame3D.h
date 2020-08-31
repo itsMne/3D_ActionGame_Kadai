@@ -43,6 +43,9 @@ private:
 	bool bSceneEnded;
 	int nNextScene;
 	int nGameOverFrames;
+	int nClearFrames;
+	int nCheckDeadEnemies;
+	bool bGameClear;
 public:
 	S_InGame3D();
 	~S_InGame3D();
@@ -53,6 +56,7 @@ public:
 	Go_List* GetList(int Type);
 	int GetPauseState() { return nCurrentPauseState; };
 	int GetPauseSelect() { return nCurrentPauseSelection; };
+	bool IsGameClear() { return bGameClear; };
 };
 
 //*****************************************************************************
@@ -66,3 +70,4 @@ void SetPauseFrames(int pause, int wait);
 float GetCurrentBottom();
 int GetCurrentPauseState();
 int GetCurrentPauseSelection();
+bool IsGameClear();

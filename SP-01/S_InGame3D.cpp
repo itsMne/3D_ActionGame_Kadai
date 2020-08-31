@@ -64,6 +64,8 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	nCurrentPauseState = NOT_PAUSED_STATE;
 	nCurrentPauseSelection = SELECTION_CONTINUE;
 	nNextScene = SCENE_IN_GAME;
+	bGameClear = false;
+	nCheckDeadEnemies = nClearFrames = 0;
 	RankManager::Init();
 }
 
@@ -106,10 +108,18 @@ eSceneType S_InGame3D::Update()
 			return SCENE_TITLE_SCREEN;
 		return SCENE_IN_GAME;
 	}
-	if (Enemies->AllEnemiesDead())
+	if (Enemies->AllEnemiesDead() && ++nCheckDeadEnemies>25)
 	{
-		//printf("%d\n", nScoreToAdd);
+		bGameClear = true;
+		if (++nClearFrames > 400)
+		{
+			if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+				return SCENE_TITLE_SCREEN;
+		}
+		return SCENE_IN_GAME;
 	}
+	else if(!Enemies->AllEnemiesDead())
+		nCheckDeadEnemies = 0;
 	if (nScoreToAdd > 0)
 	{
 		nScoreToAdd--;
@@ -293,7 +303,7 @@ int GetScore()
 //*****************************************************************************
 void AddScore(int add)
 {
-	nScoreToAdd += add;
+	nScoreToAdd += add*GetRank();
 }
 
 //*****************************************************************************
@@ -332,4 +342,11 @@ int GetCurrentPauseSelection()
 	if (!pCurrentGame)
 		return MAX_SELECTIONS;
 	return pCurrentGame->GetPauseSelect();
+}
+
+bool IsGameClear()
+{
+	if(!pCurrentGame)
+		return false;
+	return pCurrentGame->IsGameClear();
 }
