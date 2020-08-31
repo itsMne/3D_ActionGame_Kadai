@@ -85,6 +85,7 @@ public:
 	virtual void Draw();
 	virtual void End();
 	XMFLOAT3 GetPosition();
+	XMFLOAT3 GetInitialPosition();
 	XMFLOAT3 GetRotation();
 	XMFLOAT3 GetScale();
 
@@ -159,6 +160,9 @@ class Go_List
 {
 private:
 	int nObjectCount;
+	bool bIsEnemyList;
+	int	nReadEnemies;
+	bool bAllEnemiesDead;
 public:
 	go_node * HeadNode;
 	Go_List();
@@ -174,6 +178,9 @@ public:
 	void DeleteLastPosObject();
 	void DeleteObject(Object3D*);
 	void Update();
+	void UpdateEnemies();
 	void Draw();
 	void End();
+	void SetEnemiesToReAdd(int en) { nReadEnemies = en; };
+	bool AllEnemiesDead();
 };

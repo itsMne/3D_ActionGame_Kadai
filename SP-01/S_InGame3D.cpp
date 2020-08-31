@@ -49,6 +49,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	Enemies = new Go_List();
 	Fields = new Go_List();
 	Enemies->AddEnemy({ 0, 100, 0 });
+	Enemies->SetEnemiesToReAdd(3);
 	//Enemies->AddEnemy({ 500, 100, 500 });
 	//Enemies->AddEnemy({ -500, 100, -500 });
 	//Enemies->AddEnemy({ -500, 100, 500 });
@@ -97,7 +98,6 @@ eSceneType S_InGame3D::Update()
 {
 	if (bSceneEnded)
 		return (eSceneType)nNextScene;
-
 	UI_Manager->Update();
 	if (nGameOverFrames>=300)
 	{
@@ -105,6 +105,12 @@ eSceneType S_InGame3D::Update()
 			return SCENE_TITLE_SCREEN;
 		return SCENE_IN_GAME;
 	}
+	if (Enemies->AllEnemiesDead())
+	{
+		//printf("%d\n", nScoreToAdd);
+	}
+	printf("%d\n", nScoreToAdd);
+
 	//PAUSE CONTROL
 	if (bGamePaused) 
 	{

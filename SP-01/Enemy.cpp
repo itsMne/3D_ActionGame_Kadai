@@ -193,6 +193,7 @@ void Enemy::Update()
 		bAlternatePunchAnim ^= true;
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 		if (pPlayerAttack) {
+			AddScore(pPlayerAttack->nScore);
 			CameraRumbleControl(pPlayerAttack->Animation);
 			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B
 				|| (pFloor && (pPlayerAttack->Animation == AIR_PUNCHA|| pPlayerAttack->Animation == AIR_PUNCHB || pPlayerAttack->Animation == SLIDE)))) {
@@ -566,8 +567,10 @@ void Enemy::DamagedStateControl()
 		if (pPlayerAttack && pPlayerAttack->Animation != RED_HOT_KICK)
 			FaceActor(pPlayer);
 		bCanBeAttacked = false;
-		if(pPlayerAttack)
+		if (pPlayerAttack) {
+			AddScore(pPlayerAttack->nScore);
 			CameraRumbleControl(pPlayerAttack->Animation);
+		}
 		fGravityForce = 0;
 		nCancellingGravityFrames = 70;
 		if (!GetInput(INPUT_LOCKON) && !Player->IsSoftLocked()) {

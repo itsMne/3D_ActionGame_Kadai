@@ -138,6 +138,7 @@ typedef struct PLAYER_ATTACK_MOVE
 	int						nDamage;
 	int						nStaminaToAdd;
 	int						nAttackID;
+	int						nScore;
 };
 
 //*****************************************************************************

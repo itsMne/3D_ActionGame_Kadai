@@ -254,6 +254,11 @@ XMFLOAT3 Object3D::GetPosition()
 	return Position;
 }
 
+XMFLOAT3 Object3D::GetInitialPosition()
+{
+	return InitialPosition;
+}
+
 //*****************************************************************************
 //GetRotationŠÖ”
 //‰ñ“]‚ð–ß‚·
@@ -894,6 +899,9 @@ Go_List::Go_List()
 {
 	HeadNode = nullptr;
 	nObjectCount = 0;
+	bIsEnemyList = false;
+	nReadEnemies = -1;
+	bAllEnemiesDead = false;
 }
 
 Go_List::~Go_List()
@@ -969,6 +977,7 @@ Object3D * Go_List::AddEnemy(XMFLOAT3 newPosition)
 
 Object3D * Go_List::AddEnemy(XMFLOAT3 newPosition, bool Moveable, XMFLOAT3 Start, XMFLOAT3 End, float Speed, int DelayFrames)
 {
+	bIsEnemyList = true;
 	go_node* pPositionList = HeadNode;
 	if (HeadNode != nullptr) {
 		while (pPositionList->next != nullptr) {
@@ -1135,6 +1144,11 @@ void Go_List::DeleteObject(Object3D * pSearch)
 //*****************************************************************************
 void Go_List::Update()
 {
+	if (bIsEnemyList)
+	{
+		UpdateEnemies();
+		return;
+	}
 	if (HeadNode == nullptr)
 		return;
 	go_node* pPositionList = HeadNode;
@@ -1143,6 +1157,36 @@ void Go_List::Update()
 			break;
 		if (pPositionList->Object != nullptr)
 			pPositionList->Object->Update();
+		pPositionList = pPositionList->next;
+	}
+}
+
+void Go_List::UpdateEnemies()
+{
+	if (HeadNode == nullptr)
+		return;
+	bAllEnemiesDead = true;
+	go_node* pPositionList = HeadNode;
+	while (true) {
+		if (pPositionList == nullptr)
+			break;
+		if (pPositionList->Object != nullptr) {
+			Enemy* pEnemy = (Enemy*)pPositionList->Object;
+			pEnemy->Update();
+			if (nReadEnemies > 0 && pEnemy->IsEnemyDead())
+			{
+				nReadEnemies--;
+				if (nReadEnemies != 0)
+				{
+					XMFLOAT3 Pos = pEnemy->GetInitialPosition();
+					SAFE_DELETE(pPositionList->Object);
+					pPositionList->Object = new Enemy();
+					pPositionList->Object->SetPosition(Pos, true);
+				}
+			}
+			if (!pEnemy->IsEnemyDead())
+				bAllEnemiesDead = false;
+		}
 		pPositionList = pPositionList->next;
 	}
 }
@@ -1200,5 +1244,10 @@ void Go_List::End()
 	printf("GameObjects Deleted: %d\n", Count);
 	nObjectCount = 0;
 	HeadNode = nullptr;
+}
+
+bool Go_List::AllEnemiesDead()
+{
+	return bAllEnemiesDead;
 }
 
