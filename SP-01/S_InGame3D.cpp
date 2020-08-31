@@ -11,7 +11,7 @@
 #include "Enemy.h"
 #include "Field.h"
 #include "Sound.h"
-
+#include "RankManager.h"
 //*****************************************************************************
 // ƒ}ƒNƒ’è‹`
 //*****************************************************************************
@@ -64,6 +64,7 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	nCurrentPauseState = NOT_PAUSED_STATE;
 	nCurrentPauseSelection = SELECTION_CONTINUE;
 	nNextScene = SCENE_IN_GAME;
+	RankManager::Init();
 }
 
 
@@ -189,6 +190,7 @@ eSceneType S_InGame3D::Update()
 	Enemies->Update();
 	nCurrentPauseState = NOT_PAUSED_STATE;
 	nCurrentPauseSelection = SELECTION_CONTINUE;
+	RankManager::Update();
 	if (pPlayer->IsPlayerDead())
 	{
 		nGameOverFrames++;

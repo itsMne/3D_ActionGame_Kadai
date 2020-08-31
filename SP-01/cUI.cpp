@@ -4,6 +4,7 @@
 #include "Player3D.h"
 #include "InputManager.h"
 #include "S_TitleScreen3D.h"
+#include "RankManager.h"
 #include "stdio.h"
 
 #define MAX_HIT_EFF 5
@@ -31,6 +32,7 @@ enum UI_TEXTURES
 	UI_STATIC_TEX,
 	UI_GAMEOVER_MESSAGE,
 	UI_INGAMESCORE_TEX,
+	UI_STYLE_RANK_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -267,6 +269,17 @@ void cUI::Init()
 		SetSize(18, 25);
 		SetAlpha(1.0f);
 		break;
+
+	case UI_STYLE_RANK:
+		if (!pTextures[UI_STYLE_RANK_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/UI/RankUI.tga", &pTextures[UI_STYLE_RANK_TEX]);
+		SetTexture(pTextures[UI_STYLE_RANK_TEX]);
+		SetUVSize(4.0f, 10.0f);
+		Position.x = SCREEN_WIDTH / 2 - (25 * 8) + 10;
+		Position.y = SCREEN_HEIGHT / 2 - 75;
+		SetSize(100, 75);
+		SetAlpha(1.0f);
+		break;
 	}
 	fAcceleration = 0;
 	InitialScale = Scale;
@@ -369,6 +382,19 @@ void cUI::Update()
 			x2UVFrame.y++;
 			fAcceleration = 0;
 		}
+		break;
+	case UI_STYLE_RANK:
+		x2UVFrame.x = GetRank()-1;
+		if (++fAcceleration > 5) {
+			x2UVFrame.y++;
+			fAcceleration = 0;
+		}
+		if (x2UVFrame.x == 0)
+			SetAlpha(0);
+		else
+			SetAlpha(1);
+		SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+		SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
 		break;
 	default:
 		Polygon2D::UpdatePolygon();

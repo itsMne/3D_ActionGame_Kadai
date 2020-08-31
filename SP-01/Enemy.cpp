@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "cUI.h"
 #include "Player3D.h"
+#include "RankManager.h"
 
 #define SHOW_ENEMY_HITBOX true
 #define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_ATTACK
@@ -194,6 +195,10 @@ void Enemy::Update()
 		PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 		if (pPlayerAttack) {
 			AddScore(pPlayerAttack->nScore);
+			float fEnrageMeterScoreOffset = 1;
+			if (bIsEnraged)
+				fEnrageMeterScoreOffset = 1.5f;
+			AddMoveToRankMeter(pPlayerAttack->nAttackID, pPlayerAttack->nRankMeterPower*fEnrageMeterScoreOffset);
 			CameraRumbleControl(pPlayerAttack->Animation);
 			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B
 				|| (pFloor && (pPlayerAttack->Animation == AIR_PUNCHA|| pPlayerAttack->Animation == AIR_PUNCHB || pPlayerAttack->Animation == SLIDE)))) {
@@ -560,14 +565,25 @@ void Enemy::DamagedStateControl()
 	PLAYER_ATTACK_MOVE* pPlayerAttack = Player->GetCurrentAttack();
 	float PosY = Position.y;
 	Camera3D* pCamera = (Camera3D*)(GetMainCamera()->GetFocalPoint());
+	bool bIsEnraged = false;
+	if (--nEnragedFrames <= 0)
+		nEnragedFrames = 0;
+	else
+		bIsEnraged = true;
 	if (!pPlayerAttack)
 		bFollowRoulette = false;
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && bCanBeAttacked) {
 		bAlternatePunchAnim ^= true;
 		if (pPlayerAttack && pPlayerAttack->Animation != RED_HOT_KICK)
 			FaceActor(pPlayer);
+
+		float fEnrageMeterScoreOffset = 1;
+		if (bIsEnraged)
+			fEnrageMeterScoreOffset = 1.5f;
+
 		bCanBeAttacked = false;
 		if (pPlayerAttack) {
+			AddMoveToRankMeter(pPlayerAttack->nAttackID, pPlayerAttack->nRankMeterPower*fEnrageMeterScoreOffset);
 			AddScore(pPlayerAttack->nScore);
 			CameraRumbleControl(pPlayerAttack->Animation);
 		}

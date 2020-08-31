@@ -111,6 +111,7 @@
       <Filter>CPPファイル\エンジンCPP</Filter>
     </ClCompile>
     <ClCompile Include="S_TitleScreen3D.cpp" />
+    <ClCompile Include="RankManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="main.h">
@@ -205,6 +206,7 @@
     <ClInclude Include="Explosion.h">
       <Filter>Hファイル\エンジンH</Filter>
     </ClInclude>
+    <ClInclude Include="RankManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CPPファイル">

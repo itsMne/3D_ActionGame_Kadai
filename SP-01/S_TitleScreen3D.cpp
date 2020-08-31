@@ -55,7 +55,7 @@ eSceneType S_TitleScreen3D::Update()
 			//sound
 			nCurrentMenuSelection = nNewMenuSelection;
 		}
-		if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+		if ((GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE)) && !UI_Title->GetSubObject(UI_TITLESCREEN))
 		{
 			switch (nCurrentMenuSelection)
 			{

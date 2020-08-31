@@ -177,6 +177,7 @@
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="cUI.cpp" />
     <ClCompile Include="Explosion.cpp" />
+    <ClCompile Include="RankManager.cpp" />
     <ClCompile Include="S_TitleScreen3D.cpp" />
     <ClCompile Include="TechnicalCamera.cpp" />
     <ClCompile Include="debugproc.cpp" />
@@ -211,6 +212,7 @@
     <ClInclude Include="Cube.h" />
     <ClInclude Include="cUI.h" />
     <ClInclude Include="Explosion.h" />
+    <ClInclude Include="RankManager.h" />
     <ClInclude Include="TechnicalCamera.h" />
     <ClInclude Include="debugproc.h" />
     <ClInclude Include="DXWindow3D.h" />
