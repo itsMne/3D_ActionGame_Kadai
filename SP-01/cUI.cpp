@@ -35,6 +35,7 @@ enum UI_TEXTURES
 	UI_STYLE_RANK_TEX,
 	UI_CLEAR_TEX,
 	UI_TRANSITION_TEX,
+	UI_REMAININGENEMIES_TEX,
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -298,7 +299,19 @@ void cUI::Init()
 		SetSize(18, 25);
 		SetAlpha(1.0f);
 		break;
+	case UI_REMAINING_ENEMIES:
+		if (!pTextures[UI_INGAMESCORE_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/UI/NumbersUI.tga", &pTextures[UI_INGAMESCORE_TEX]);
+		SetTexture(pTextures[UI_INGAMESCORE_TEX]);
+		SetUVSize(10.0f, 3.0f);
+		Position.x = -(SCREEN_WIDTH / 2 - (50));
+		Position.y = -(SCREEN_HEIGHT / 2 - 27);
+		SetSpeedAnimationFrameChange(3);
+		SetSize(18, 25);
+		SetAlpha(1.0f);
 
+		SetColor(1, 0.25f, 0.25f);
+		break;
 	case UI_STYLE_RANK:
 		if (!pTextures[UI_STYLE_RANK_TEX])
 			CreateTextureFromFile(GetDevice(), "data/texture/UI/RankUI.tga", &pTextures[UI_STYLE_RANK_TEX]);
@@ -307,6 +320,18 @@ void cUI::Init()
 		Position.x = SCREEN_WIDTH / 2 - (25 * 8) + 20;
 		Position.y = SCREEN_HEIGHT / 2 - 95;
 		SetSize(100, 75);
+		SetAlpha(1.0f);
+		break;
+
+	case UI_REMAINING_ENEMIES_MESSAGE:
+		if (!pTextures[UI_REMAININGENEMIES_TEX])
+			CreateTextureFromFile(GetDevice(), "data/texture/UI/RemainingEnemies.tga", &pTextures[UI_REMAININGENEMIES_TEX]);
+		SetTexture(pTextures[UI_REMAININGENEMIES_TEX]);
+		SetUVSize(1.0f, 3.0f);
+		Position.x = -(SCREEN_WIDTH / 2 - (50))+5;
+		Position.y = -(SCREEN_HEIGHT / 2 - 27)+37;
+		SetSpeedAnimationFrameChange(6);
+		SetSize(80, 48);
 		SetAlpha(1.0f);
 		break;
 	}
@@ -426,6 +451,17 @@ void cUI::Update()
 			SetAlpha(0);
 		else
 			SetAlpha(1);
+		SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+		SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+		break;
+	case UI_REMAINING_ENEMIES:
+		x2UVFrame.x = GetRemainingEnemies();
+		if (++fAcceleration > 8) {
+			x2UVFrame.y++;
+			if (x2UVFrame.y == x2Frame.y)
+				x2UVFrame.y = 0;
+			fAcceleration = 0;
+		}
 		SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
 		SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
 		break;

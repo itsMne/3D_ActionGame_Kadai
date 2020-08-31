@@ -17,6 +17,7 @@
 //*****************************************************************************
 #define MAX_TIME 150
 #define DEFAULT_BOTTOM -450.0f
+#define NO_ENEMIES 5
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -26,6 +27,7 @@ int nScoreToAdd;
 bool bGamePaused;
 int nTempPauseFrames;
 int nWaitFramesForNextPause;
+int nRemainingEnemies = 0;
 float fBottom;
 //*****************************************************************************
 // コンストラクタ関数
@@ -49,8 +51,9 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	Enemies = new Go_List();
 	Fields = new Go_List();
 	Enemies->AddEnemy({ 0, 100, 0 });
-	Enemies->SetEnemiesToReAdd(5);
+	Enemies->SetEnemiesToReAdd(NO_ENEMIES);
 	Enemies->AddEnemy({ 500, 100, 500 });
+	nRemainingEnemies = 1 + NO_ENEMIES;
 	//Enemies->AddEnemy({ -500, 100, -500 });
 	//Enemies->AddEnemy({ -500, 100, 500 });
 	//Enemies->AddEnemy({ 500, 100, -500 });
@@ -348,4 +351,14 @@ bool IsGameClear()
 	if(!pCurrentGame)
 		return false;
 	return pCurrentGame->IsGameClear();
+}
+
+void ReduceEnemiesToClear()
+{
+	nRemainingEnemies--;
+}
+
+int GetRemainingEnemies()
+{
+	return nRemainingEnemies;
 }

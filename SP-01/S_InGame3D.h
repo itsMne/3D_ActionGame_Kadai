@@ -71,3 +71,5 @@ float GetCurrentBottom();
 int GetCurrentPauseState();
 int GetCurrentPauseSelection();
 bool IsGameClear();
+void ReduceEnemiesToClear();
+int GetRemainingEnemies();

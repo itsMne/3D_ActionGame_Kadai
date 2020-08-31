@@ -13,7 +13,7 @@
 #define DEAD_FRAME_COUNT 250
 #define IDLE_WAIT_FRAMES 120
 #define ENEMY_SPEED 5.5f
-#define MAX_DIZZINESS 3
+#define MAX_DIZZINESS 1
 //#define ENEMY_SPEED 0
 float fEnemyAnimations[ENEMY_MAX] =
 {
@@ -52,6 +52,7 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	pHearts->SetPosition({ 0, 0, 0 });
 	pHearts->SetUnusableAfterAnimation(false);
 	fHeartPosLockOn = 0;
+	bReduceEnemy = false;
 	for (int i = 0; i < MAX_ENEMY_HEART; i++)
 	{
 		fHeartPosHealth[i] = 0;
@@ -122,10 +123,16 @@ void Enemy::Update()
 {
 	if (nDizzyness > MAX_DIZZINESS)
 		nDizzyness = MAX_DIZZINESS;
-	if (nDeathFrameCount >= DEAD_FRAME_COUNT)
+	if (nDeathFrameCount >= DEAD_FRAME_COUNT) 
 		return;
+
 	if (nState == EN_DEAD)
 	{
+		if (!bReduceEnemy)
+		{
+			bReduceEnemy = true;
+			ReduceEnemiesToClear();
+		}
 		nDizzynessFrames = 0;
 		for (int i = 0; i < MAX_HIT_EFFECTS; i++)
 		{

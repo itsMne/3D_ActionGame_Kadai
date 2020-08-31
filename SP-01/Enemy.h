@@ -84,6 +84,7 @@ private:
 	bool		bIsDizzy;
 	bool		bDizzyPush;
 	int			nDizzyWaitCountFrames;
+	bool		bReduceEnemy;
 public:
 	Enemy();
 	void SetHitEffect();
