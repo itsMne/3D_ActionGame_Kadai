@@ -12,12 +12,13 @@
 #include "Field.h"
 #include "Sound.h"
 #include "RankManager.h"
+#include "SceneManager.h"
 //*****************************************************************************
 // マクロ定義
 //*****************************************************************************
 #define MAX_TIME 150
 #define DEFAULT_BOTTOM -450.0f
-#define NO_ENEMIES 5
+#define NUM_ENEMIES 5
 //*****************************************************************************
 // グローバル変数
 //*****************************************************************************
@@ -51,9 +52,32 @@ S_InGame3D::S_InGame3D() :Scene3D(true)
 	Enemies = new Go_List();
 	Fields = new Go_List();
 	Enemies->AddEnemy({ 0, 100, 0 });
-	Enemies->SetEnemiesToReAdd(NO_ENEMIES);
-	Enemies->AddEnemy({ 500, 100, 500 });
-	nRemainingEnemies = 1 + NO_ENEMIES;
+	
+	int nDifficulty = GetGameDifficulty();
+	switch (nDifficulty)
+	{
+	case DIF_EASY:
+		//Enemies->AddEnemy({ -500, 100, 500 });
+		Enemies->SetEnemiesToReAdd(1+NUM_ENEMIES/2);
+		nRemainingEnemies = 1 + NUM_ENEMIES/2;
+		PlaySoundGame(SOUND_LABEL_EASY);
+		break;
+	case DIF_NORMAL:
+		Enemies->SetEnemiesToReAdd(NUM_ENEMIES);
+		Enemies->AddEnemy({ 500, 100, 500 });
+		nRemainingEnemies = 1 + NUM_ENEMIES;
+		PlaySoundGame(SOUND_LABEL_NORMAL);
+		break;
+	case DIF_HARD:
+		Enemies->SetEnemiesToReAdd(NUM_ENEMIES+1);
+		nRemainingEnemies = 1 + NUM_ENEMIES+1;
+		Enemies->AddEnemy({ 500, 100, 500 });
+		Enemies->AddEnemy({ -500, 100, -500 });
+		PlaySoundGame(SOUND_LABEL_HARD);
+		break;
+	default:
+		break;
+	}
 	//Enemies->AddEnemy({ -500, 100, -500 });
 	//Enemies->AddEnemy({ -500, 100, 500 });
 	//Enemies->AddEnemy({ 500, 100, -500 });
@@ -107,17 +131,27 @@ eSceneType S_InGame3D::Update()
 	UI_Manager->Update();
 	if (nGameOverFrames>=300)
 	{
-		if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+		if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE)) {
+			StopSound();
 			return SCENE_TITLE_SCREEN;
+		}
 		return SCENE_IN_GAME;
 	}
 	if (Enemies->AllEnemiesDead() && ++nCheckDeadEnemies>25)
 	{
+		if (!bGameClear)
+		{
+			StopSound();
+			PlaySoundGame(SOUND_LABEL_CLEAR);
+		}
 		bGameClear = true;
 		if (++nClearFrames > 400)
 		{
-			if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE))
+			if (GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE)) {
+				StopSound();
+				PlaySoundGame(SOUND_LABEL_SE_TRANSITION);
 				return SCENE_TITLE_SCREEN;
+			}
 		}
 		return SCENE_IN_GAME;
 	}

@@ -1918,6 +1918,11 @@ void Player3D::Damage()
 	nState = PLAYER_DAMAGED_STATE; 
 	nHP--;
 	ActivateDamageEffect();
+	if (nHP <= 0)
+	{
+		StopSound();
+		PlaySoundGame(SOUND_LABEL_GAMEOVER);
+	}
 	PlaySoundGame(SOUND_LABEL_SE_DAMAGE);
 	ResetRanks();
 }
@@ -1928,6 +1933,11 @@ void Player3D::Damage(int dam)
 	nState = PLAYER_DAMAGED_STATE; 
 	nHP -= dam;
 	ActivateDamageEffect();
+	if (nHP <= 0)
+	{
+		StopSound();
+		PlaySoundGame(SOUND_LABEL_GAMEOVER);
+	}
 	PlaySoundGame(SOUND_LABEL_SE_DAMAGE);
 	ResetRanks();
 }
