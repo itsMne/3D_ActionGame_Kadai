@@ -45,6 +45,7 @@ enum UI_TYPE
 	UI_MENU_SELECTOR,
 	UI_MENU_MANAGER,
 	UI_MENU_OPTION,
+	UI_DIFFICULTY_SELECTION,
 
 	UI_TRANSITION,
 	MAX_MENU_UI
@@ -60,6 +61,7 @@ private:
 	cUI* pUI_INGAMEs[MAX_INGAME_UI];
 	cUI* pUI_MENUs[MAX_MENU_UI-MAX_INGAME_UI];
 	cUI* pMenuOption;
+	cUI* pDifficulty;
 	XMFLOAT3 InitialScale;
 	int nNum;
 public:
@@ -78,6 +80,7 @@ public:
 	int GetType() { return nType; };
 	cUI* GetSubObject(int objType);
 	cUI* GetMenuTitleObject() { return pMenuOption; };
+	cUI* GetMenuDiffObject() { return pDifficulty; };
 	XMFLOAT3 GetInitialScale() { return InitialScale; };
 	void SetInitialScale(XMFLOAT3 scal) { InitialScale = scal; };
 };

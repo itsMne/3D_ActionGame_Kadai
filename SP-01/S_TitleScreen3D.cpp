@@ -1,5 +1,6 @@
 #include "S_TitleScreen3D.h"
 #include "InputManager.h"
+#include "SceneManager.h"
 
 S_TitleScreen3D* pCurrentTitleScene = nullptr;
 S_TitleScreen3D::S_TitleScreen3D() :Scene3D(true)
@@ -44,15 +45,20 @@ eSceneType S_TitleScreen3D::Update()
 		if (GetAxis(MOVEMENT_AXIS_VERTICAL) || GetAxis(MOVEMENT_AXIS_HORIZONTAL)) {
 			fRot = (atan2(-GetAxis(MOVEMENT_AXIS_HORIZONTAL), GetAxis(MOVEMENT_AXIS_VERTICAL)))*(180 / XM_PI);
 			pObj->SetRotation(0, 0, fRot);
+			if (fRot >= 46 && fRot <= 134)
+				nNewMenuSelection = MENU_OPTION_DIFFICULTY;
+			printf("%f\n", fRot);
 			fRot = abs(fRot);
 			if (fRot >= 0 && fRot <= 45)
 				nNewMenuSelection = MENU_OPTION_GAMESTART;
 			if (fRot >= 135 && fRot <= 180)
 				nNewMenuSelection = MENU_OPTION_GAMEEND;
+
 		}
 		if (nNewMenuSelection != nCurrentMenuSelection)
 		{
 			//sound
+			VibrateXinput(65535/2, 65535/2, 20);
 			nCurrentMenuSelection = nNewMenuSelection;
 		}
 		if ((GetInput(INPUT_JUMP) || GetInput(INPUT_CAMERA) || GetInput(INPUT_PAUSE)) && !UI_Title->GetSubObject(UI_TITLESCREEN))
@@ -60,11 +66,16 @@ eSceneType S_TitleScreen3D::Update()
 			switch (nCurrentMenuSelection)
 			{
 			case MENU_OPTION_GAMESTART:
+				VibrateXinput(65535, 65535, 35);
 				return SCENE_IN_GAME;
 				break;
 			case MENU_OPTION_GAMEEND:
 				//StopSound();
 				EndCurrentGame();
+				break;
+			case MENU_OPTION_DIFFICULTY:
+				VibrateXinput(65535/2, 65535/2, 30);
+				ChangeDifficulty();
 				break;
 			default:
 				break;

@@ -194,6 +194,13 @@ void VibrateXinput(float vivbrationL, float VibrationR)
 	Player1->Vibrate(vivbrationL, VibrationR, 10);
 }
 
+void VibrateXinput(float vivbrationL, float VibrationR, int nTime)
+{
+	if (!bXinputConnected)
+		return;
+	Player1->Vibrate(vivbrationL, VibrationR, nTime);
+}
+
 //*****************************************************************************
 //XinputTriggerControlŠÖ”
 //ƒgƒŠƒK[‚Ìê‡‚ğŠÇ—‚·‚é

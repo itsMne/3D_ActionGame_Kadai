@@ -4,6 +4,7 @@
 #include "Player3D.h"
 #include "InputManager.h"
 #include "S_TitleScreen3D.h"
+#include "SceneManager.h"
 #include "RankManager.h"
 #include "stdio.h"
 
@@ -36,6 +37,10 @@ enum UI_TEXTURES
 	UI_CLEAR_TEX,
 	UI_TRANSITION_TEX,
 	UI_REMAININGENEMIES_TEX,
+
+	UI_DIFFICULTIES,
+	UI_SELECTED_DIFFICULT,
+
 	UI_TEX_MAX
 };
 ID3D11ShaderResourceView * pTextures[UI_TEX_MAX] = { nullptr };
@@ -65,7 +70,7 @@ void cUI::Init()
 	for (int i = 0; i < UI_HEALTH_FLOWER; pHealthFlower[i] = nullptr, i++);
 	for (int i = 0; i < MAX_INGAME_UI; pUI_INGAMEs[i] = nullptr, i++);
 	for (int i = 0; i < MAX_UI_TITLE_OBJS; pUI_MENUs[i] = nullptr, i++);
-	pMenuOption = nullptr;
+	pDifficulty = pMenuOption = nullptr;
 	nNum = 0;
 	switch (nType)
 	{
@@ -204,6 +209,25 @@ void cUI::Init()
 		{
 			RotateAroundZ(180);
 			SetPosition(-640 * 2, 0);
+
+
+			pMenuOption = new cUI(UI_MENU_OPTION, this);
+			if (!pTextures[UI_DIFFICULTIES])
+				CreateTextureFromFile(GetDevice(), "data/texture/UI/DiffMessage.tga", &pTextures[UI_DIFFICULTIES]);
+			pMenuOption->SetTexture(pTextures[UI_DIFFICULTIES]);
+			pMenuOption->SetPosition(-50, 75);
+			pMenuOption->SetSize(334 / 2, 97 / 2);
+			pMenuOption->SetInitialScale({ pMenuOption->GetSize().x, pMenuOption->GetSize().y,0 });
+
+			pDifficulty = new cUI(UI_DIFFICULTY_SELECTION, this);
+			if (!pTextures[UI_SELECTED_DIFFICULT])
+				CreateTextureFromFile(GetDevice(), "data/texture/UI/Difficulties.tga", &pTextures[UI_SELECTED_DIFFICULT]);
+			pDifficulty->SetTexture(pTextures[UI_SELECTED_DIFFICULT]);
+			pDifficulty->SetPosition(-50, 0);
+			pDifficulty->SetUVSize(1.0f, 3.0f);
+			pDifficulty->SetSize(439, 408/3);
+			pDifficulty->SetInitialScale({ pDifficulty->GetSize().x, pDifficulty->GetSize().y,0 });
+
 		}
 		break;
 	case UI_MENU_OPTION_UP: case UI_MENU_OPTION_DOWN:
@@ -235,7 +259,7 @@ void cUI::Init()
 	case UI_MENU_MANAGER:
 		for (int i = UI_TITLE_BG; i < UI_MENU_MANAGER; pUI_MENUs[i - UI_TITLE_BG] = new cUI(i), i++);
 		break;
-	case UI_MENU_OPTION:
+	case UI_MENU_OPTION: case UI_DIFFICULTY_SELECTION:
 		SetPosition(0, 0);
 		break;
 	case UI_MENU_SELECTOR:
@@ -439,6 +463,11 @@ void cUI::Update()
 			fAcceleration = 0;
 		}
 		break;
+	case UI_DIFFICULTY_SELECTION:
+		x2UVFrame.y = GetGameDifficulty();
+		SetPolygonFrameSize(1.0 / x2UVMaxFrameSize.x, 1.0 / x2UVMaxFrameSize.y);
+		SetPolygonUV(x2UVFrame.x / x2UVMaxFrameSize.x, x2UVFrame.y / x2UVMaxFrameSize.y);
+		break;
 	case UI_STYLE_RANK:
 		x2UVFrame.x = GetRank()-1;
 		if (++fAcceleration > 8) {
@@ -467,6 +496,8 @@ void cUI::Update()
 		break;
 	default:
 		Polygon2D::UpdatePolygon();
+		if (pDifficulty)
+			pDifficulty->Update();
 		break;
 	}
 }
@@ -611,6 +642,7 @@ void cUI::MenuManagerControl()
 			bRight = true;
 		
 		obj = GetSubObject(UI_MENU_OPTION_LEFT);
+
 		if (obj->GetPosition().x < -640 / 2) {
 			obj->Translate({ fAcceleration,0 });
 			if (obj->GetPosition().x > -640 / 2)
@@ -647,6 +679,8 @@ void cUI::MenuManagerControl()
 
 			GetSubObject(UI_MENU_OPTION_UP)->GetMenuTitleObject()->SetSize(GetSubObject(UI_MENU_OPTION_UP)->GetMenuTitleObject()->GetInitialScale());
 			GetSubObject(UI_MENU_OPTION_DOWN)->GetMenuTitleObject()->SetSize(GetSubObject(UI_MENU_OPTION_DOWN)->GetMenuTitleObject()->GetInitialScale());
+			GetSubObject(UI_MENU_OPTION_LEFT)->GetMenuTitleObject()->SetSize(GetSubObject(UI_MENU_OPTION_LEFT)->GetMenuTitleObject()->GetInitialScale());
+			GetSubObject(UI_MENU_OPTION_LEFT)->GetMenuDiffObject()->SetSize(GetSubObject(UI_MENU_OPTION_LEFT)->GetMenuDiffObject()->GetInitialScale());
 
 			static float fSelectedOffset=0;
 			static int nDir = 1;
@@ -661,6 +695,12 @@ void cUI::MenuManagerControl()
 				break;
 			case MENU_OPTION_GAMEEND:
 				obj = GetSubObject(UI_MENU_OPTION_DOWN)->GetMenuTitleObject();
+				obj->ScaleUp(fSelectedOffset);
+				break;
+			case MENU_OPTION_DIFFICULTY:
+				obj = GetSubObject(UI_MENU_OPTION_LEFT)->GetMenuTitleObject();
+				obj->ScaleUp(fSelectedOffset);
+				obj = GetSubObject(UI_MENU_OPTION_LEFT)->GetMenuDiffObject();
 				obj->ScaleUp(fSelectedOffset);
 				break;
 			default:
@@ -762,6 +802,8 @@ void cUI::Draw()
 		Polygon2D::DrawPolygon(GetDeviceContext());
 		if (pMenuOption)
 			pMenuOption->Draw();
+		if (pDifficulty)
+			pDifficulty->Draw();
 		break;
 	case UI_SCORE_INGAME:
 		DrawNumber();
@@ -850,6 +892,7 @@ void cUI::End()
 		SAFE_DELETE(pUI_INGAMEs[i]);
 	}
 	UninitPolygon();
+	SAFE_DELETE(pDifficulty);
 	SAFE_DELETE(pMenuOption);
 }
 

@@ -13,7 +13,8 @@
 //*****************************************************************************
 Scene3D* pCurrentScene = nullptr;
 int nCurrentScene = SCENE_TITLE_SCREEN;
-int nNextScene = SCENE_IN_GAME;//CHANGE
+int nNextScene = SCENE_TITLE_SCREEN;//CHANGE
+int nDifficulty = DIF_NORMAL;
 cUI* pTransition = nullptr;
 //*****************************************************************************
 //InitSceneä÷êî
@@ -116,4 +117,16 @@ void DrawScene()
 void EndScene()
 {
 	SAFE_DELETE(pCurrentScene);
+}
+
+int GetGameDifficulty()
+{
+	return nDifficulty;
+}
+
+void ChangeDifficulty()
+{
+	nDifficulty++;
+	if (nDifficulty == DIF_MAX)
+		nDifficulty = 0;
 }

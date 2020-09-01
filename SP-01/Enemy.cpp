@@ -5,6 +5,7 @@
 #include "InputManager.h"
 #include "cUI.h"
 #include "Player3D.h"
+#include "SceneManager.h"
 #include "RankManager.h"
 
 #define SHOW_ENEMY_HITBOX true
@@ -57,12 +58,30 @@ Enemy::Enemy(): Actor(ENEMY_MODEL, A_ENEMY), pPlayer(nullptr), bCanBeAttacked(tr
 	{
 		fHeartPosHealth[i] = 0;
 	}
-	nHP = MAX_ENEMY_HP;
+
+	fDifficultyOffset = 1;
+
+	switch (GetGameDifficulty())
+	{
+	case DIF_NORMAL:
+		fDifficultyOffset = 1;
+		break;
+	case DIF_EASY:
+		fDifficultyOffset = 0.5f;
+		break;
+	case DIF_HARD:
+		fDifficultyOffset = 1.5f;
+		break;
+	default:
+		break;
+	}
+
+	nHP = MAX_ENEMY_HP* fDifficultyOffset;
 	nDeathFrameCount = 0;
 	nPlayerTouchFramesCount = 0;
 	nIdleWaitFramesCount = 0;
-	nMaxIdleWaitFrames = IDLE_WAIT_FRAMES;
-	fSpeed = ENEMY_SPEED;
+	nMaxIdleWaitFrames = IDLE_WAIT_FRAMES* fDifficultyOffset;
+	fSpeed = ENEMY_SPEED* fDifficultyOffset;
 	pAngrySign = new Object3D(GO_ANGRY);
 	pAngrySign->SetParent(this);
 	pAngrySign->SetPosition({ 50, 0, 0 });
@@ -737,14 +756,22 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 	{
 	case SLIDE: case UPPERCUT:
 		pCamera->SetShaking(8.0f, 7, 2);
+		VibrateXinput(65535 * 0.75f, 65535 * 0.75f, 35);
 		break;
 	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:case BUNBUN_FALL_ATK:
 		pCamera->SetShaking(10.0f, 7, 2);
+		VibrateXinput(65535, 65535, 45);
 		break;
 	default:
 		pCamera->SetShaking(6.0f, 7, 2);
-		if (pAttack && pAttack->nAttackID == 599)
+		if (pAttack && pAttack->nAttackID == 599) {
 			pCamera->SetShaking(10.0f, 14, 2);
+			VibrateXinput(65535, 65535, 45);
+		}
+		else {
+
+			VibrateXinput(65535 / 2, 65535 / 2, 30);
+		}
 		break;
 	}
 }
