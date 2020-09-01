@@ -50,6 +50,10 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 	{ L"data/SE/SE_DIZZY.wav", 0 },
 	{ L"data/SE/SE_DANGER.wav", 0 },
 	{ L"data/SE/SE_ENATTACK.wav", 0 },
+	{ L"data/SE/SE_DAMAGE.wav", 0 },
+	{ L"data/SE/SE_DOWNDASH.wav", 0 },
+	{ L"data/SE/SE_DEFAULT_PUNCHES.wav", 0 },
+	{ L"data/SE/SE_PLAYER_JUMP.wav", 0 },
 };
 
 //=============================================================================

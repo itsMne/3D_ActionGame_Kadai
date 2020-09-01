@@ -9,6 +9,7 @@
 #include "Texture.h"
 #include "Sound.h"
 #include "S_InGame3D.h"
+#include "RankManager.h"
 #include "Enemy.h"
 
 //*****************************************************************************
@@ -559,6 +560,7 @@ void Player3D::Jump()
 	nCancellingGravityFrames = 0;
 	pCurrentAttackPlaying = nullptr;
 	nState = PLAYER_JUMPING_UP_STATE;
+	PlaySoundGame(SOUND_LABEL_SE_JUMP);
 }
 
 void Player3D::LockingControl()
@@ -1490,6 +1492,12 @@ void Player3D::SwitchAttack(int nNextAttack)
 			if (pCurrentAttackPlaying->Animation != BASIC_CHAIN_A && pCurrentAttackPlaying->Animation != BASIC_CHAIN_B
 				&& pCurrentAttackPlaying->Animation != AIR_PUNCHA && pCurrentAttackPlaying->Animation != AIR_PUNCHB)
 				bFirstSetOfPunches = false;
+			if(pCurrentAttackPlaying && pCurrentAttackPlaying->Animation==SLIDE)
+				PlaySoundGame(SOUND_LABEL_SE_SLIDE);
+			else if(pCurrentAttackPlaying && pCurrentAttackPlaying->Animation == KNEEDASH)
+				PlaySoundGame(SOUND_LABEL_SE_SLIDE);
+			else if(pCurrentAttackPlaying)
+				PlaySoundGame(SOUND_LABEL_SE_DEFAULTPUNCH);
 			return;
 		}
 	}
@@ -1722,7 +1730,6 @@ void Player3D::ResetInputs()
 //*****************************************************************************
 void Player3D::AttackInputsControl()
 {
-
 	if (nState == PLAYER_ATTACKING_STATE) {
 		if(!(pCurrentAttackPlaying && pCurrentAttackPlaying->Animation==RED_HOT_KICK))
 			return;
@@ -1911,6 +1918,8 @@ void Player3D::Damage()
 	nState = PLAYER_DAMAGED_STATE; 
 	nHP--;
 	ActivateDamageEffect();
+	PlaySoundGame(SOUND_LABEL_SE_DAMAGE);
+	ResetRanks();
 }
 void Player3D::Damage(int dam)
 {
@@ -1919,6 +1928,8 @@ void Player3D::Damage(int dam)
 	nState = PLAYER_DAMAGED_STATE; 
 	nHP -= dam;
 	ActivateDamageEffect();
+	PlaySoundGame(SOUND_LABEL_SE_DAMAGE);
+	ResetRanks();
 }
 bool Player3D::IsPlayerDead()
 {

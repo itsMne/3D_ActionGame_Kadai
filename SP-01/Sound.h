@@ -28,6 +28,10 @@ typedef enum
 	SOUND_LABEL_SE_DIZZY,			// â£ÇÈSE
 	SOUND_LABEL_SE_DANGER,			// â£ÇÈSE
 	SOUND_LABEL_SE_ENATTACK,			// â£ÇÈSE
+	SOUND_LABEL_SE_DAMAGE,			// â£ÇÈSE
+	SOUND_LABEL_SE_SLIDE,			// â£ÇÈSE
+	SOUND_LABEL_SE_DEFAULTPUNCH,			// â£ÇÈSE
+	SOUND_LABEL_SE_JUMP,			// â£ÇÈSE
 	SOUND_LABEL_MAX,				// ìoò^êîÇÃé©ìÆê›íË
 } SOUND_LABEL;
 
