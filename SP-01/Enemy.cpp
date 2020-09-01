@@ -7,6 +7,7 @@
 #include "Player3D.h"
 #include "SceneManager.h"
 #include "RankManager.h"
+#include "Sound.h"
 
 #define SHOW_ENEMY_HITBOX true
 #define SHOW_SPECIFIC_PLAYER_HITBOX ENEMY_HB_ATTACK
@@ -176,6 +177,7 @@ void Enemy::Update()
 		if (Model->GetCurrentFrame() >= Model->GetEndFrameOfCurrentAnimation())
 		{
 			if (!pExp) {
+				PlaySoundGame(SOUND_LABEL_SE_ENEMYDEAD);
 				pExp = new CExplosion();
 				pExp->Init();
 				pExp->Start(Model->GetFbxModel(), GetModelWorld());
@@ -206,7 +208,7 @@ void Enemy::Update()
 	if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_ATTACK), GetHitboxEnemy(ENEMY_HB_BODY)) && nState != EN_STATE_DAMAGED && nState != EN_STATE_REDHOTKICKED) {
 		if (bIsDizzy && nDizzyWaitCountFrames>40)
 		{
-			
+			PlaySoundGame(SOUND_LABEL_SE_SETDIZZY);
 			Player->SetDizzyEnemy(this);
 			bIsDizzy = false;
 			nDizzynessFrames = 600;
@@ -225,7 +227,7 @@ void Enemy::Update()
 			if (bIsEnraged)
 				fEnrageMeterScoreOffset = 1.5f;
 			AddMoveToRankMeter(pPlayerAttack->nAttackID, pPlayerAttack->nRankMeterPower*fEnrageMeterScoreOffset);
-			CameraRumbleControl(pPlayerAttack->Animation);
+			
 			if ((Model->GetCurrentAnimation() == EN_ATTACK_1 || bIsEnraged) && (pPlayerAttack->Animation == BASIC_CHAIN_A || pPlayerAttack->Animation == BASIC_CHAIN_B
 				|| (pFloor && (pPlayerAttack->Animation == AIR_PUNCHA|| pPlayerAttack->Animation == AIR_PUNCHB || pPlayerAttack->Animation == SLIDE)))) {
 				nState = EN_ATTACKING;
@@ -238,11 +240,14 @@ void Enemy::Update()
 				if (bIsEnraged && Model->GetCurrentAnimation() == EN_ATTACK_1) {
 					nDizzyness = MAX_DIZZINESS;
 					bDizzyPush = true;
+					PlaySoundGame(SOUND_LABEL_SE_DIZZY);
 				}
 				InitialAttackedAnimation(pPlayerAttack->Animation);
 			}
 			Player->AddStamina(pPlayerAttack->nStaminaToAdd);
 		}
+		if(pPlayerAttack)
+			CameraRumbleControl(pPlayerAttack->Animation);
 		if (pPlayerAttack && pPlayerAttack->Animation == ROULETTE)
 			bFollowRoulette = true;
 		else 
@@ -262,6 +267,7 @@ void Enemy::Update()
 	if (nDizzyness == MAX_DIZZINESS && !bIsDizzy) {
 		bIsDizzy = true;
 		nDizzynessFrames = 600;
+		PlaySoundGame(SOUND_LABEL_SE_DIZZY);
 	}
 	if (bIsDizzy) {
 		nState = EN_STATE_DIZZY;
@@ -340,7 +346,7 @@ void Enemy::Update()
 			EnragedOffset = 1.5f;
 		Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed * EnragedOffset });
 		if (IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
-		{
+		{				
 			nState = EN_ATTACKING;
 			FaceActor(Player);
 		}
@@ -350,6 +356,8 @@ void Enemy::Update()
 		EnragedOffset = 1;
 		if (bIsEnraged)
 			EnragedOffset = 1.5f;
+		if(Model->GetCurrentAnimation()!=EN_ATTACK_1)
+			PlaySoundGame(SOUND_LABEL_SE_DANGER);
 		SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*0.8f* EnragedOffset);
 		if (Model->GetCurrentFrame() >= 1353)
 			nState = EN_STATE_IDLE;
@@ -358,6 +366,7 @@ void Enemy::Update()
 			EnragedOffset = 0.5f;
 		if (Model->GetCurrentFrame() >= 1299 && Model->GetCurrentFrame() <= 1322)
 		{
+			PlaySoundGame(SOUND_LABEL_SE_ENATTACK);
 			SetAnimation(EN_ATTACK_1, fEnemyAnimations[EN_ATTACK_1]*2* EnragedOffset);
 			if (!IsInCollision3D(Player->GetHitboxPlayer(PLAYER_HB_BODY), GetHitboxEnemy(ENEMY_HB_BODY)))
 				Translate({ -sinf(XM_PI + GetModel()->GetRotation().y) * fSpeed*4, 0, -cosf(XM_PI + GetModel()->GetRotation().y) * fSpeed*4 });
@@ -754,15 +763,25 @@ void Enemy::CameraRumbleControl(int nAttackAnim)
 	PLAYER_ATTACK_MOVE* pAttack = ((Player3D*)pPlayer)->GetCurrentAttack();
 	switch (nAttackAnim)
 	{
-	case SLIDE: case UPPERCUT:
+	case SLIDE: case UPPERCUT: case RED_HOT_KICK:
+		PlaySoundGame(SOUND_LABEL_SE_MEDIUMPUNCH);
 		pCamera->SetShaking(8.0f, 7, 2);
 		VibrateXinput(65535 * 0.75f, 65535 * 0.75f, 35);
 		break;
 	case BASIC_CHAIN_C: case AIR_PUNCHC: case HEADBUTT: case BACKDROP_KICK: case BASIC_CHAIN_B_KICKB_PUNCH: case BASIC_CHAIN_B_KICKC: case KICK_CHAIN_C:case BUNBUN_FALL_ATK:
+		PlaySoundGame(SOUND_LABEL_SE_BIGPUNCH);
 		pCamera->SetShaking(10.0f, 7, 2);
 		VibrateXinput(65535, 65535, 45);
 		break;
 	default:
+		if(nState==EN_ATTACKING)
+			PlaySoundGame(SOUND_LABEL_SE_INEFFECTIVEHIT);
+		else {
+			if (pAttack && pAttack->nAttackID == 599) 
+				PlaySoundGame(SOUND_LABEL_SE_BIGPUNCH);
+			else
+				PlaySoundGame(SOUND_LABEL_SE_PUNCH);
+		}
 		pCamera->SetShaking(6.0f, 7, 2);
 		if (pAttack && pAttack->nAttackID == 599) {
 			pCamera->SetShaking(10.0f, 14, 2);

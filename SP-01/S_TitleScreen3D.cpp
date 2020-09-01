@@ -1,6 +1,7 @@
 #include "S_TitleScreen3D.h"
 #include "InputManager.h"
 #include "SceneManager.h"
+#include "Sound.h"
 
 S_TitleScreen3D* pCurrentTitleScene = nullptr;
 S_TitleScreen3D::S_TitleScreen3D() :Scene3D(true)
@@ -20,6 +21,7 @@ void S_TitleScreen3D::Init()
 	UI_Title = new cUI(UI_MENU_MANAGER);
 	nMenuState = MENU_TITLE_SCREEN;
 	nCurrentMenuSelection = MENU_OPTION_GAMESTART;
+	PlaySoundGame(SOUND_LABEL_TITLE);
 }
 
 eSceneType S_TitleScreen3D::Update()
@@ -35,8 +37,12 @@ eSceneType S_TitleScreen3D::Update()
 		if (pObj) {
 			if (pObj->GetUVFrames().y >= 14)
 			{
-				if (GetInput(INPUT_JUMP) || GetInput(INPUT_LOCKON) || GetInput(INPUT_PAUSE))
+				if (GetInput(INPUT_JUMP) || GetInput(INPUT_LOCKON) || GetInput(INPUT_PAUSE)) {
 					nMenuState = MENU_DISPLAY;
+					StopSound();
+					PlaySoundGame(SOUND_LABEL_SE_SELECTION_A);
+					PlaySoundGame(SOUND_LABEL_MENU);
+				}
 			}
 		}
 		break;
@@ -57,7 +63,7 @@ eSceneType S_TitleScreen3D::Update()
 		}
 		if (nNewMenuSelection != nCurrentMenuSelection)
 		{
-			//sound
+			PlaySoundGame(SOUND_LABEL_SE_SELECTION_B);
 			VibrateXinput(65535/2, 65535/2, 20);
 			nCurrentMenuSelection = nNewMenuSelection;
 		}
@@ -67,6 +73,8 @@ eSceneType S_TitleScreen3D::Update()
 			{
 			case MENU_OPTION_GAMESTART:
 				VibrateXinput(65535, 65535, 35);
+				StopSound();
+				PlaySoundGame(SOUND_LABEL_SE_TRANSITION);
 				return SCENE_IN_GAME;
 				break;
 			case MENU_OPTION_GAMEEND:
@@ -74,6 +82,7 @@ eSceneType S_TitleScreen3D::Update()
 				EndCurrentGame();
 				break;
 			case MENU_OPTION_DIFFICULTY:
+				PlaySoundGame(SOUND_LABEL_SE_SELECTION_C);
 				VibrateXinput(65535/2, 65535/2, 30);
 				ChangeDifficulty();
 				break;

@@ -98,7 +98,6 @@ void ChangeScene()
 //*****************************************************************************
 void DrawScene()
 {
-	
 	if (pCurrentScene)
 		pCurrentScene->Draw();
 	SetCullMode(CULLMODE_CCW);

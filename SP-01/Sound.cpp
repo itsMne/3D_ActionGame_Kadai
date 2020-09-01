@@ -5,7 +5,7 @@
 #endif
 
 float fMasterVolume = 0.35f;
-
+int nCurrentBGM = -1;
 //*****************************************************************************
 // パラメータ構造体定義
 //*****************************************************************************
@@ -37,21 +37,19 @@ SOUNDPARAM g_aParam[SOUND_LABEL_MAX] =
 {
 	{L"data/BGM/Title.wav", -1},
 	{L"data/BGM/Menu.wav", -1},
-	{L"data/BGM/Tutorial.wav", -1},
-	{L"data/BGM/ScoreAttack.wav", -1},
-	{L"data/BGM/GameOver.wav", -1},
-	{L"data/BGM/Results.wav", -1},
 	{ L"data/SE/SE_HIT.wav", 0 },
+	{ L"data/SE/SE_SELA.wav", 0 },
+	{ L"data/SE/SE_SELB.wav", 0 },
+	{ L"data/SE/SE_SELC.wav", 0 },
+	{ L"data/SE/SE_TRANSITION.wav", 0 },
+	{ L"data/SE/SE_MEDIUMHIT.wav", 0 },
 	{ L"data/SE/SE_BIGHIT.wav", 0 },
-	{ L"data/SE/SE_TRANSITIONSLASH.wav", 0 },
-	{ L"data/SE/SE_PASTE_STICKER.wav", 0 },
-	{ L"data/SE/SE_REMOVE_STICKER.wav", 0 },
-	{ L"data/SE/SE_MIRRORBREAK.wav", 0 },
-	{ L"data/SE/SE_MISSA.wav", 0 },
-	{ L"data/SE/SE_MISSB.wav", 0 },
-	{ L"data/SE/SE_SWORD.wav", 0 },
-	{ L"data/SE/SE_BIGSWORD.wav", 0 },
-	{ L"data/SE/SE_PLAYER_DAMAGED.wav", 0 },
+	{ L"data/SE/SE_INEFFECTIVEHIT.wav", 0 },
+	{ L"data/SE/SE_SETDIZZY.wav", 0 },
+	{ L"data/SE/SE_ENEMY_DEAD.wav", 0 },
+	{ L"data/SE/SE_DIZZY.wav", 0 },
+	{ L"data/SE/SE_DANGER.wav", 0 },
+	{ L"data/SE/SE_ENATTACK.wav", 0 },
 };
 
 //=============================================================================
@@ -239,6 +237,11 @@ void UninitSound(void)
 //=============================================================================
 HRESULT PlaySoundGame(SOUND_LABEL label)
 {
+	//if (label <= SOUND_LABEL_SE_PUNCH)
+	//{
+	//	if (nCurrentBGM == label)
+	//		return S_OK;
+	//}
 #ifdef USE_SOUND
 	XAUDIO2_VOICE_STATE xa2state;
 	XAUDIO2_BUFFER buffer;
